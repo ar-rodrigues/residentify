@@ -1,0 +1,365 @@
+# Project Goals
+
+## Overview
+
+A building access management system where organizations can manage residents, security personnel, and visitor access through QR codes.
+
+## Core Features
+
+### User Registration & Organization Management
+
+- Users can register and create an organization
+- Organization creators automatically receive the **Admin** role
+- Admins can invite new users to their organization and assign roles
+
+## Role Architecture
+
+The system uses a **two-tier role system**:
+
+### App-Level Roles
+
+- **Purpose**: Control access to application-wide features
+- **Scope**: Applies to the entire application
+- **Examples**: `user`, `super_admin` (if needed)
+- **Storage**: `profiles.role_id` references `roles.id`
+- **Note**: A user has **one** app-level role
+
+### Organization-Level Roles
+
+- **Purpose**: Control access within specific organizations
+- **Scope**: Applies only within a specific organization
+- **Examples**: `admin`, `resident`, `security_personnel`
+- **Storage**: `organization_members.role` (enum or reference)
+- **Note**: A user can have **different roles in different organizations**
+
+### Multi-Organization Support
+
+- Users can belong to **multiple organizations**
+- Each organization membership has its own role
+- A user can be an Admin in Organization A and a Resident in Organization B
+- When accessing organization-specific features, the system checks the user's role **in that specific organization**
+
+## User Roles
+
+### App-Level Roles
+
+#### 1. User (Default)
+
+- **Who**: All registered users
+- **Permissions**:
+  - Access the application
+  - Create organizations
+  - Join organizations via invitation
+  - Manage own profile
+
+### Organization-Level Roles
+
+#### 1. Admin (Organization-Level)
+
+- **Who**: Organization creators and assigned admins
+- **Scope**: Specific organization only
+- **Permissions**:
+  - Manage organization settings
+  - Invite users to the organization
+  - Assign/change roles to organization members
+  - Remove members from organization
+  - Full access to organization management
+  - View all access logs for the organization
+
+#### 2. Resident (Organization-Level)
+
+- **Who**: People living in an apartment building
+- **Scope**: Specific organization only
+- **Permissions**:
+  - Invite external visitors (people outside the app)
+  - Generate QR codes for external visitors
+  - View their own visitor history (QR codes they generated)
+  - View access logs for their own QR codes
+
+#### 3. Security Personnel (Organization-Level)
+
+- **Who**: People responsible for securing the building entrance
+- **Scope**: Specific organization only
+- **Permissions**:
+  - Scan QR codes of all users (residents, external visitors, etc.)
+  - Register entries and exits
+  - Monitor who enters and leaves the building
+  - View all access logs for the organization
+  - View visitor information on scan
+
+#### 4. External Visitor
+
+- **Who**: People invited by residents (not registered in the app)
+- **Access**:
+  - Receive one-time QR codes from residents
+  - Use QR code to enter the building
+  - QR code registers their entrance automatically
+  - **Note**: Not a role, but a visitor type tracked via QR codes
+
+## User Flows
+
+### Flow 1: Organization Setup
+
+1. User registers in the system → receives app-level role "user"
+2. User creates an organization → automatically becomes **Admin** in that organization (organization-level role)
+3. Admin invites users (Residents, Security Personnel) and assigns organization-level roles
+4. Invited users can accept and join the organization with their assigned role
+5. Users can belong to multiple organizations with different roles in each
+
+### Flow 2: Resident Invites Visitor
+
+1. Resident generates a QR code for an external visitor
+2. External visitor receives the one-time QR code
+3. Visitor presents QR code at entrance
+
+### Flow 3: Access Control
+
+1. Security Personnel scans QR code at entrance
+2. System validates QR code and registers entry/exit
+3. Access log is recorded with timestamp and visitor information
+
+## Technical Requirements
+
+- QR code generation for external visitors (one-time use)
+- QR code scanning capability for Security Personnel
+- Entry/exit logging system
+- Two-tier role-based access control (RBAC):
+  - App-level roles (user profile)
+  - Organization-level roles (organization membership)
+- Organization-based multi-tenancy
+- Multi-organization support (users can belong to multiple organizations)
+- Organization context switching (users select which organization they're working with)
+
+## Implementation Features
+
+### Phase 1: Foundation & Authentication
+
+#### 1.1 User Authentication
+
+- [x] User registration (email, password, name, date_of_birth)
+- [x] User login/logout
+- [x] Password reset functionality
+- [ ] Email verification
+- [x] Session management
+- [x] Protected routes middleware
+
+#### 1.2 Database Schema
+
+- [x] Users table (via Supabase auth.users)
+- [x] Profiles table (id, first_name, last_name, date_of_birth, role_id, created_at, updated_at)
+- [x] App-level roles table (id, name, description, created_at, updated_at)
+- [x] Organizations table (id, name, created_by, created_at, updated_at)
+- [x] Organization members table (id, user_id, organization_id, organization_role, invited_by, joined_at, created_at, updated_at)
+- [x] Organization roles enum/table (admin, resident, security_personnel) - stored in organization_members.organization_role
+- [x] QR codes table (id, code, organization_id, created_by, visitor_name, visitor_email, visitor_phone, is_used, expires_at, created_at)
+- [x] Access logs table (id, qr_code_id, scanned_by, organization_id, entry_type, timestamp)
+- [x] Organization invitations table (id, organization_id, email, token, organization_role, invited_by, status, expires_at, created_at)
+
+### Phase 2: Organization Management
+
+#### 2.1 Organization Creation
+
+- [ ] Create organization form/page
+- [ ] Organization name validation
+- [ ] Auto-assign organization-level admin role to creator
+- [ ] Organization dashboard/overview
+- [ ] Organization selector/switcher (for users in multiple organizations)
+- [ ] Set active organization context
+- [ ] Store active organization in session/state
+
+#### 2.4 Organization Context Management
+
+- [ ] Organization context provider/hook
+- [ ] Get user's organizations list
+- [ ] Get user's role in specific organization
+- [ ] Switch active organization
+- [ ] Persist active organization selection
+- [ ] Validate user has access to selected organization
+- [ ] Display organization name in header/navigation
+
+#### 2.2 Organization Settings
+
+- [ ] View organization details
+- [ ] Edit organization name
+- [ ] View organization members list
+- [ ] Delete organization (admin only)
+
+#### 2.3 User Invitations
+
+- [ ] Send invitation email to new users
+- [ ] Invitation link with token
+- [ ] Accept invitation flow
+- [ ] Assign organization role during invitation (admin, resident, security_personnel)
+- [ ] Resend invitation
+- [ ] Cancel pending invitation
+- [ ] Invitation expiration handling
+- [ ] Prevent duplicate invitations (same user + organization)
+
+### Phase 3: Role Management
+
+#### 3.1 Organization Role Assignment
+
+- [ ] Assign organization role to member during invitation (admin only)
+- [ ] Change member's organization role (admin only)
+- [ ] Remove member from organization (admin only)
+- [ ] Role-based UI visibility (based on organization role)
+- [ ] Validate user has required organization role for actions
+
+#### 3.2 Role Permissions
+
+- [ ] Permission middleware for API routes (check organization role)
+- [ ] Permission checks in frontend components (check organization role)
+- [ ] Organization context selection (user selects active organization)
+- [ ] Admin-only features protection (organization-level)
+- [ ] Resident-only features protection (organization-level)
+- [ ] Security Personnel-only features protection (organization-level)
+- [ ] Helper functions to check user's role in specific organization
+
+### Phase 4: QR Code System
+
+#### 4.1 QR Code Generation (Resident)
+
+- [ ] Generate QR code form (visitor name, email, phone, expiration date)
+- [ ] QR code generation API endpoint
+- [ ] QR code display/download
+- [ ] Share QR code (email, SMS, copy link)
+- [ ] QR code expiration validation
+
+#### 4.2 QR Code Management
+
+- [ ] View all generated QR codes (resident)
+- [ ] View QR code details
+- [ ] Revoke unused QR code
+- [ ] QR code usage status (used/unused/expired)
+- [ ] QR code history/filtering
+
+#### 4.3 QR Code Validation
+
+- [ ] QR code validation API
+- [ ] Check if QR code is valid (not used, not expired)
+- [ ] Mark QR code as used after scan
+- [ ] Return visitor information on validation
+
+### Phase 5: Access Control & Scanning
+
+#### 5.1 QR Code Scanner (Security Personnel)
+
+- [ ] Camera-based QR code scanner component
+- [ ] Manual QR code input (fallback)
+- [ ] Scanner UI for security personnel
+- [ ] Real-time validation feedback
+
+#### 5.2 Entry/Exit Registration
+
+- [ ] Register entry (scan QR code)
+- [ ] Register exit (scan QR code)
+- [ ] Entry/exit toggle functionality
+- [ ] Success/error notifications
+- [ ] Visitor information display on scan
+
+#### 5.3 Access Logs
+
+- [ ] Create access log entry on scan
+- [ ] Store entry/exit type
+- [ ] Link to QR code and scanner user
+- [ ] Timestamp recording
+
+### Phase 6: Dashboard & Views
+
+#### 6.1 Admin Dashboard
+
+- [ ] Organization overview statistics
+- [ ] Recent activity feed
+- [ ] Member management interface
+- [ ] Access logs overview
+- [ ] Pending invitations list
+
+#### 6.2 Resident Dashboard
+
+- [ ] Quick QR code generation
+- [ ] Recent QR codes list
+- [ ] Visitor history (QR codes generated)
+- [ ] Active/expired QR codes status
+
+#### 6.3 Security Personnel Dashboard
+
+- [ ] Quick scanner access
+- [ ] Recent scans list
+- [ ] Today's entries/exits summary
+- [ ] Access logs view with filters
+
+#### 6.4 Access Logs View
+
+- [ ] View all access logs (security personnel, admin)
+- [ ] Filter by date range
+- [ ] Filter by entry/exit type
+- [ ] Filter by visitor name
+- [ ] Export logs (CSV/PDF)
+- [ ] Search functionality
+
+### Phase 7: External Visitor Experience
+
+#### 7.1 QR Code Reception
+
+- [ ] Email/SMS with QR code image
+- [ ] QR code landing page (public)
+- [ ] QR code download instructions
+- [ ] QR code expiration information
+
+#### 7.2 Visitor Information
+
+- [ ] Display visitor name on QR code
+- [ ] QR code validity status
+- [ ] Instructions for use
+
+### Phase 8: Additional Features
+
+#### 8.1 Notifications
+
+- [ ] Email notifications for invitations
+- [ ] Email notifications for QR code generation
+- [ ] In-app notifications for access events
+- [ ] Notification preferences
+
+#### 8.2 Profile Management
+
+- [x] User profile page
+- [x] Edit profile information (first_name, last_name, date_of_birth)
+- [x] Change password
+- [x] Change email
+- [ ] View organization memberships
+- [ ] Switch between organizations (organization selector)
+- [ ] Leave organization
+
+#### 8.3 Security & Validation
+
+- [ ] QR code encryption/security
+- [ ] Rate limiting on QR code generation
+- [ ] Rate limiting on QR code scans
+- [ ] Input validation and sanitization
+- [ ] Error handling and logging
+
+#### 8.4 Mobile Responsiveness
+
+- [ ] Mobile-friendly scanner
+- [ ] Responsive dashboards
+- [ ] Mobile QR code generation
+- [ ] Touch-optimized UI
+
+### Phase 9: Testing & Polish
+
+#### 9.1 Testing
+
+- [ ] Unit tests for core functions
+- [ ] Integration tests for API endpoints
+- [ ] E2E tests for critical flows
+- [ ] QR code validation tests
+- [ ] Role permission tests
+
+#### 9.2 UI/UX Improvements
+
+- [ ] Loading states
+- [ ] Error messages
+- [ ] Success confirmations
+- [ ] Empty states
+- [ ] Accessibility improvements
