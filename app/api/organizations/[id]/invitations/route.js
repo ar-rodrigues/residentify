@@ -1,0 +1,285 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+import crypto from "crypto";
+import { sendInvitationEmail } from "@/utils/mailer/mailer";
+import { getBaseUrlFromHeaders } from "@/utils/config/app";
+
+/**
+ * POST /api/organizations/[id]/invitations
+ * Create a new invitation for an organization (admin only)
+ */
+export async function POST(request, { params }) {
+  try {
+    const supabase = await createClient();
+    const { id } = await params;
+
+    // Authenticate user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "No estás autenticado. Por favor, inicia sesión.",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Validate organization ID
+    if (!id || typeof id !== "string") {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "ID de organización inválido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Parse request body
+    const body = await request.json();
+    const { first_name, last_name, email, organization_role_id, description } =
+      body;
+
+    // Validate required fields
+    if (!first_name || typeof first_name !== "string" || !first_name.trim()) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El nombre es requerido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!last_name || typeof last_name !== "string" || !last_name.trim()) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El apellido es requerido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El email es requerido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El formato del email no es válido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!organization_role_id || typeof organization_role_id !== "number") {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El rol de organización es requerido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is admin of the organization
+    const { data: memberCheck, error: memberError } = await supabase
+      .from("organization_members")
+      .select(
+        `
+        id,
+        organization_roles!inner(
+          id,
+          name
+        )
+      `
+      )
+      .eq("organization_id", id)
+      .eq("user_id", user.id)
+      .eq("organization_roles.name", "admin")
+      .single();
+
+    if (memberError || !memberCheck) {
+      return NextResponse.json(
+        {
+          error: true,
+          message:
+            "No tienes permisos para invitar usuarios. Solo los administradores pueden invitar usuarios.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Verify organization exists
+    const { data: organization, error: orgError } = await supabase
+      .from("organizations")
+      .select("id, name")
+      .eq("id", id)
+      .single();
+
+    if (orgError || !organization) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "Organización no encontrada.",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Verify organization role exists
+    const { data: orgRole, error: roleError } = await supabase
+      .from("organization_roles")
+      .select("id, name, description")
+      .eq("id", organization_role_id)
+      .single();
+
+    if (roleError || !orgRole) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "El rol de organización especificado no existe.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Generate secure token
+    const token = crypto.randomBytes(32).toString("base64url");
+
+    // Set expiration date (7 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    // Create invitation record using RPC function to bypass RLS issues
+    // The function handles duplicate checking and creation atomically
+    const { data: invitationData, error: inviteError } = await supabase.rpc(
+      "create_organization_invitation",
+      {
+        p_organization_id: id,
+        p_email: email.trim(),
+        p_token: token,
+        p_organization_role_id: organization_role_id,
+        p_invited_by: user.id,
+        p_expires_at: expiresAt.toISOString(),
+        p_first_name: first_name.trim(),
+        p_last_name: last_name.trim(),
+        p_description: description?.trim() || null,
+      }
+    );
+
+    // The RPC function returns an array, get the first result
+    const invitation =
+      invitationData && invitationData.length > 0 ? invitationData[0] : null;
+
+    if (inviteError) {
+      console.error("Error creating invitation:", inviteError);
+
+      // Handle duplicate invitation error from RPC function
+      if (
+        inviteError.code === "23505" ||
+        inviteError.message?.includes("Ya existe")
+      ) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "Ya existe una invitación pendiente para este email en esta organización.",
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: true,
+          message:
+            inviteError.message ||
+            "Error al crear la invitación. Por favor, intenta nuevamente.",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!invitation) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "No se pudo crear la invitación.",
+        },
+        { status: 500 }
+      );
+    }
+
+    // Get inviter's name
+    const { data: inviterProfile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", user.id)
+      .single();
+
+    const inviterName = inviterProfile
+      ? `${inviterProfile.first_name} ${inviterProfile.last_name}`
+      : "Administrador";
+
+    // Get base URL for invitation link
+    const baseUrl = await getBaseUrlFromHeaders();
+    const invitationLink = `${baseUrl}/invitations/${token}`;
+
+    // Send invitation email (non-blocking - don't fail if email fails)
+    try {
+      await sendInvitationEmail(
+        email.trim(),
+        first_name.trim(),
+        last_name.trim(),
+        organization.name,
+        orgRole.name,
+        inviterName,
+        invitationLink
+      );
+      console.log("Invitation email sent successfully to:", email);
+    } catch (emailError) {
+      // Log the error but don't fail the invitation creation
+      console.error("Error sending invitation email:", {
+        email,
+        error: emailError.message,
+        stack: emailError.stack,
+      });
+      // Continue - invitation is created even if email fails
+    }
+
+    return NextResponse.json(
+      {
+        error: false,
+        data: invitation,
+        message: "Invitación creada exitosamente.",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Unexpected error creating invitation:", error);
+    return NextResponse.json(
+      {
+        error: true,
+        message: "Error inesperado al crear la invitación.",
+      },
+      { status: 500 }
+    );
+  }
+}

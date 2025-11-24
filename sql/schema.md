@@ -18,6 +18,9 @@
 | organization_invitations | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | organization_invitations | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | organization_invitations | organization_role_id | integer                  | NO          | null                         | false          | organization_roles    | id                     |
+| organization_invitations | first_name           | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | last_name            | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | description          | text                     | YES         | null                         | false          | null                  | null                   |
 | organization_members     | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
 | organization_members     | user_id              | uuid                     | NO          | null                         | false          | null                  | null                   |
 | organization_members     | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
@@ -58,7 +61,6 @@
 | roles                    | description          | text                     | YES         | null                         | false          | null                  | null                   |
 | roles                    | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | roles                    | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-
 
 ## RLS Policies
 
@@ -153,3 +155,355 @@
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text))))    | null                                                                                                                                                                                                                                                                                                                                                                    |
 | public     | roles                    | Everyone can read roles                                      | PERMISSIVE | {public} | SELECT | true                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+
+
+### Supabase Functions
+
+| routine_schema | routine_name                   | routine_type | return_type | security_type | routine_definition | function_arguments | function_result | language | volatility | is_strict | is_security_definer |
+| -------------- | ------------------------------ | ------------ | ----------- | ------------- | ------------------ | ------------------ | --------------- | -------- | ---------- | --------- | ------------------- |
+| public         | accept_organization_invitation | FUNCTION     | record      | DEFINER       |
+
+DECLARE
+v_invitation RECORD;
+v_member_id UUID;
+v_existing_member UUID;
+BEGIN
+-- Fetch and validate the invitation
+SELECT
+oi.id,
+oi.organization_id,
+oi.organization_role_id,
+oi.invited_by,
+oi.status,
+oi.expires_at,
+oi.email
+INTO v_invitation
+FROM public.organization_invitations oi
+WHERE oi.token = p_token
+LIMIT 1;
+
+-- Check if invitation exists
+IF v_invitation.id IS NULL THEN
+RAISE EXCEPTION 'Invitación no encontrada o token inválido.'
+USING ERRCODE = 'P0001';
+END IF;
+
+-- Check if invitation is expired
+IF v_invitation.expires_at < NOW() THEN
+RAISE EXCEPTION 'Esta invitación ha expirado.'
+USING ERRCODE = 'P0002';
+END IF;
+
+-- Check if invitation is still pending
+IF v_invitation.status != 'pending' THEN
+RAISE EXCEPTION 'Esta invitación ya ha sido aceptada o cancelada.'
+USING ERRCODE = 'P0003';
+END IF;
+
+-- Check if user is already a member
+SELECT om.id INTO v_existing_member
+FROM public.organization_members om
+WHERE om.organization_id = v_invitation.organization_id
+AND om.user_id = p_user_id
+LIMIT 1;
+
+IF v_existing_member IS NOT NULL THEN
+RAISE EXCEPTION 'Ya eres miembro de esta organización.'
+USING ERRCODE = '23505';
+END IF;
+
+-- Add user to organization
+INSERT INTO public.organization_members (
+user_id,
+organization_id,
+organization_role_id,
+invited_by,
+joined_at
+)
+VALUES (
+p_user_id,
+v_invitation.organization_id,
+v_invitation.organization_role_id,
+v_invitation.invited_by,
+NOW()
+)
+RETURNING id INTO v_member_id;
+
+-- Update invitation status to accepted
+UPDATE public.organization_invitations
+SET
+status = 'accepted',
+updated_at = NOW()
+WHERE id = v_invitation.id;
+
+-- Return the created member record
+RETURN QUERY
+SELECT
+om.id,
+om.user_id,
+om.organization_id,
+om.organization_role_id,
+om.joined_at
+FROM public.organization_members om
+WHERE om.id = v_member_id;
+END;
+| p_token text, p_user_id uuid | TABLE(member_id uuid, user_id uuid, organization_id uuid, organization_role_id integer, joined_at timestamp with time zone) | plpgsql | VOLATILE | false | true |
+| public | check_user_exists_by_email | FUNCTION | boolean | DEFINER |
+DECLARE
+v_user_exists BOOLEAN;
+BEGIN
+-- Check if user exists in auth.users
+SELECT EXISTS(
+SELECT 1
+FROM auth.users
+WHERE email = LOWER(TRIM(p_email))
+) INTO v_user_exists;
+
+RETURN v_user_exists;
+END;
+| p_email text | boolean | plpgsql | VOLATILE | false | true |
+| public | create_organization_invitation | FUNCTION | record | DEFINER |
+DECLARE
+v_invitation_id UUID;
+v_existing_invitation UUID;
+BEGIN
+-- Check for duplicate pending invitations
+-- Use table alias to avoid ambiguity with RETURNS TABLE id column
+SELECT oi.id INTO v_existing_invitation
+FROM public.organization_invitations oi
+WHERE oi.organization_id = p_organization_id
+AND oi.email = LOWER(TRIM(p_email))
+AND oi.status = 'pending'
+LIMIT 1;
+
+IF v_existing_invitation IS NOT NULL THEN
+RAISE EXCEPTION 'Ya existe una invitación pendiente para este email en esta organización.'
+USING ERRCODE = '23505';
+END IF;
+
+-- Create the invitation
+INSERT INTO public.organization_invitations (
+organization_id,
+email,
+token,
+organization_role_id,
+invited_by,
+status,
+expires_at,
+first_name,
+last_name,
+description
+)
+VALUES (
+p_organization_id,
+LOWER(TRIM(p_email)),
+p_token,
+p_organization_role_id,
+p_invited_by,
+'pending',
+p_expires_at,
+TRIM(p_first_name),
+TRIM(p_last_name),
+CASE WHEN p_description IS NOT NULL THEN TRIM(p_description) ELSE NULL END
+)
+RETURNING organization_invitations.id INTO v_invitation_id;
+
+-- Return the created invitation
+RETURN QUERY
+SELECT
+oi.id,
+oi.organization_id,
+oi.email,
+oi.token,
+oi.organization_role_id,
+oi.invited_by,
+oi.status::TEXT,
+oi.expires_at,
+oi.first_name,
+oi.last_name,
+oi.description,
+oi.created_at,
+oi.updated_at
+FROM public.organization_invitations oi
+WHERE oi.id = v_invitation_id;
+END;
+| p_organization_id uuid, p_email text, p_token text, p_organization_role_id integer, p_invited_by uuid, p_expires_at timestamp with time zone, p_first_name text, p_last_name text, p_description text | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, created_at timestamp with time zone, updated_at timestamp with time zone) | plpgsql | VOLATILE | false | true |
+| public | create_organization_with_admin | FUNCTION | record | DEFINER |
+DECLARE
+new_org_id UUID;
+admin_role_id INT4;
+new_member_id UUID;
+BEGIN
+-- Get admin role ID
+SELECT id INTO admin_role_id
+FROM public.organization_roles
+WHERE name = 'admin'
+LIMIT 1;
+
+    IF admin_role_id IS NULL THEN
+        RAISE EXCEPTION 'Admin role not found in organization_roles table';
+    END IF;
+
+    -- Create organization
+    INSERT INTO public.organizations (name, created_by)
+    VALUES (org_name, creator_user_id)
+    RETURNING id INTO new_org_id;
+
+    -- Add creator as admin member
+    INSERT INTO public.organization_members (user_id, organization_id, organization_role_id)
+    VALUES (creator_user_id, new_org_id, admin_role_id)
+    RETURNING id INTO new_member_id;
+
+    -- Return organization and member data
+    RETURN QUERY
+    SELECT
+        o.id,
+        o.name,
+        o.created_by,
+        o.created_at,
+        om.id,
+        om.organization_role_id,
+        org_role.name
+    FROM public.organizations o
+    JOIN public.organization_members om ON om.organization_id = o.id
+    JOIN public.organization_roles org_role ON org_role.id = om.organization_role_id
+    WHERE o.id = new_org_id
+    AND om.id = new_member_id;
+
+END;
+| org_name text, creator_user_id uuid | TABLE(organization_id uuid, organization_name text, created_by uuid, created_at timestamp with time zone, member_id uuid, member_role_id integer, member_role_name text) | plpgsql | VOLATILE | false | true |
+| public | create_user_profile | FUNCTION | void | DEFINER |
+BEGIN
+INSERT INTO public.profiles (
+id,
+first_name,
+last_name,
+date_of_birth,
+role_id
+)
+VALUES (
+p_user_id,
+p_first_name,
+p_last_name,
+p_date_of_birth,
+p_role_id
+)
+ON CONFLICT (id) DO NOTHING;
+END;
+| p_user_id uuid, p_first_name text, p_last_name text, p_date_of_birth date, p_role_id uuid | void | plpgsql | VOLATILE | false | true |
+| public | get_invitation_by_token | FUNCTION | record | DEFINER |
+BEGIN
+RETURN QUERY
+SELECT
+oi.id,
+oi.email,
+oi.first_name,
+oi.last_name,
+oi.description,
+oi.status::TEXT,
+oi.expires_at,
+oi.created_at,
+oi.organization_id,
+oi.organization_role_id,
+oi.invited_by,
+o.name AS organization_name,
+or_role.id AS role_id,
+or_role.name AS role_name,
+or_role.description AS role_description
+FROM public.organization_invitations oi
+INNER JOIN public.organizations o ON o.id = oi.organization_id
+INNER JOIN public.organization_roles or_role ON or_role.id = oi.organization_role_id
+WHERE oi.token = p_token;
+END;
+| p_token text | TABLE(id uuid, email text, first_name text, last_name text, description text, status text, expires_at timestamp with time zone, created_at timestamp with time zone, organization_id uuid, organization_role_id integer, invited_by uuid, organization_name text, role_id integer, role_name text, role_description text) | plpgsql | VOLATILE | false | true |
+| public | get_user_name | FUNCTION | text | DEFINER |
+DECLARE
+v_first_name TEXT;
+v_last_name TEXT;
+BEGIN
+SELECT first_name, last_name
+INTO v_first_name, v_last_name
+FROM public.profiles
+WHERE id = p_user_id;
+
+    IF v_first_name IS NULL AND v_last_name IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN TRIM(COALESCE(v_first_name, '') || ' ' || COALESCE(v_last_name, ''));
+
+END;
+| p_user_id uuid | text | plpgsql | STABLE | false | true |
+| public | handle_new_user | FUNCTION | trigger | DEFINER |
+DECLARE
+default_role_id UUID;
+BEGIN
+-- Get the default "user" role ID
+SELECT id INTO default_role_id
+FROM public.roles
+WHERE name = 'user'
+LIMIT 1;
+
+    -- If role doesn't exist, create it
+    IF default_role_id IS NULL THEN
+        INSERT INTO public.roles (name, description)
+        VALUES ('user', 'Default user role')
+        RETURNING id INTO default_role_id;
+    END IF;
+
+    -- Note: Profile will be created by the signup action with user data
+    -- This trigger is here for reference but profile creation happens
+    -- in the application code to include first_name, last_name, date_of_birth
+
+    RETURN NEW;
+
+END;
+| | trigger | plpgsql | VOLATILE | false | true |
+| public | is_user_organization_member | FUNCTION | boolean | DEFINER |
+BEGIN
+RETURN EXISTS (
+SELECT 1
+FROM public.organization_members
+WHERE user_id = p_user_id
+AND organization_id = p_organization_id
+);
+END;
+| p_user_id uuid, p_organization_id uuid | boolean | plpgsql | STABLE | false | true |
+| public | set_default_role_id | FUNCTION | trigger | DEFINER |
+DECLARE
+default_role_id UUID;
+BEGIN
+-- If role_id is not provided, set it to the default "user" role
+IF NEW.role_id IS NULL THEN
+-- Get the default "user" role ID
+SELECT id INTO default_role_id
+FROM public.roles
+WHERE name = 'user'
+LIMIT 1;
+
+        -- If role doesn't exist, create it
+        IF default_role_id IS NULL THEN
+            INSERT INTO public.roles (name, description)
+            VALUES ('user', 'Default user role')
+            RETURNING id INTO default_role_id;
+        END IF;
+
+        NEW.role_id := default_role_id;
+    END IF;
+
+    RETURN NEW;
+
+END;
+| | trigger | plpgsql | VOLATILE | false | true |
+| public | update_updated_at_column | FUNCTION | trigger | INVOKER |
+BEGIN
+NEW.updated_at = NOW();
+RETURN NEW;
+END;
+| | trigger | plpgsql | VOLATILE | false | false |
+| public | update_updated_at_column | FUNCTION | trigger | INVOKER |
+BEGIN
+NEW.updated_at = NOW();
+RETURN NEW;
+END;
+| | trigger | plpgsql | VOLATILE | false | false |

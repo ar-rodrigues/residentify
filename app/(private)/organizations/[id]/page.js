@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { RiBuildingLine, RiEditLine, RiCalendarLine, RiUserLine } from "react-icons/ri";
+import {
+  RiBuildingLine,
+  RiEditLine,
+  RiCalendarLine,
+  RiUserLine,
+  RiUserAddLine,
+} from "react-icons/ri";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { Card, Typography, Space, Spin, Alert } from "antd";
 import Button from "@/components/ui/Button";
@@ -14,7 +20,12 @@ export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { id } = params;
-  const { getOrganization, data: organization, loading, error } = useOrganizations();
+  const {
+    getOrganization,
+    data: organization,
+    loading,
+    error,
+  } = useOrganizations();
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
@@ -104,14 +115,24 @@ export default function OrganizationDetailPage() {
                   </div>
                 </div>
                 {organization.isAdmin && (
-                  <Button
-                    type="primary"
-                    icon={<RiEditLine />}
-                    onClick={handleEdit}
-                    size="large"
-                  >
-                    Editar
-                  </Button>
+                  <Space>
+                    <Button
+                      type="default"
+                      icon={<RiUserAddLine />}
+                      onClick={() => router.push(`/organizations/${id}/invite`)}
+                      size="large"
+                    >
+                      Invitar Usuario
+                    </Button>
+                    <Button
+                      type="primary"
+                      icon={<RiEditLine />}
+                      onClick={handleEdit}
+                      size="large"
+                    >
+                      Editar
+                    </Button>
+                  </Space>
                 )}
               </div>
 
@@ -176,4 +197,3 @@ export default function OrganizationDetailPage() {
     </div>
   );
 }
-

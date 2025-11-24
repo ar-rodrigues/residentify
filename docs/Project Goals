@@ -157,6 +157,8 @@ The system uses a **two-tier role system**:
 - [x] Database function: `create_organization_with_admin` - atomically creates organization and adds creator as admin
 - [x] Database function: `get_user_name` - gets user name bypassing RLS for organization creator display
 - [x] Database function: `is_user_organization_member` - checks membership without RLS recursion
+- [x] Database function: `create_organization_invitation` - atomically creates invitation with duplicate checking
+- [x] Database function: `get_invitation_by_token` - gets invitation by token bypassing RLS for public access
 
 ### Phase 2: Organization Management
 
@@ -165,7 +167,14 @@ The system uses a **two-tier role system**:
 - [x] API route: `POST /api/organizations` - Create organization
 - [x] API route: `GET /api/organizations/[id]` - Get organization details
 - [x] API route: `PUT /api/organizations/[id]` - Update organization (admin only)
+- [x] API route: `POST /api/organizations/[id]/invitations` - Create invitation (admin only)
+- [x] API route: `GET /api/organization-roles` - Get all organization roles
+- [x] API route: `GET /api/invitations/[token]` - Get invitation by token (public)
+- [x] API route: `POST /api/invitations/[token]/accept` - Accept invitation (new user registration)
+- [x] API route: `POST /api/invitations/[token]/accept-logged-in` - Accept invitation (logged-in user)
+- [x] API route: `GET /api/invitations/[token]/check-email` - Check email status for invitation
 - [x] Custom hook: `useOrganizations` - Provides organization CRUD operations and state management
+- [x] Custom hook: `useInvitations` - Provides invitation operations (create, get, accept, check email)
 
 #### 2.1 Organization Creation
 
@@ -173,6 +182,7 @@ The system uses a **two-tier role system**:
 - [x] Organization name validation (min 2, max 100 characters, required)
 - [x] Auto-assign organization-level admin role to creator (via `create_organization_with_admin` function)
 - [x] Organization detail page/view
+- [x] Edit organization page (`/organizations/[id]/edit`)
 - [ ] Organization dashboard/overview (full dashboard with stats)
 - [ ] Organization selector/switcher (for users in multiple organizations)
 - [ ] Set active organization context
@@ -192,39 +202,49 @@ The system uses a **two-tier role system**:
 
 - [x] View organization details (shows name, created date, creator, user role)
 - [x] Edit organization name (admin only, with validation)
+- [x] Edit organization page with form validation
+- [x] Admin-only access control for edit functionality
 - [ ] View organization members list (placeholder exists)
 - [ ] Delete organization (admin only)
 
 #### 2.3 User Invitations
 
-- [ ] Send invitation email to new users
-- [ ] Invitation link with token
-- [ ] Accept invitation flow
-- [ ] Assign organization role during invitation (admin, resident, security_personnel)
+- [x] Send invitation email to new users (via email service)
+- [x] Invitation link with secure token generation
+- [x] Invite user page (`/organizations/[id]/invite`) with form validation
+- [x] Accept invitation flow (public page at `/invitations/[token]`)
+- [x] Accept invitation for new users (registration flow)
+- [x] Accept invitation for logged-in users (direct acceptance)
+- [x] Email verification for invitation acceptance
+- [x] Assign organization role during invitation (admin, resident, security_personnel)
+- [x] Invitation expiration handling (7 days default, validated on acceptance)
+- [x] Prevent duplicate invitations (same user + organization, handled by database function)
+- [x] Invitation status tracking (pending, accepted, cancelled)
+- [x] Admin-only access control for invitation creation
 - [ ] Resend invitation
 - [ ] Cancel pending invitation
-- [ ] Invitation expiration handling
-- [ ] Prevent duplicate invitations (same user + organization)
 
 ### Phase 3: Role Management
 
 #### 3.1 Organization Role Assignment
 
-- [ ] Assign organization role to member during invitation (admin only)
+- [x] Assign organization role to member during invitation (admin only)
+- [x] Organization roles API endpoint for role selection
 - [ ] Change member's organization role (admin only)
 - [ ] Remove member from organization (admin only)
-- [ ] Role-based UI visibility (based on organization role)
-- [ ] Validate user has required organization role for actions
+- [x] Role-based UI visibility (based on organization role) - Admin buttons shown conditionally
+- [x] Validate user has required organization role for actions - Implemented in API routes and UI
 
 #### 3.2 Role Permissions
 
-- [ ] Permission middleware for API routes (check organization role)
-- [ ] Permission checks in frontend components (check organization role)
+- [x] Permission checks in API routes (check organization role) - Admin checks in PUT and invitation endpoints
+- [x] Permission checks in frontend components (check organization role) - Implemented in organization detail and invite pages
+- [x] Admin-only features protection (organization-level) - Edit and invite features protected
+- [ ] Permission middleware for API routes (reusable middleware pattern)
 - [ ] Organization context selection (user selects active organization)
-- [ ] Admin-only features protection (organization-level)
 - [ ] Resident-only features protection (organization-level)
 - [ ] Security Personnel-only features protection (organization-level)
-- [ ] Helper functions to check user's role in specific organization
+- [x] Helper functions to check user's role in specific organization - Via API and hook (isAdmin, userRole)
 
 ### Phase 4: QR Code System
 
@@ -327,7 +347,7 @@ The system uses a **two-tier role system**:
 
 #### 8.1 Notifications
 
-- [ ] Email notifications for invitations
+- [x] Email notifications for invitations (invitation email sent with link and details)
 - [ ] Email notifications for QR code generation
 - [ ] In-app notifications for access events
 - [ ] Notification preferences

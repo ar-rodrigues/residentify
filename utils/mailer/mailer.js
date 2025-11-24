@@ -1,6 +1,7 @@
 "use server";
 import nodemailer from "nodemailer";
 import { getWelcomeEmailTemplate } from "./templates/welcomeEmail";
+import { getInvitationEmailTemplate } from "./templates/invitationEmail";
 
 export async function sendEmail(email, name, password, subject, body) {
   try {
@@ -66,6 +67,48 @@ export async function sendWelcomeEmail(email, name, password, baseUrl) {
     return await sendEmail(email, name, password, subject, body);
   } catch (error) {
     console.error("Error in sendWelcomeEmail:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
+    throw error;
+  }
+}
+
+export async function sendInvitationEmail(
+  email,
+  firstName,
+  lastName,
+  organizationName,
+  roleName,
+  inviterName,
+  invitationLink
+) {
+  if (!invitationLink) {
+    throw new Error("invitationLink is required for sending invitation email");
+  }
+
+  try {
+    const subject = `Invitación a ${organizationName}`;
+    const body = getInvitationEmailTemplate(
+      firstName,
+      lastName,
+      organizationName,
+      roleName,
+      inviterName,
+      invitationLink
+    );
+
+    console.log("Invitation email template generated successfully");
+    return await sendEmail(
+      email,
+      `${firstName} ${lastName}`,
+      null,
+      subject,
+      body
+    );
+  } catch (error) {
+    console.error("Error in sendInvitationEmail:", {
       name: error.name,
       message: error.message,
       stack: error.stack,
