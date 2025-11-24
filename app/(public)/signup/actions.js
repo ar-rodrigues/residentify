@@ -107,13 +107,15 @@ export async function signup(formData) {
     };
   }
 
-  // Create profile record
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: authData.user.id,
-    first_name: firstName,
-    last_name: lastName,
-    date_of_birth: dateOfBirth,
-    role_id: roleId, // roleId is guaranteed to be defined at this point
+  // Create profile record using a database function with SECURITY DEFINER
+  // This bypasses RLS policies which is necessary during signup when
+  // the session might not be immediately available
+  const { error: profileError } = await supabase.rpc("create_user_profile", {
+    p_user_id: authData.user.id,
+    p_first_name: firstName,
+    p_last_name: lastName,
+    p_date_of_birth: dateOfBirth,
+    p_role_id: roleId, // roleId is guaranteed to be defined at this point
   });
 
   if (profileError) {

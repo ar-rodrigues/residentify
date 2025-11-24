@@ -29,7 +29,7 @@ The system uses a **two-tier role system**:
 - **Purpose**: Control access within specific organizations
 - **Scope**: Applies only within a specific organization
 - **Examples**: `admin`, `resident`, `security_personnel`
-- **Storage**: `organization_members.role` (enum or reference)
+- **Storage**: `organization_members.organization_role_id` references `organization_roles.id` (table-based, not enum)
 - **Note**: A user can have **different roles in different organizations**
 
 ### Multi-Organization Support
@@ -149,20 +149,31 @@ The system uses a **two-tier role system**:
 - [x] Profiles table (id, first_name, last_name, date_of_birth, role_id, created_at, updated_at)
 - [x] App-level roles table (id, name, description, created_at, updated_at)
 - [x] Organizations table (id, name, created_by, created_at, updated_at)
-- [x] Organization members table (id, user_id, organization_id, organization_role, invited_by, joined_at, created_at, updated_at)
-- [x] Organization roles enum/table (admin, resident, security_personnel) - stored in organization_members.organization_role
+- [x] Organization members table (id, user_id, organization_id, organization_role_id, invited_by, joined_at, created_at, updated_at)
+- [x] Organization roles table (id, name, description, created_at, updated_at) - stores admin, resident, security_personnel
 - [x] QR codes table (id, code, organization_id, created_by, visitor_name, visitor_email, visitor_phone, is_used, expires_at, created_at)
 - [x] Access logs table (id, qr_code_id, scanned_by, organization_id, entry_type, timestamp)
-- [x] Organization invitations table (id, organization_id, email, token, organization_role, invited_by, status, expires_at, created_at)
+- [x] Organization invitations table (id, organization_id, email, token, organization_role_id, invited_by, status, expires_at, created_at, updated_at)
+- [x] Database function: `create_organization_with_admin` - atomically creates organization and adds creator as admin
+- [x] Database function: `get_user_name` - gets user name bypassing RLS for organization creator display
+- [x] Database function: `is_user_organization_member` - checks membership without RLS recursion
 
 ### Phase 2: Organization Management
 
+**Note**: API routes and custom hooks have been implemented:
+
+- [x] API route: `POST /api/organizations` - Create organization
+- [x] API route: `GET /api/organizations/[id]` - Get organization details
+- [x] API route: `PUT /api/organizations/[id]` - Update organization (admin only)
+- [x] Custom hook: `useOrganizations` - Provides organization CRUD operations and state management
+
 #### 2.1 Organization Creation
 
-- [ ] Create organization form/page
-- [ ] Organization name validation
-- [ ] Auto-assign organization-level admin role to creator
-- [ ] Organization dashboard/overview
+- [x] Create organization form/page
+- [x] Organization name validation (min 2, max 100 characters, required)
+- [x] Auto-assign organization-level admin role to creator (via `create_organization_with_admin` function)
+- [x] Organization detail page/view
+- [ ] Organization dashboard/overview (full dashboard with stats)
 - [ ] Organization selector/switcher (for users in multiple organizations)
 - [ ] Set active organization context
 - [ ] Store active organization in session/state
@@ -170,18 +181,18 @@ The system uses a **two-tier role system**:
 #### 2.4 Organization Context Management
 
 - [ ] Organization context provider/hook
-- [ ] Get user's organizations list
-- [ ] Get user's role in specific organization
+- [x] Get user's organizations list (via `useOrganizations` hook)
+- [x] Get user's role in specific organization (via API and hook)
 - [ ] Switch active organization
 - [ ] Persist active organization selection
-- [ ] Validate user has access to selected organization
+- [x] Validate user has access to selected organization (RLS policies enforce this)
 - [ ] Display organization name in header/navigation
 
 #### 2.2 Organization Settings
 
-- [ ] View organization details
-- [ ] Edit organization name
-- [ ] View organization members list
+- [x] View organization details (shows name, created date, creator, user role)
+- [x] Edit organization name (admin only, with validation)
+- [ ] View organization members list (placeholder exists)
 - [ ] Delete organization (admin only)
 
 #### 2.3 User Invitations
