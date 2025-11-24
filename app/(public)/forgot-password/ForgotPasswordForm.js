@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RiMailLine, RiArrowLeftLine, RiCheckLine, RiRocketLine } from "react-icons/ri";
+import {
+  RiMailLine,
+  RiArrowLeftLine,
+  RiCheckLine,
+  RiRocketLine,
+} from "react-icons/ri";
 import { Form, Card, Typography, Space, Alert } from "antd";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -176,4 +181,3 @@ export default function ForgotPasswordForm() {
     </div>
   );
 }
-
