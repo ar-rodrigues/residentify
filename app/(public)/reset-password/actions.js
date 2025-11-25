@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
 /**
@@ -88,7 +87,13 @@ export async function resetPassword(formData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/login?message=password_reset_success");
+  
+  // Return success instead of redirecting - let the client handle the redirect
+  // This allows showing a success message before redirecting
+  return {
+    error: false,
+    message: "Contraseña restablecida exitosamente",
+  };
 }
 
 /**
