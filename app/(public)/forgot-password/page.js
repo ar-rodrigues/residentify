@@ -4,6 +4,9 @@ import ForgotPasswordForm from "./ForgotPasswordForm";
 
 const { Title } = Typography;
 
+// Force dynamic rendering since we use search params
+export const dynamic = "force-dynamic";
+
 export default function ForgotPasswordPage() {
   return (
     <Suspense
