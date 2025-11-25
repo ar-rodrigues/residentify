@@ -1,75 +1,49 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  RiLockLine,
-  RiMailLine,
-  RiRocketLine,
-  RiCheckLine,
-  RiArrowLeftLine,
-} from "react-icons/ri";
-import { useUser } from "@/hooks/useUser";
-import { login } from "./actions";
+import { RiMailLine, RiRocketLine, RiCheckLine, RiArrowLeftLine } from "react-icons/ri";
+import { forgotPassword } from "./actions";
 import { Form, Card, Typography, Space, Alert } from "antd";
 import Input from "@/components/ui/Input";
-import Password from "@/components/ui/Password";
 import Button from "@/components/ui/Button";
 
 const { Title, Paragraph, Text } = Typography;
 
-export default function LoginForm() {
+export default function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [loginForm] = Form.useForm();
+  const [forgotPasswordForm] = Form.useForm();
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check if user is already logged in and redirect if so
-  useUser({ redirectIfAuthenticated: true });
-
-  useEffect(() => {
-    // Check for success message
-    const message = searchParams.get("message");
-    if (message === "signup_success") {
-      setShowSuccess(true);
-    } else {
-      // Reset showSuccess when message parameter is removed or changed
-      setShowSuccess(false);
-      if (message === "password_reset_success") {
-        // Show success message for password reset on login form
-        setErrorMessage(null);
-      }
-    }
-  }, [searchParams]);
-
-  const handleLogin = async (values) => {
+  const handleForgotPassword = async (values) => {
     setLoading(true);
     setErrorMessage(null); // Clear previous errors
     const formDataObj = new FormData();
     formDataObj.append("email", values.email);
-    formDataObj.append("password", values.password);
 
-    // Call server action within startTransition for proper redirect handling
     startTransition(async () => {
       try {
-        const result = await login(formDataObj);
+        const result = await forgotPassword(formDataObj);
 
-        // If we get here, there was an error (redirect() throws, so we never reach this)
         if (result && result.error) {
           setErrorMessage(result.message);
           setLoading(false);
+        } else if (result && !result.error) {
+          setShowSuccess(true);
+          setLoading(false);
+          forgotPasswordForm.resetFields();
         }
       } catch (error) {
-        // Handle actual errors (redirect errors are automatically handled by Next.js in startTransition)
         setErrorMessage(
           "Ocurrió un error inesperado. Por favor, intenta nuevamente."
         );
         setLoading(false);
-        console.error("Login error:", error);
+        console.error("Forgot password error:", error);
       }
     });
   };
@@ -89,8 +63,7 @@ export default function LoginForm() {
             </Title>
           </Space>
           <Paragraph className="text-gray-600">
-            Un proyecto base completo y listo para usar con Next.js 15, Tailwind
-            CSS 4 y autenticación
+            Recupera tu contraseña ingresando tu correo electrónico
           </Paragraph>
         </Space>
 
@@ -105,31 +78,31 @@ export default function LoginForm() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <RiCheckLine className="text-3xl text-green-600" />
               </div>
-              <Title level={3}>¡Cuenta Creada Exitosamente!</Title>
+              <Title level={3}>¡Enlace Enviado!</Title>
               <Paragraph className="text-gray-600">
-                Hemos enviado un enlace de confirmación a tu correo electrónico.
-                Por favor, revisa tu bandeja de entrada y haz clic en el enlace
-                para activar tu cuenta.
+                Se ha enviado un enlace de restablecimiento a tu correo
+                electrónico. Por favor, revisa tu bandeja de entrada y haz clic
+                en el enlace para restablecer tu contraseña.
               </Paragraph>
               <Space direction="vertical" className="w-full" size="small">
                 <Button
                   type="primary"
-                  onClick={() => router.push("/")}
+                  onClick={() => router.push("/login")}
                   className="w-full"
                   size="large"
                 >
-                  Volver al Inicio
+                  Volver al Login
                 </Button>
                 <Button
                   onClick={() => {
-                    router.replace("/login");
                     setShowSuccess(false);
+                    forgotPasswordForm.resetFields();
                   }}
                   className="w-full"
                   size="large"
                   icon={<RiArrowLeftLine />}
                 >
-                  Volver al Login
+                  Enviar Otro Enlace
                 </Button>
               </Space>
             </Space>
@@ -148,65 +121,30 @@ export default function LoginForm() {
               />
             )}
 
-            {/* Success Alert for Password Reset */}
-            {searchParams.get("message") === "password_reset_success" && (
-              <Alert
-                message="Contraseña restablecida exitosamente"
-                description="Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña."
-                type="success"
-                showIcon
-                closable
-                className="mb-6"
-              />
-            )}
-
             <Form
-              form={loginForm}
-              onFinish={handleLogin}
+              form={forgotPasswordForm}
+              onFinish={handleForgotPassword}
               layout="vertical"
               requiredMark={false}
             >
               <Form.Item
                 name="email"
                 rules={[
-                  { required: true, message: "Por favor ingresa tu email" },
+                  {
+                    required: true,
+                    message: "Por favor ingresa tu dirección de correo electrónico",
+                  },
                   {
                     type: "email",
                     message: "Por favor ingresa un email válido",
                   },
                 ]}
               >
-                <Input prefixIcon={<RiMailLine />} placeholder="Email" />
-              </Form.Item>
-
-              <Form.Item
-                name="password"
-                rules={[
-                  {
-                    required: true,
-                    message: "Por favor ingresa tu contraseña",
-                  },
-                  {
-                    min: 6,
-                    message: "La contraseña debe tener al menos 6 caracteres",
-                  },
-                ]}
-              >
-                <Password
-                  prefixIcon={<RiLockLine />}
-                  placeholder="Contraseña"
+                <Input
+                  prefixIcon={<RiMailLine />}
+                  placeholder="Email"
+                  type="email"
                 />
-              </Form.Item>
-
-              <Form.Item className="mb-0">
-                <div className="text-right">
-                  <Link
-                    href="/forgot-password"
-                    className="text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Link>
-                </div>
               </Form.Item>
 
               <Form.Item>
@@ -217,34 +155,26 @@ export default function LoginForm() {
                   className="w-full"
                   size="large"
                 >
-                  Iniciar Sesión
+                  Enviar Enlace de Restablecimiento
                 </Button>
               </Form.Item>
 
               <div className="text-center mt-4">
                 <Text type="secondary" className="text-sm">
-                  ¿No tienes una cuenta?{" "}
+                  ¿Recordaste tu contraseña?{" "}
                   <Link
-                    href="/signup"
+                    href="/login"
                     className="text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    Crear cuenta
+                    Volver al Login
                   </Link>
                 </Text>
               </div>
             </Form>
           </Card>
         )}
-
-        <div className="text-center mt-6">
-          <Text type="secondary" className="text-sm">
-            Al crear una cuenta o iniciar sesión, aceptas nuestros términos y
-            condiciones
-          </Text>
-        </div>
       </div>
     </div>
   );
 }
-
 
