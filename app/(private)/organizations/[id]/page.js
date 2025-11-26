@@ -1,64 +1,124 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import {
-  RiBuildingLine,
-  RiEditLine,
-  RiCalendarLine,
-  RiUserLine,
-  RiUserAddLine,
-} from "react-icons/ri";
-import { useOrganizations } from "@/hooks/useOrganizations";
-import { Card, Typography, Space, Spin, Alert } from "antd";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/utils/supabase/server";
+import { Card, Typography, Space, Alert } from "antd";
 import Button from "@/components/ui/Button";
-import { formatDateDDMMYYYY } from "@/utils/date";
-import MembersList from "@/components/organizations/MembersList";
-import InvitationsList from "@/components/organizations/InvitationsList";
+import OrganizationHeader from "./_components/widgets/OrganizationHeader";
+import OrganizationIdStorage from "./_components/widgets/OrganizationIdStorage";
+import AdminView from "./_components/views/AdminView";
+import ResidentView from "./_components/views/ResidentView";
+import SecurityView from "./_components/views/SecurityView";
 
-const { Title, Paragraph, Text } = Typography;
+const { Paragraph } = Typography;
 
-export default function OrganizationDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const { id } = params;
+export default async function OrganizationDetailPage({ params }) {
+  const supabase = await createClient();
+  const { id } = await params;
+
+  // Authenticate user
   const {
-    getOrganization,
-    data: organization,
-    loading,
-    error,
-  } = useOrganizations();
-  const [errorMessage, setErrorMessage] = useState(null);
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    if (id) {
-      // Store the organization ID as last used
-      localStorage.setItem("lastUsedOrganizationId", id);
+  if (userError || !user) {
+    redirect("/login");
+  }
 
-      getOrganization(id).then((result) => {
-        if (result.error) {
-          setErrorMessage(result.message);
-        }
-      });
-    }
-  }, [id, getOrganization]);
-
-  const handleEdit = () => {
-    router.push(`/organizations/${id}/edit`);
-  };
-
-  if (loading) {
+  // Validate organization ID
+  if (!id || typeof id !== "string") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Space direction="vertical" align="center" size="large">
-          <Spin size="large" />
-          <Paragraph>Cargando organización...</Paragraph>
-        </Space>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+        <div className="max-w-md w-full">
+          <Card>
+            <Space direction="vertical" size="large" className="w-full">
+              <Alert
+                message="Error"
+                description="ID de organización inválido."
+                type="error"
+                showIcon
+              />
+              <Link href="/organizations" className="block w-full">
+                <Button type="primary" className="w-full">
+                  Volver a Organizaciones
+                </Button>
+              </Link>
+            </Space>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  if (error || errorMessage || !organization) {
+  // Fetch organization data directly from Supabase (server component)
+  let organization;
+  let errorMessage = null;
+
+  try {
+    // Get organization (RLS will check if user is a member)
+    const { data: orgData, error: orgError } = await supabase
+      .from("organizations")
+      .select("id, name, created_by, created_at, updated_at")
+      .eq("id", id)
+      .single();
+
+    if (orgError || !orgData) {
+      if (orgError?.code === "PGRST116") {
+        errorMessage = "Organización no encontrada o no tienes acceso a ella.";
+      } else {
+        errorMessage = "Error al obtener la organización.";
+      }
+    } else {
+      // Get user's membership and role
+      const { data: userMember } = await supabase
+        .from("organization_members")
+        .select(
+          `
+          id,
+          user_id,
+          organization_role_id,
+          organization_roles(
+            id,
+            name,
+            description
+          )
+        `
+        )
+        .eq("organization_id", id)
+        .eq("user_id", user.id)
+        .single();
+
+      // Normalize role name: security_personnel -> security
+      let userRole = userMember?.organization_roles?.name || null;
+      if (userRole === "security_personnel") {
+        userRole = "security";
+      }
+
+      const isAdmin = userRole === "admin" || false;
+
+      // Get creator's name
+      const { data: creatorName } = await supabase.rpc("get_user_name", {
+        p_user_id: orgData.created_by,
+      });
+
+      organization = {
+        id: orgData.id,
+        name: orgData.name,
+        created_by: orgData.created_by,
+        created_by_name: creatorName,
+        created_at: orgData.created_at,
+        updated_at: orgData.updated_at,
+        userRole,
+        isAdmin,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching organization:", error);
+    errorMessage = "Error inesperado al cargar la organización.";
+  }
+
+  // Error state
+  if (errorMessage || !organization) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
@@ -67,20 +127,16 @@ export default function OrganizationDetailPage() {
               <Alert
                 message="Error"
                 description={
-                  errorMessage ||
-                  error?.message ||
-                  "No se pudo cargar la organización."
+                  errorMessage || "No se pudo cargar la organización."
                 }
                 type="error"
                 showIcon
               />
-              <Button
-                type="primary"
-                onClick={() => router.push("/organizations")}
-                className="w-full"
-              >
-                Volver a Organizaciones
-              </Button>
+              <Link href="/organizations" className="block w-full">
+                <Button type="primary" className="w-full">
+                  Volver a Organizaciones
+                </Button>
+              </Link>
             </Space>
           </Card>
         </div>
@@ -88,135 +144,43 @@ export default function OrganizationDetailPage() {
     );
   }
 
+  // Render role-specific view
+  const renderRoleView = () => {
+    if (!organization.userRole) {
+      return (
+        <Card title="Información">
+          <Paragraph type="secondary">
+            No tienes un rol asignado en esta organización.
+          </Paragraph>
+        </Card>
+      );
+    }
+
+    switch (organization.userRole) {
+      case "admin":
+        return <AdminView organizationId={id} />;
+      case "resident":
+        return <ResidentView />;
+      case "security":
+        return <SecurityView />;
+      default:
+        return (
+          <Card title="Información">
+            <Paragraph type="secondary">
+              Rol no reconocido: {organization.userRole}
+            </Paragraph>
+          </Card>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <OrganizationIdStorage organizationId={id} />
       <div className="max-w-4xl mx-auto">
         <Space direction="vertical" size="large" className="w-full">
-          <Card>
-            <Space direction="vertical" size="large" className="w-full">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-lg">
-                    <RiBuildingLine className="text-3xl text-blue-600" />
-                  </div>
-                  <div>
-                    <Title level={2} className="!mb-2">
-                      {organization.name}
-                    </Title>
-                    {organization.userRole && (
-                      <Text type="secondary" className="text-sm">
-                        Tu rol:{" "}
-                        <Text strong>
-                          {organization.userRole === "admin"
-                            ? "Administrador"
-                            : organization.userRole === "resident"
-                            ? "Residente"
-                            : organization.userRole === "security_personnel"
-                            ? "Personal de Seguridad"
-                            : organization.userRole}
-                        </Text>
-                      </Text>
-                    )}
-                  </div>
-                </div>
-                {organization.isAdmin && (
-                  <Space>
-                    <Button
-                      type="default"
-                      icon={<RiUserAddLine />}
-                      onClick={() => router.push(`/organizations/${id}/invite`)}
-                      size="large"
-                    >
-                      Invitar Usuario
-                    </Button>
-                    <Button
-                      type="primary"
-                      icon={<RiEditLine />}
-                      onClick={handleEdit}
-                      size="large"
-                    >
-                      Editar
-                    </Button>
-                  </Space>
-                )}
-              </div>
-
-              <div className="border-t pt-6">
-                <Space direction="vertical" size="middle" className="w-full">
-                  <div className="flex items-start gap-4">
-                    <RiCalendarLine className="text-xl text-gray-500 mt-1" />
-                    <div>
-                      <Text strong className="block mb-1">
-                        Fecha de Creación
-                      </Text>
-                      <Text type="secondary">
-                        {formatDateDDMMYYYY(organization.created_at)}
-                      </Text>
-                    </div>
-                  </div>
-
-                  {organization.updated_at && (
-                    <div className="flex items-start gap-4">
-                      <RiCalendarLine className="text-xl text-gray-500 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Última Actualización
-                        </Text>
-                        <Text type="secondary">
-                          {formatDateDDMMYYYY(organization.updated_at)}
-                        </Text>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-4">
-                    <RiUserLine className="text-xl text-gray-500 mt-1" />
-                    <div>
-                      <Text strong className="block mb-1">
-                        Creado por
-                      </Text>
-                      <Text type="secondary">
-                        {organization.created_by_name || "Usuario desconocido"}
-                      </Text>
-                    </div>
-                  </div>
-                </Space>
-              </div>
-            </Space>
-          </Card>
-
-          {/* Role-based views */}
-          {organization.userRole === "admin" && (
-            <>
-              <MembersList organizationId={id} />
-              <InvitationsList organizationId={id} />
-            </>
-          )}
-
-          {organization.userRole === "resident" && (
-            <Card title="Vista de Residente">
-              <Paragraph type="secondary">
-                La vista de residente estará disponible próximamente.
-              </Paragraph>
-            </Card>
-          )}
-
-          {organization.userRole === "security_personnel" && (
-            <Card title="Vista de Personal de Seguridad">
-              <Paragraph type="secondary">
-                La vista de personal de seguridad estará disponible
-                próximamente.
-              </Paragraph>
-            </Card>
-          )}
-
-          {!organization.userRole && (
-            <Card title="Información">
-              <Paragraph type="secondary">
-                No tienes un rol asignado en esta organización.
-              </Paragraph>
-            </Card>
-          )}
+          <OrganizationHeader organization={organization} organizationId={id} />
+          {renderRoleView()}
         </Space>
       </div>
     </div>

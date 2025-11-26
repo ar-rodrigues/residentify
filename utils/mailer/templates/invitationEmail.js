@@ -13,7 +13,7 @@ export const getInvitationEmailTemplate = (
   const roleNames = {
     admin: "Administrador",
     resident: "Residente",
-    security_personnel: "Personal de Seguridad",
+    security: "Personal de Seguridad",
   };
 
   const roleDisplayName = roleNames[roleName] || roleName;
@@ -81,8 +81,3 @@ export const getInvitationEmailTemplate = (
     </html>
   `;
 };
-
-
-
-
-

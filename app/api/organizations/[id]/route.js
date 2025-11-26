@@ -103,7 +103,11 @@ export async function GET(request, { params }) {
 
     // Check if user is admin
     const isAdmin = userMember?.organization_roles?.name === "admin" || false;
-    const userRole = userMember?.organization_roles?.name || null;
+    // Normalize role name: security_personnel -> security for frontend consistency
+    let userRole = userMember?.organization_roles?.name || null;
+    if (userRole === "security_personnel") {
+      userRole = "security";
+    }
 
     // Get creator's name using RPC function (bypasses RLS)
     const { data: creatorName, error: creatorError } = await supabase.rpc(

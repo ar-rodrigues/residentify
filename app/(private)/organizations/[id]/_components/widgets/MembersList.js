@@ -119,7 +119,7 @@ export default function MembersList({ organizationId }) {
     const roleMap = {
       admin: "Administrador",
       resident: "Residente",
-      security_personnel: "Personal de Seguridad",
+      security: "Personal de Seguridad",
     };
     return roleMap[roleName] || roleName;
   };
@@ -145,7 +145,7 @@ export default function MembersList({ organizationId }) {
           status={
             roleName === "admin"
               ? "error"
-              : roleName === "security_personnel"
+              : roleName === "security"
               ? "warning"
               : "default"
           }
@@ -251,3 +251,4 @@ export default function MembersList({ organizationId }) {
     </Card>
   );
 }
+

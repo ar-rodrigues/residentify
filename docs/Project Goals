@@ -28,7 +28,7 @@ The system uses a **two-tier role system**:
 
 - **Purpose**: Control access within specific organizations
 - **Scope**: Applies only within a specific organization
-- **Examples**: `admin`, `resident`, `security_personnel`
+- **Examples**: `admin`, `resident`, `security`
 - **Storage**: `organization_members.organization_role_id` references `organization_roles.id` (table-based, not enum)
 - **Note**: A user can have **different roles in different organizations**
 
@@ -150,7 +150,7 @@ The system uses a **two-tier role system**:
 - [x] App-level roles table (id, name, description, created_at, updated_at)
 - [x] Organizations table (id, name, created_by, created_at, updated_at)
 - [x] Organization members table (id, user_id, organization_id, organization_role_id, invited_by, joined_at, created_at, updated_at)
-- [x] Organization roles table (id, name, description, created_at, updated_at) - stores admin, resident, security_personnel
+- [x] Organization roles table (id, name, description, created_at, updated_at) - stores admin, resident, security
 - [x] QR codes table (id, code, organization_id, created_by, visitor_name, visitor_email, visitor_phone, is_used, expires_at, created_at)
 - [x] Access logs table (id, qr_code_id, scanned_by, organization_id, entry_type, timestamp)
 - [x] Organization invitations table (id, organization_id, email, token, organization_role_id, invited_by, status, expires_at, created_at, updated_at)
@@ -216,7 +216,7 @@ The system uses a **two-tier role system**:
 - [x] Accept invitation for new users (registration flow)
 - [x] Accept invitation for logged-in users (direct acceptance)
 - [x] Email verification for invitation acceptance
-- [x] Assign organization role during invitation (admin, resident, security_personnel)
+- [x] Assign organization role during invitation (admin, resident, security)
 - [x] Invitation expiration handling (7 days default, validated on acceptance)
 - [x] Prevent duplicate invitations (same user + organization, handled by database function)
 - [x] Invitation status tracking (pending, accepted, cancelled)

@@ -45,7 +45,7 @@ export default function InvitationsList({ organizationId }) {
     const roleMap = {
       admin: "Administrador",
       resident: "Residente",
-      security_personnel: "Personal de Seguridad",
+      security: "Personal de Seguridad",
     };
     return roleMap[roleName] || roleName;
   };
@@ -76,7 +76,7 @@ export default function InvitationsList({ organizationId }) {
         <Tag color={
           roleName === "admin"
             ? "red"
-            : roleName === "security_personnel"
+            : roleName === "security"
             ? "orange"
             : "blue"
         }>
@@ -168,5 +168,4 @@ export default function InvitationsList({ organizationId }) {
     </Card>
   );
 }
-
 

@@ -449,7 +449,7 @@ export default function InvitationAcceptPage() {
     const roleMap = {
       admin: "Administrador",
       resident: "Residente",
-      security_personnel: "Personal de Seguridad",
+      security: "Personal de Seguridad",
     };
     return roleMap[roleName] || roleName;
   };
