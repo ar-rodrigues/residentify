@@ -16,6 +16,7 @@ import { Menu, Avatar, Space, Typography, Button, List, Spin } from "antd";
 import { Layout, Header, Content, Sider } from "@/components/ui/Layout";
 import LogoutButton from "@/components/ui/LogoutButton";
 import { getPrivateMenu } from "@/utils/config/app";
+import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvider";
 
 const { Text } = Typography;
 
@@ -88,7 +89,8 @@ export default function PrivateLayout({ children }) {
   }
 
   return (
-    <Layout className="min-h-screen">
+    <FeatureFlagsProvider>
+      <Layout className="min-h-screen">
       <Sider
         collapsible
         collapsed={collapsed}
@@ -257,5 +259,6 @@ export default function PrivateLayout({ children }) {
         </Content>
       </Layout>
     </Layout>
+    </FeatureFlagsProvider>
   );
 }

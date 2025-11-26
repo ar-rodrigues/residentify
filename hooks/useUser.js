@@ -8,8 +8,8 @@ import { createClient } from "@/utils/supabase/client";
  * Custom hook to get the current authenticated user
  * @param {Object} options - Configuration options
  * @param {boolean} options.redirectToLogin - If true, redirects to /login when user is not found (default: false)
- * @param {boolean} options.redirectIfAuthenticated - If true, redirects to /private when user is found (default: false)
- * @param {string} options.redirectPath - Custom redirect path (optional)
+ * @param {boolean} options.redirectIfAuthenticated - If true, redirects to /organizations when user is found (default: false)
+ * @param {string} options.redirectPath - Custom redirect path (optional, defaults to /organizations)
  * @returns {{ data: User | null, loading: boolean, error: Error | null, refetch: () => Promise<void> }}
  */
 export function useUser(options = {}) {
@@ -57,7 +57,7 @@ export function useUser(options = {}) {
         setData(user);
 
         if (redirectIfAuthenticated) {
-          const path = redirectPath || "/private";
+          const path = redirectPath || "/organizations";
           router.push(path);
         }
       }

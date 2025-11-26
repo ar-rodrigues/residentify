@@ -24,7 +24,7 @@ export default function HomePage() {
   };
 
   const handleDashboard = () => {
-    router.push("/private");
+    router.push("/organizations");
   };
 
   if (loading) {

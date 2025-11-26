@@ -8,6 +8,11 @@
 | access_logs              | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
 | access_logs              | entry_type           | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
 | access_logs              | timestamp            | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| feature_flags            | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| feature_flags            | name                 | text                     | NO          | null                         | false          | null                  | null                   |
+| feature_flags            | description          | text                     | YES         | null                         | false          | null                  | null                   |
+| feature_flags            | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| feature_flags            | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | organization_invitations | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
 | organization_invitations | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
 | organization_invitations | email                | text                     | NO          | null                         | false          | null                  | null                   |
@@ -61,101 +66,112 @@
 | roles                    | description          | text                     | YES         | null                         | false          | null                  | null                   |
 | roles                    | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | roles                    | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| user_flags               | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| user_flags               | user_id              | uuid                     | NO          | null                         | false          | null                  | null                   |
+| user_flags               | feature_flag_id      | uuid                     | NO          | null                         | false          | feature_flags         | id                     |
+| user_flags               | enabled              | boolean                  | NO          | false                        | false          | null                  | null                   |
+| user_flags               | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| user_flags               | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 
 ## RLS Policies
 
-| schemaname | tablename                | policyname                                                   | permissive | roles    | cmd    | qual                                                                                                                                                                                                                                                                                  | with_check                                                                                                                                                                                                                                                                                                                                                              |
-| ---------- | ------------------------ | ------------------------------------------------------------ | ---------- | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| public     | access_logs              | Admins can view organization access logs                     | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | access_logs              | Residents can view own QR code access logs                   | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM qr_codes
-  WHERE ((qr_codes.id = access_logs.qr_code_id) AND (qr_codes.created_by = auth.uid()))))                                                                                                                                                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | access_logs              | Security can create access logs                              | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = scanned_by) AND (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text)))))                                                   |
-| public     | access_logs              | Security can view organization access logs                   | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Admins can create invitations                                | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = invited_by) AND (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))))                                                   |
-| public     | organization_invitations | Admins can delete invitations                                | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Admins can update invitations                                | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Admins can view organization invitations                     | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Users can view own invitations                               | PERMISSIVE | {public} | SELECT | ((email = (( SELECT users.email
-   FROM auth.users
-  WHERE (users.id = auth.uid())))::text) AND (status = 'pending'::invitation_status))                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Admins can add organization members                          | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                       |
-| public     | organization_members     | Admins can remove organization members                       | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Admins can update member roles                               | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can add themselves as admin when creating organization | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = user_id) AND (EXISTS ( SELECT 1
-   FROM organizations
-  WHERE ((organizations.id = organization_members.organization_id) AND (organizations.created_by = auth.uid())))) AND (EXISTS ( SELECT 1
-   FROM organization_roles
-  WHERE ((organization_roles.id = organization_members.organization_role_id) AND (organization_roles.name = 'admin'::text))))) |
-| public     | organization_members     | Users can leave organization                                 | PERMISSIVE | {public} | DELETE | (auth.uid() = user_id)                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can view organization members                          | PERMISSIVE | {public} | SELECT | is_user_organization_member(auth.uid(), organization_id)                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can view own memberships                               | PERMISSIVE | {public} | SELECT | (auth.uid() = user_id)                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_roles       | Everyone can read organization roles                         | PERMISSIVE | {public} | SELECT | true                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Organization admins can delete organization                  | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Organization admins can update organization                  | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Users can create organizations                               | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (auth.uid() = created_by)                                                                                                                                                                                                                                                                                                                                               |
-| public     | organizations            | Users can view organizations they belong to                  | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM organization_members
-  WHERE ((organization_members.organization_id = organizations.id) AND (organization_members.user_id = auth.uid()))))                                                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | profiles                 | Users can insert own profile                                 | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (auth.uid() = id)                                                                                                                                                                                                                                                                                                                                                       |
-| public     | profiles                 | Users can update own profile                                 | PERMISSIVE | {public} | UPDATE | (auth.uid() = id)                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | profiles                 | Users can view own profile                                   | PERMISSIVE | {public} | SELECT | (auth.uid() = id)                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Admins can view organization QR codes                        | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                 | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Residents can create QR codes                                | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = created_by) AND (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'resident'::text)))))                                                                |
-| public     | qr_codes                 | Residents can update own QR codes                            | PERMISSIVE | {public} | UPDATE | ((auth.uid() = created_by) AND (is_used = false))                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Residents can view own QR codes                              | PERMISSIVE | {public} | SELECT | (auth.uid() = created_by)                                                                                                                                                                                                                                                             | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Security can mark QR codes as used                           | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text))))    | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Security can view organization QR codes                      | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
-   FROM (organization_members om
-     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text))))    | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | roles                    | Everyone can read roles                                      | PERMISSIVE | {public} | SELECT | true                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+| schemaname | tablename   | policyname                               | permissive | roles    | cmd    | qual               | with_check |
+| ---------- | ----------- | ---------------------------------------- | ---------- | -------- | ------ | ------------------ | ---------- |
+| public     | access_logs | Admins can view organization access logs | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1 |
 
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | access_logs | Residents can view own QR code access logs | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM qr_codes
+WHERE ((qr_codes.id = access_logs.qr_code_id) AND (qr_codes.created_by = auth.uid())))) | null |
+| public | access_logs | Security can create access logs | PERMISSIVE | {public} | INSERT | null | ((auth.uid() = scanned_by) AND (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text))))) |
+| public | access_logs | Security can view organization access logs | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text)))) | null |
+| public | feature_flags | Admins can delete feature flags | PERMISSIVE | {public} | DELETE | is_app_admin(auth.uid()) | null |
+| public | feature_flags | Admins can insert feature flags | PERMISSIVE | {public} | INSERT | null | is_app_admin(auth.uid()) |
+| public | feature_flags | Admins can update feature flags | PERMISSIVE | {public} | UPDATE | is_app_admin(auth.uid()) | is_app_admin(auth.uid()) |
+| public | feature_flags | Admins can view feature flags | PERMISSIVE | {public} | SELECT | is_app_admin(auth.uid()) | null |
+| public | organization_invitations | Admins can create invitations | PERMISSIVE | {public} | INSERT | null | ((auth.uid() = invited_by) AND (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))) |
+| public | organization_invitations | Admins can delete invitations | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organization_invitations | Admins can update invitations | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organization_invitations | Admins can view organization invitations | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organization_members | Admins can add organization members | PERMISSIVE | {public} | INSERT | null | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) |
+| public | organization_members | Admins can remove organization members | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organization_members | Admins can update member roles | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organization_members | Users can add themselves as admin when creating organization | PERMISSIVE | {public} | INSERT | null | ((auth.uid() = user_id) AND (EXISTS ( SELECT 1
+FROM organizations
+WHERE ((organizations.id = organization_members.organization_id) AND (organizations.created_by = auth.uid())))) AND (EXISTS ( SELECT 1
+FROM organization_roles
+WHERE ((organization_roles.id = organization_members.organization_role_id) AND (organization_roles.name = 'admin'::text))))) |
+| public | organization_members | Users can leave organization | PERMISSIVE | {public} | DELETE | (auth.uid() = user_id) | null |
+| public | organization_members | Users can view organization members | PERMISSIVE | {public} | SELECT | is_user_organization_member(auth.uid(), organization_id) | null |
+| public | organization_members | Users can view own memberships | PERMISSIVE | {public} | SELECT | (auth.uid() = user_id) | null |
+| public | organization_roles | Everyone can read organization roles | PERMISSIVE | {public} | SELECT | true | null |
+| public | organizations | Organization admins can delete organization | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organizations | Organization admins can update organization | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | organizations | Users can create organizations | PERMISSIVE | {public} | INSERT | null | (auth.uid() = created_by) |
+| public | organizations | Users can view organizations they belong to | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM organization_members
+WHERE ((organization_members.organization_id = organizations.id) AND (organization_members.user_id = auth.uid())))) | null |
+| public | profiles | Users can insert own profile | PERMISSIVE | {public} | INSERT | null | (auth.uid() = id) |
+| public | profiles | Users can update own profile | PERMISSIVE | {public} | UPDATE | (auth.uid() = id) | null |
+| public | profiles | Users can view own profile | PERMISSIVE | {public} | SELECT | (auth.uid() = id) | null |
+| public | qr_codes | Admins can view organization QR codes | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null |
+| public | qr_codes | Residents can create QR codes | PERMISSIVE | {public} | INSERT | null | ((auth.uid() = created_by) AND (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'resident'::text))))) |
+| public | qr_codes | Residents can update own QR codes | PERMISSIVE | {public} | UPDATE | ((auth.uid() = created_by) AND (is_used = false)) | null |
+| public | qr_codes | Residents can view own QR codes | PERMISSIVE | {public} | SELECT | (auth.uid() = created_by) | null |
+| public | qr_codes | Security can mark QR codes as used | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text)))) | null |
+| public | qr_codes | Security can view organization QR codes | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+FROM (organization_members om
+JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security_personnel'::text)))) | null |
+| public | roles | Everyone can read roles | PERMISSIVE | {public} | SELECT | true | null |
+| public | user_flags | Admins can delete user flags | PERMISSIVE | {public} | DELETE | is_app_admin(auth.uid()) | null |
+| public | user_flags | Admins can insert user flags | PERMISSIVE | {public} | INSERT | null | is_app_admin(auth.uid()) |
+| public | user_flags | Admins can update user flags | PERMISSIVE | {public} | UPDATE | is_app_admin(auth.uid()) | is_app_admin(auth.uid()) |
+| public | user_flags | Admins can view user flags | PERMISSIVE | {public} | SELECT | is_app_admin(auth.uid()) | null |
 
 ### Supabase Functions
 

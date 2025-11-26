@@ -274,6 +274,53 @@ export function useInvitations() {
     }
   }, []);
 
+  const getInvitations = useCallback(async (organizationId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!organizationId || typeof organizationId !== "string") {
+        throw new Error("ID de organización inválido.");
+      }
+
+      const response = await fetch(
+        `/api/organizations/${organizationId}/invitations/list`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Error al obtener las invitaciones.");
+      }
+
+      if (result.error) {
+        throw new Error(result.message || "Error al obtener las invitaciones.");
+      }
+
+      return {
+        error: false,
+        message: result.message || "Invitaciones obtenidas exitosamente.",
+        data: result.data,
+      };
+    } catch (err) {
+      const errorMessage =
+        err.message || "Error inesperado al obtener las invitaciones.";
+      setError(err);
+      return {
+        error: true,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
@@ -282,5 +329,6 @@ export function useInvitations() {
     acceptInvitation,
     checkEmail,
     acceptInvitationLoggedIn,
+    getInvitations,
   };
 }

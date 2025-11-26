@@ -27,7 +27,7 @@ export async function login(formData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/private");
+  redirect("/organizations");
 }
 
 /**
@@ -65,7 +65,7 @@ export async function signup(formData) {
     email: formData.get("email"),
     password: formData.get("password"),
     options: {
-      emailRedirectTo: `/auth/confirm?next=/private`,
+      emailRedirectTo: `/auth/confirm?next=/organizations`,
     },
   };
 

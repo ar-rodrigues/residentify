@@ -15,7 +15,7 @@ export default function SignupSuccessPage() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push("/private");
+    router.push("/organizations");
   };
 
   return (

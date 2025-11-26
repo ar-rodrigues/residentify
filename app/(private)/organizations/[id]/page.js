@@ -13,6 +13,8 @@ import { useOrganizations } from "@/hooks/useOrganizations";
 import { Card, Typography, Space, Spin, Alert } from "antd";
 import Button from "@/components/ui/Button";
 import { formatDateDDMMYYYY } from "@/utils/date";
+import MembersList from "@/components/organizations/MembersList";
+import InvitationsList from "@/components/organizations/InvitationsList";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -30,6 +32,9 @@ export default function OrganizationDetailPage() {
 
   useEffect(() => {
     if (id) {
+      // Store the organization ID as last used
+      localStorage.setItem("lastUsedOrganizationId", id);
+
       getOrganization(id).then((result) => {
         if (result.error) {
           setErrorMessage(result.message);
@@ -180,18 +185,38 @@ export default function OrganizationDetailPage() {
             </Space>
           </Card>
 
-          {/* Placeholder for future sections */}
-          <Card title="Miembros">
-            <Paragraph type="secondary">
-              La gestión de miembros estará disponible próximamente.
-            </Paragraph>
-          </Card>
+          {/* Role-based views */}
+          {organization.userRole === "admin" && (
+            <>
+              <MembersList organizationId={id} />
+              <InvitationsList organizationId={id} />
+            </>
+          )}
 
-          <Card title="Actividad Reciente">
-            <Paragraph type="secondary">
-              El historial de actividad estará disponible próximamente.
-            </Paragraph>
-          </Card>
+          {organization.userRole === "resident" && (
+            <Card title="Vista de Residente">
+              <Paragraph type="secondary">
+                La vista de residente estará disponible próximamente.
+              </Paragraph>
+            </Card>
+          )}
+
+          {organization.userRole === "security_personnel" && (
+            <Card title="Vista de Personal de Seguridad">
+              <Paragraph type="secondary">
+                La vista de personal de seguridad estará disponible
+                próximamente.
+              </Paragraph>
+            </Card>
+          )}
+
+          {!organization.userRole && (
+            <Card title="Información">
+              <Paragraph type="secondary">
+                No tienes un rol asignado en esta organización.
+              </Paragraph>
+            </Card>
+          )}
         </Space>
       </div>
     </div>
