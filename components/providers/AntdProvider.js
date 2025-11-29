@@ -3,7 +3,7 @@
 // Import React 19 compatibility patch before any Ant Design imports
 import "@ant-design/v5-patch-for-react-19";
 
-import { ConfigProvider } from "antd";
+import { ConfigProvider, App } from "antd";
 import esES from "antd/locale/es_ES";
 
 export default function AntdProvider({ children }) {
@@ -34,7 +34,9 @@ export default function AntdProvider({ children }) {
         },
       }}
     >
-      {children}
+      <App>
+        {children}
+      </App>
     </ConfigProvider>
   );
 }

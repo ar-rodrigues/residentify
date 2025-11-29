@@ -1,15 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
-import { Card, Typography, Space, Alert } from "antd";
+import { getOrganizationById } from "@/utils/api/organizations";
+import { Card, Space, Alert } from "antd";
 import Button from "@/components/ui/Button";
 import OrganizationHeader from "./_components/widgets/OrganizationHeader";
 import OrganizationIdStorage from "./_components/widgets/OrganizationIdStorage";
 import AdminView from "./_components/views/AdminView";
 import ResidentView from "./_components/views/ResidentView";
 import SecurityView from "./_components/views/SecurityView";
-
-const { Paragraph } = Typography;
 
 export default async function OrganizationDetailPage({ params }) {
   const supabase = await createClient();
@@ -50,71 +49,42 @@ export default async function OrganizationDetailPage({ params }) {
     );
   }
 
-  // Fetch organization data directly from Supabase (server component)
+  // Fetch organization data using the API utility function
   let organization;
   let errorMessage = null;
+  let shouldRedirect = false;
 
   try {
-    // Get organization (RLS will check if user is a member)
-    const { data: orgData, error: orgError } = await supabase
-      .from("organizations")
-      .select("id, name, created_by, created_at, updated_at")
-      .eq("id", id)
-      .single();
+    const result = await getOrganizationById(id);
 
-    if (orgError || !orgData) {
-      if (orgError?.code === "PGRST116") {
-        errorMessage = "Organización no encontrada o no tienes acceso a ella.";
-      } else {
-        errorMessage = "Error al obtener la organización.";
+    if (result.error) {
+      errorMessage = result.message || "Error al obtener la organización.";
+
+      // If unauthorized, mark for redirect (redirect() throws an error, so we handle it outside try-catch)
+      if (result.status === 401) {
+        shouldRedirect = true;
       }
     } else {
-      // Get user's membership and role
-      const { data: userMember } = await supabase
-        .from("organization_members")
-        .select(
-          `
-          id,
-          user_id,
-          organization_role_id,
-          organization_roles(
-            id,
-            name,
-            description
-          )
-        `
-        )
-        .eq("organization_id", id)
-        .eq("user_id", user.id)
-        .single();
-
-      // Normalize role name: security_personnel -> security
-      let userRole = userMember?.organization_roles?.name || null;
-      if (userRole === "security_personnel") {
-        userRole = "security";
-      }
-
-      const isAdmin = userRole === "admin" || false;
-
-      // Get creator's name
-      const { data: creatorName } = await supabase.rpc("get_user_name", {
-        p_user_id: orgData.created_by,
-      });
-
-      organization = {
-        id: orgData.id,
-        name: orgData.name,
-        created_by: orgData.created_by,
-        created_by_name: creatorName,
-        created_at: orgData.created_at,
-        updated_at: orgData.updated_at,
-        userRole,
-        isAdmin,
-      };
+      organization = result.data;
     }
   } catch (error) {
+    // Re-throw redirect errors (Next.js redirect() throws a special error)
+    if (
+      error &&
+      typeof error === "object" &&
+      "digest" in error &&
+      typeof error.digest === "string" &&
+      error.digest.startsWith("NEXT_REDIRECT")
+    ) {
+      throw error;
+    }
     console.error("Error fetching organization:", error);
     errorMessage = "Error inesperado al cargar la organización.";
+  }
+
+  // Handle redirect outside try-catch to avoid catching redirect error
+  if (shouldRedirect) {
+    redirect("/login");
   }
 
   // Error state
@@ -149,9 +119,9 @@ export default async function OrganizationDetailPage({ params }) {
     if (!organization.userRole) {
       return (
         <Card title="Información">
-          <Paragraph type="secondary">
+          <p className="text-gray-500">
             No tienes un rol asignado en esta organización.
-          </Paragraph>
+          </p>
         </Card>
       );
     }
@@ -160,15 +130,15 @@ export default async function OrganizationDetailPage({ params }) {
       case "admin":
         return <AdminView organizationId={id} />;
       case "resident":
-        return <ResidentView />;
+        return <ResidentView organizationId={id} />;
       case "security":
-        return <SecurityView />;
+        return <SecurityView organizationId={id} />;
       default:
         return (
           <Card title="Información">
-            <Paragraph type="secondary">
+            <p className="text-gray-500">
               Rol no reconocido: {organization.userRole}
-            </Paragraph>
+            </p>
           </Card>
         );
     }
