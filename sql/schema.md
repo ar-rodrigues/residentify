@@ -71,12 +71,14 @@
 | qr_codes                 | is_used              | boolean                  | YES         | false                        | false          | null                  | null                   |
 | qr_codes                 | expires_at           | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
 | qr_codes                 | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| qr_codes                 | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 | qr_codes                 | status               | USER-DEFINED             | YES         | 'active'::qr_code_status     | false          | null                  | null                   |
 | qr_codes                 | token                | text                     | NO          | null                         | false          | null                  | null                   |
 | qr_codes                 | visitor_id           | text                     | YES         | null                         | false          | null                  | null                   |
 | qr_codes                 | document_photo_url   | text                     | YES         | null                         | false          | null                  | null                   |
 | qr_codes                 | validated_at         | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
 | qr_codes                 | validated_by         | uuid                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | identifier           | text                     | YES         | null                         | false          | null                  | null                   |
 | roles                    | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
 | roles                    | name                 | text                     | NO          | null                         | false          | null                  | null                   |
 | roles                    | description          | text                     | YES         | null                         | false          | null                  | null                   |

@@ -35,6 +35,54 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
+    // If organizationId is provided, verify user has access (admin or security)
+    if (organizationId) {
+      const { data: memberCheck, error: memberError } = await supabase
+        .from("organization_members")
+        .select(
+          `
+          id,
+          organization_roles!inner(
+            name
+          )
+        `
+        )
+        .eq("organization_id", organizationId)
+        .eq("user_id", user.id)
+        .in("organization_roles.name", ["admin", "security", "security_personnel"])
+        .single();
+
+      if (memberError || !memberCheck) {
+        // Check if user is a resident trying to view their own QR code logs
+        if (qrCodeId) {
+          // Allow if user created the QR code
+          const { data: qrCode } = await supabase
+            .from("qr_codes")
+            .select("created_by")
+            .eq("id", qrCodeId)
+            .single();
+
+          if (!qrCode || qrCode.created_by !== user.id) {
+            return NextResponse.json(
+              {
+                error: true,
+                message: "No tienes permisos para ver los registros de acceso de esta organización.",
+              },
+              { status: 403 }
+            );
+          }
+        } else {
+          return NextResponse.json(
+            {
+              error: true,
+              message: "No tienes permisos para ver los registros de acceso de esta organización.",
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     // Build query
     let query = supabase
       .from("access_logs")
@@ -43,9 +91,8 @@ export async function GET(request) {
         *,
         qr_code:qr_codes(
           id,
+          identifier,
           visitor_name,
-          visitor_email,
-          visitor_phone,
           created_by
         )
       `
@@ -81,10 +128,11 @@ export async function GET(request) {
 
     if (fetchError) {
       console.error("Error fetching access logs:", fetchError);
+      console.error("Error details:", JSON.stringify(fetchError, null, 2));
       return NextResponse.json(
         {
           error: true,
-          message: "Error al obtener los registros de acceso.",
+          message: fetchError.message || "Error al obtener los registros de acceso.",
         },
         { status: 500 }
       );

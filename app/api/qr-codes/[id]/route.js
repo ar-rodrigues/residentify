@@ -134,7 +134,7 @@ export async function PUT(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const { status, notes } = body;
+    const { status, notes, identifier } = body;
 
     // Get existing QR code to verify ownership
     const { data: existingQR, error: fetchError } = await supabase
@@ -186,12 +186,41 @@ export async function PUT(request, { params }) {
       updateData.notes = notes ? notes.trim() : null;
     }
 
+    if (identifier !== undefined) {
+      // Validate identifier: max 100 characters, alphanumeric, spaces, and hyphens
+      const trimmedIdentifier = identifier ? identifier.trim() : null;
+      if (trimmedIdentifier && trimmedIdentifier.length > 100) {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "El identificador no puede tener más de 100 caracteres.",
+          },
+          { status: 400 }
+        );
+      }
+      if (
+        trimmedIdentifier &&
+        !/^[a-zA-Z0-9\s\-]+$/.test(trimmedIdentifier)
+      ) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "El identificador solo puede contener letras, números, espacios y guiones.",
+          },
+          { status: 400 }
+        );
+      }
+      updateData.identifier = trimmedIdentifier;
+    }
+
     // Update QR code
+    // Explicitly select all fields including updated_at
     const { data: updatedQR, error: updateError } = await supabase
       .from("qr_codes")
       .update(updateData)
       .eq("id", id)
-      .select()
+      .select("id, token, organization_id, created_by, created_at, updated_at, status, is_used, expires_at, validated_at, validated_by, visitor_name, visitor_id, document_photo_url, identifier")
       .single();
 
     if (updateError) {

@@ -530,6 +530,37 @@ export default function InvitationAcceptPage() {
     );
   }
 
+  // Show success message only after acceptance
+  if (successMessage) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-lg">
+            <Space direction="vertical" size="large" className="w-full">
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <RiUserAddLine className="text-4xl text-green-600" />
+                </div>
+                <Title level={2} className="mb-2">
+                  ¡Invitación Aceptada!
+                </Title>
+              </div>
+              <Alert
+                message="Éxito"
+                description={successMessage}
+                type="success"
+                showIcon
+              />
+              <Paragraph className="text-center text-gray-600">
+                Serás redirigido en breve...
+              </Paragraph>
+            </Space>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // Always render both forms to keep them connected (hidden when not needed)
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -537,431 +568,425 @@ export default function InvitationAcceptPage() {
         <Card className="shadow-lg">
           <Space direction="vertical" size="large" className="w-full">
             {/* Logged-in user with matching email - show direct accept button */}
-            {mode === "logged-in" && (
-              <>
-                <div className="text-center">
-                  <div className="flex justify-center mb-4">
-                    <RiUserAddLine className="text-4xl text-blue-600" />
-                  </div>
-                  <Title level={2} className="mb-2">
-                    Aceptar Invitación
-                  </Title>
-                  <Paragraph className="text-gray-600">
-                    Estás autenticado como {currentUser?.email}
-                  </Paragraph>
+            <div style={{ display: mode === "logged-in" ? "block" : "none" }}>
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <RiUserAddLine className="text-4xl text-blue-600" />
                 </div>
+                <Title level={2} className="mb-2">
+                  Aceptar Invitación
+                </Title>
+                <Paragraph className="text-gray-600">
+                  Estás autenticado como {currentUser?.email}
+                </Paragraph>
+              </div>
 
-                {/* Invitation Details */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <Space direction="vertical" size="middle" className="w-full">
-                    <div className="flex items-start gap-3">
-                      <RiBuildingLine className="text-xl text-blue-600 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Organización
-                        </Text>
-                        <Text>{invitation.organization.name}</Text>
-                      </div>
+              {/* Invitation Details */}
+              <Card className="bg-blue-50 border-blue-200">
+                <Space direction="vertical" size="middle" className="w-full">
+                  <div className="flex items-start gap-3">
+                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Organización
+                      </Text>
+                      <Text>{invitation?.organization?.name}</Text>
                     </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Rol
+                      </Text>
+                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
+                    </div>
+                  </div>
+                  {invitation?.inviter_name && (
                     <div className="flex items-start gap-3">
                       <RiUserLine className="text-xl text-blue-600 mt-1" />
                       <div>
                         <Text strong className="block mb-1">
-                          Rol
+                          Invitado por
                         </Text>
-                        <Text>{getRoleDisplayName(invitation.role.name)}</Text>
+                        <Text>{invitation.inviter_name}</Text>
                       </div>
                     </div>
-                    {invitation.inviter_name && (
-                      <div className="flex items-start gap-3">
-                        <RiUserLine className="text-xl text-blue-600 mt-1" />
-                        <div>
-                          <Text strong className="block mb-1">
-                            Invitado por
-                          </Text>
-                          <Text>{invitation.inviter_name}</Text>
-                        </div>
-                      </div>
-                    )}
-                  </Space>
-                </Card>
+                  )}
+                </Space>
+              </Card>
 
-                {errorMessage && (
-                  <Alert
-                    message="Error"
-                    description={errorMessage}
-                    type="error"
-                    showIcon
-                    closable
-                    onClose={() => setErrorMessage(null)}
-                  />
-                )}
+              {errorMessage && (
+                <Alert
+                  message="Error"
+                  description={errorMessage}
+                  type="error"
+                  showIcon
+                  closable
+                  onClose={() => setErrorMessage(null)}
+                />
+              )}
 
-                {successMessage && (
-                  <Alert
-                    message="Éxito"
-                    description={successMessage}
-                    type="success"
-                    showIcon
-                  />
-                )}
+              {successMessage && (
+                <Alert
+                  message="Éxito"
+                  description={successMessage}
+                  type="success"
+                  showIcon
+                />
+              )}
 
-                <Button
-                  type="primary"
-                  onClick={handleAcceptLoggedIn}
-                  loading={loading}
-                  className="w-full"
-                  size="large"
-                  icon={<RiUserAddLine />}
-                >
-                  Aceptar Invitación
-                </Button>
-              </>
-            )}
+              <Button
+                type="primary"
+                onClick={handleAcceptLoggedIn}
+                loading={loading}
+                disabled={loading}
+                className="w-full"
+                size="large"
+                icon={<RiUserAddLine />}
+              >
+                Aceptar Invitación
+              </Button>
+            </div>
 
             {/* Login mode - user exists but not logged in */}
-            {mode === "login" && (
-              <>
-                <div className="text-center">
-                  <div className="flex justify-center mb-4">
-                    <RiLoginBoxLine className="text-4xl text-blue-600" />
-                  </div>
-                  <Title level={2} className="mb-2">
-                    Iniciar Sesión para Aceptar
-                  </Title>
-                  <Paragraph className="text-gray-600">
-                    Ya tienes una cuenta. Inicia sesión para aceptar la
-                    invitación.
-                  </Paragraph>
+            <div style={{ display: mode === "login" ? "block" : "none" }}>
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <RiLoginBoxLine className="text-4xl text-blue-600" />
                 </div>
+                <Title level={2} className="mb-2">
+                  Iniciar Sesión para Aceptar
+                </Title>
+                <Paragraph className="text-gray-600">
+                  Ya tienes una cuenta. Inicia sesión para aceptar la
+                  invitación.
+                </Paragraph>
+              </div>
 
-                {/* Invitation Details */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <Space direction="vertical" size="middle" className="w-full">
-                    <div className="flex items-start gap-3">
-                      <RiBuildingLine className="text-xl text-blue-600 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Organización
-                        </Text>
-                        <Text>{invitation.organization.name}</Text>
-                      </div>
+              {/* Invitation Details */}
+              <Card className="bg-blue-50 border-blue-200">
+                <Space direction="vertical" size="middle" className="w-full">
+                  <div className="flex items-start gap-3">
+                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Organización
+                      </Text>
+                      <Text>{invitation?.organization?.name}</Text>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <RiUserLine className="text-xl text-blue-600 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Rol
-                        </Text>
-                        <Text>{getRoleDisplayName(invitation.role.name)}</Text>
-                      </div>
-                    </div>
-                  </Space>
-                </Card>
-
-                {errorMessage && (
-                  <Alert
-                    message="Error"
-                    description={errorMessage}
-                    type="error"
-                    showIcon
-                    closable
-                    onClose={() => setErrorMessage(null)}
-                  />
-                )}
-
-                <Form
-                  form={loginForm}
-                  onFinish={handleLogin}
-                  layout="vertical"
-                  requiredMark={false}
-                  preserve={false}
-                >
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: "Por favor ingresa tu email" },
-                      { type: "email", message: "El email no es válido" },
-                    ]}
-                  >
-                    <Input
-                      prefixIcon={<RiMailLine />}
-                      placeholder="email@ejemplo.com"
-                      type="email"
-                      size="large"
-                      disabled
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="password"
-                    label="Contraseña"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor ingresa tu contraseña",
-                      },
-                    ]}
-                  >
-                    <Password
-                      prefixIcon={<RiLockLine />}
-                      placeholder="Contraseña"
-                      size="large"
-                    />
-                  </Form.Item>
-
-                  <Form.Item>
-                    <Space className="w-full" direction="vertical">
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={loading}
-                        className="w-full"
-                        size="large"
-                        icon={<RiLoginBoxLine />}
-                      >
-                        Iniciar Sesión y Aceptar
-                      </Button>
-                      <div className="text-center">
-                        <Link
-                          href={`/forgot-password?email=${encodeURIComponent(
-                            invitation.email
-                          )}`}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          ¿Olvidaste tu contraseña?
-                        </Link>
-                      </div>
-                    </Space>
-                  </Form.Item>
-                </Form>
-              </>
-            )}
-
-            {/* Register mode - new user */}
-            {mode === "register" && (
-              <>
-                <div className="text-center">
-                  <div className="flex justify-center mb-4">
-                    <RiUserAddLine className="text-4xl text-blue-600" />
                   </div>
-                  <Title level={2} className="mb-2">
-                    Aceptar Invitación
-                  </Title>
-                  <Paragraph className="text-gray-600">
-                    Completa tu registro para unirte a la organización
-                  </Paragraph>
-                </div>
-
-                {/* Invitation Details */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <Space direction="vertical" size="middle" className="w-full">
-                    <div className="flex items-start gap-3">
-                      <RiBuildingLine className="text-xl text-blue-600 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Organización
-                        </Text>
-                        <Text>{invitation.organization.name}</Text>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Rol
+                      </Text>
+                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <RiUserLine className="text-xl text-blue-600 mt-1" />
-                      <div>
-                        <Text strong className="block mb-1">
-                          Rol
-                        </Text>
-                        <Text>{getRoleDisplayName(invitation.role.name)}</Text>
-                      </div>
-                    </div>
-                    {invitation.inviter_name && (
-                      <div className="flex items-start gap-3">
-                        <RiUserLine className="text-xl text-blue-600 mt-1" />
-                        <div>
-                          <Text strong className="block mb-1">
-                            Invitado por
-                          </Text>
-                          <Text>{invitation.inviter_name}</Text>
-                        </div>
-                      </div>
-                    )}
-                  </Space>
-                </Card>
+                  </div>
+                </Space>
+              </Card>
 
-                {errorMessage && (
-                  <Alert
-                    message="Error"
-                    description={errorMessage}
-                    type="error"
-                    showIcon
-                    closable
-                    onClose={() => setErrorMessage(null)}
-                  />
-                )}
+              {errorMessage && (
+                <Alert
+                  message="Error"
+                  description={errorMessage}
+                  type="error"
+                  showIcon
+                  closable
+                  onClose={() => setErrorMessage(null)}
+                />
+              )}
 
-                {successMessage && (
-                  <Alert
-                    message="Éxito"
-                    description={successMessage}
-                    type="success"
-                    showIcon
-                  />
-                )}
-
-                <Form
-                  form={registerForm}
-                  onFinish={handleAccept}
-                  layout="vertical"
-                  requiredMark={false}
+              <Form
+                form={loginForm}
+                onFinish={handleLogin}
+                layout="vertical"
+                requiredMark={false}
+                preserve={false}
+              >
+                <Form.Item
+                  name="email"
+                  label="Email"
+                  rules={[
+                    { required: true, message: "Por favor ingresa tu email" },
+                    { type: "email", message: "El email no es válido" },
+                  ]}
                 >
-                  <Form.Item
-                    name="firstName"
-                    label="Nombre"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor ingresa tu nombre",
-                      },
-                    ]}
-                  >
-                    <Input
-                      prefixIcon={<RiUserLine />}
-                      placeholder="Nombre"
-                      size="large"
-                      disabled
-                    />
-                  </Form.Item>
+                  <Input
+                    prefixIcon={<RiMailLine />}
+                    placeholder="email@ejemplo.com"
+                    type="email"
+                    size="large"
+                    disabled
+                  />
+                </Form.Item>
 
-                  <Form.Item
-                    name="lastName"
-                    label="Apellido"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor ingresa tu apellido",
-                      },
-                    ]}
-                  >
-                    <Input
-                      prefixIcon={<RiUserLine />}
-                      placeholder="Apellido"
-                      size="large"
-                      disabled
-                    />
-                  </Form.Item>
+                <Form.Item
+                  name="password"
+                  label="Contraseña"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor ingresa tu contraseña",
+                    },
+                  ]}
+                >
+                  <Password
+                    prefixIcon={<RiLockLine />}
+                    placeholder="Contraseña"
+                    size="large"
+                  />
+                </Form.Item>
 
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: "Por favor ingresa tu email" },
-                      { type: "email", message: "El email no es válido" },
-                    ]}
-                  >
-                    <Input
-                      prefixIcon={<RiMailLine />}
-                      placeholder="email@ejemplo.com"
-                      type="email"
-                      size="large"
-                      disabled
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="dateOfBirth"
-                    label="Fecha de Nacimiento"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor ingresa tu fecha de nacimiento",
-                      },
-                    ]}
-                  >
-                    <div ref={datePickerRef}>
-                      <DatePicker
-                        placeholder="DD/MM/YYYY"
-                        format="DD/MM/YYYY"
-                        disabledDate={disabledDate}
-                        className="w-full"
-                        size="large"
-                        style={{ width: "100%" }}
-                        suffixIcon={
-                          <RiCalendarLine className="text-gray-400" />
-                        }
-                        inputReadOnly={false}
-                        onChange={(date) => {
-                          registerForm.setFieldValue("dateOfBirth", date);
-                        }}
-                      />
-                    </div>
-                  </Form.Item>
-
-                  <Form.Item
-                    name="password"
-                    label="Contraseña"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor ingresa una contraseña",
-                      },
-                      {
-                        min: 6,
-                        message:
-                          "La contraseña debe tener al menos 6 caracteres",
-                      },
-                    ]}
-                  >
-                    <Password
-                      prefixIcon={<RiLockLine />}
-                      placeholder="Contraseña"
-                      size="large"
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="confirmPassword"
-                    label="Confirmar Contraseña"
-                    dependencies={["password"]}
-                    rules={[
-                      {
-                        required: true,
-                        message: "Por favor confirma tu contraseña",
-                      },
-                      ({ getFieldValue }) => ({
-                        validator(_, value) {
-                          if (!value || getFieldValue("password") === value) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject(
-                            new Error("Las contraseñas no coinciden")
-                          );
-                        },
-                      }),
-                    ]}
-                  >
-                    <Password
-                      prefixIcon={<RiLockLine />}
-                      placeholder="Confirma tu contraseña"
-                      size="large"
-                    />
-                  </Form.Item>
-
-                  <Form.Item>
+                <Form.Item>
+                  <Space className="w-full" direction="vertical">
                     <Button
                       type="primary"
                       htmlType="submit"
                       loading={loading}
+                      disabled={loading}
                       className="w-full"
                       size="large"
-                      icon={<RiUserAddLine />}
+                      icon={<RiLoginBoxLine />}
                     >
-                      Aceptar Invitación y Registrarse
+                      Iniciar Sesión y Aceptar
                     </Button>
-                  </Form.Item>
-                </Form>
-              </>
-            )}
+                    <div className="text-center">
+                      <Link
+                        href={`/forgot-password?email=${encodeURIComponent(
+                          invitation?.email || ""
+                        )}`}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </Link>
+                    </div>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </div>
+
+            {/* Register mode - new user */}
+            <div style={{ display: mode === "register" ? "block" : "none" }}>
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <RiUserAddLine className="text-4xl text-blue-600" />
+                </div>
+                <Title level={2} className="mb-2">
+                  Aceptar Invitación
+                </Title>
+                <Paragraph className="text-gray-600">
+                  Completa tu registro para unirte a la organización
+                </Paragraph>
+              </div>
+
+              {/* Invitation Details */}
+              <Card className="bg-blue-50 border-blue-200">
+                <Space direction="vertical" size="middle" className="w-full">
+                  <div className="flex items-start gap-3">
+                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Organización
+                      </Text>
+                      <Text>{invitation?.organization?.name}</Text>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <div>
+                      <Text strong className="block mb-1">
+                        Rol
+                      </Text>
+                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
+                    </div>
+                  </div>
+                  {invitation?.inviter_name && (
+                    <div className="flex items-start gap-3">
+                      <RiUserLine className="text-xl text-blue-600 mt-1" />
+                      <div>
+                        <Text strong className="block mb-1">
+                          Invitado por
+                        </Text>
+                        <Text>{invitation.inviter_name}</Text>
+                      </div>
+                    </div>
+                  )}
+                </Space>
+              </Card>
+
+              {errorMessage && (
+                <Alert
+                  message="Error"
+                  description={errorMessage}
+                  type="error"
+                  showIcon
+                  closable
+                  onClose={() => setErrorMessage(null)}
+                />
+              )}
+
+              {successMessage && (
+                <Alert
+                  message="Éxito"
+                  description={successMessage}
+                  type="success"
+                  showIcon
+                />
+              )}
+
+              <Form
+                form={registerForm}
+                onFinish={handleAccept}
+                layout="vertical"
+                requiredMark={false}
+              >
+                <Form.Item
+                  name="firstName"
+                  label="Nombre"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor ingresa tu nombre",
+                    },
+                  ]}
+                >
+                  <Input
+                    prefixIcon={<RiUserLine />}
+                    placeholder="Nombre"
+                    size="large"
+                    disabled
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="lastName"
+                  label="Apellido"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor ingresa tu apellido",
+                    },
+                  ]}
+                >
+                  <Input
+                    prefixIcon={<RiUserLine />}
+                    placeholder="Apellido"
+                    size="large"
+                    disabled
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="email"
+                  label="Email"
+                  rules={[
+                    { required: true, message: "Por favor ingresa tu email" },
+                    { type: "email", message: "El email no es válido" },
+                  ]}
+                >
+                  <Input
+                    prefixIcon={<RiMailLine />}
+                    placeholder="email@ejemplo.com"
+                    type="email"
+                    size="large"
+                    disabled
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="dateOfBirth"
+                  label="Fecha de Nacimiento"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor ingresa tu fecha de nacimiento",
+                    },
+                  ]}
+                >
+                  <div ref={datePickerRef}>
+                    <DatePicker
+                      placeholder="DD/MM/YYYY"
+                      format="DD/MM/YYYY"
+                      disabledDate={disabledDate}
+                      className="w-full"
+                      size="large"
+                      style={{ width: "100%" }}
+                      suffixIcon={
+                        <RiCalendarLine className="text-gray-400" />
+                      }
+                      inputReadOnly={false}
+                    />
+                  </div>
+                </Form.Item>
+
+                <Form.Item
+                  name="password"
+                  label="Contraseña"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor ingresa una contraseña",
+                    },
+                    {
+                      min: 6,
+                      message:
+                        "La contraseña debe tener al menos 6 caracteres",
+                    },
+                  ]}
+                >
+                  <Password
+                    prefixIcon={<RiLockLine />}
+                    placeholder="Contraseña"
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="confirmPassword"
+                  label="Confirmar Contraseña"
+                  dependencies={["password"]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Por favor confirma tu contraseña",
+                    },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue("password") === value) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("Las contraseñas no coinciden")
+                        );
+                      },
+                    }),
+                  ]}
+                >
+                  <Password
+                    prefixIcon={<RiLockLine />}
+                    placeholder="Confirma tu contraseña"
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    disabled={loading}
+                    className="w-full"
+                    size="large"
+                    icon={<RiUserAddLine />}
+                  >
+                    Aceptar Invitación y Registrarse
+                  </Button>
+                </Form.Item>
+              </Form>
+            </div>
           </Space>
         </Card>
       </div>

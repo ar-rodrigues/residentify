@@ -145,13 +145,11 @@ export default async function OrganizationDetailPage({ params }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
       <OrganizationIdStorage organizationId={id} />
-      <div className="max-w-4xl mx-auto">
-        <Space direction="vertical" size="large" className="w-full">
-          <OrganizationHeader organization={organization} organizationId={id} />
-          {renderRoleView()}
-        </Space>
+      <div className="w-full">
+        <OrganizationHeader organization={organization} organizationId={id} />
+        <div className="w-full">{renderRoleView()}</div>
       </div>
     </div>
   );

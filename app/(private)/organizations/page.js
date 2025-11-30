@@ -12,6 +12,7 @@ import { useOrganizations } from "@/hooks/useOrganizations";
 import { Card, Typography, Space, Spin, Row, Col, Empty } from "antd";
 import Button from "@/components/ui/Button";
 import { formatDateDDMMYYYY } from "@/utils/date";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -21,6 +22,7 @@ export default function OrganizationsPage() {
   const router = useRouter();
   const { organizations, fetching, error } = useOrganizations();
   const [checkingRedirect, setCheckingRedirect] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Only check redirect after organizations are loaded
@@ -37,6 +39,14 @@ export default function OrganizationsPage() {
           // Last used org is no longer valid, remove it
           localStorage.removeItem(LAST_USED_ORG_KEY);
         }
+      }
+
+      // If user has only one organization, redirect to it
+      if (organizations.length === 1) {
+        const singleOrgId = organizations[0].id;
+        localStorage.setItem(LAST_USED_ORG_KEY, singleOrgId);
+        router.push(`/organizations/${singleOrgId}`);
+        return;
       }
 
       setCheckingRedirect(false);
@@ -67,7 +77,7 @@ export default function OrganizationsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 sm:py-12">
         <div className="max-w-md w-full">
           <Card>
             <Space direction="vertical" size="large" className="w-full">
@@ -92,7 +102,7 @@ export default function OrganizationsPage() {
   // Empty state - no organizations
   if (!organizations || organizations.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
             <Space
@@ -101,10 +111,12 @@ export default function OrganizationsPage() {
               className="w-full text-center"
             >
               <div className="flex justify-center mb-4">
-                <RiBuildingLine className="text-6xl text-blue-600" />
+                <RiBuildingLine className="text-5xl sm:text-6xl text-blue-600" />
               </div>
-              <Title level={2}>No tienes organizaciones</Title>
-              <Paragraph className="text-gray-600 text-lg">
+              <Title level={3} className="sm:!text-3xl">
+                No tienes organizaciones
+              </Title>
+              <Paragraph className="text-gray-600 text-base sm:text-lg">
                 Crea tu primera organización para comenzar a gestionar accesos y
                 miembros
               </Paragraph>
@@ -113,7 +125,7 @@ export default function OrganizationsPage() {
                 icon={<RiAddLine />}
                 onClick={handleCreateOrganization}
                 size="large"
-                className="mt-4"
+                className="mt-4 w-full sm:w-auto"
               >
                 Crear Organización
               </Button>
@@ -126,13 +138,15 @@ export default function OrganizationsPage() {
 
   // Show list of organizations
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <Space direction="vertical" size="large" className="w-full">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <Title level={2}>Mis Organizaciones</Title>
-              <Paragraph type="secondary">
+              <Title level={3} className="sm:!text-3xl !mb-1 sm:!mb-2">
+                Mis Organizaciones
+              </Title>
+              <Paragraph type="secondary" className="text-sm sm:text-base">
                 Selecciona una organización para gestionarla
               </Paragraph>
             </div>
@@ -141,44 +155,48 @@ export default function OrganizationsPage() {
               icon={<RiAddLine />}
               onClick={handleCreateOrganization}
               size="large"
+              className="w-full sm:w-auto"
             >
               Crear Organización
             </Button>
           </div>
 
-          <Row gutter={[24, 24]}>
+          <Row gutter={isMobile ? [16, 16] : [24, 24]}>
             {organizations.map((org) => (
               <Col xs={24} sm={12} lg={8} key={org.id}>
                 <Card
                   hoverable
                   className="h-full cursor-pointer transition-all hover:shadow-lg"
                   onClick={() => handleOrganizationClick(org.id)}
+                  bodyStyle={{ padding: "16px" }}
                 >
-                  <Space
-                    direction="vertical"
-                    size="middle"
-                    className="w-full"
-                  >
+                  <Space direction="vertical" size="middle" className="w-full">
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
-                        <RiBuildingLine className="text-2xl text-blue-600" />
+                      <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex-shrink-0">
+                        <RiBuildingLine className="text-xl sm:text-2xl text-blue-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Title level={4} className="!mb-0 truncate">
+                        <Title
+                          level={4}
+                          className="!mb-0 truncate text-base sm:text-lg"
+                        >
                           {org.name}
                         </Title>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 text-gray-500">
-                      <RiCalendarLine className="text-base" />
-                      <Text type="secondary" className="text-sm">
+                      <RiCalendarLine className="text-sm sm:text-base" />
+                      <Text type="secondary" className="text-xs sm:text-sm">
                         Creada: {formatDateDDMMYYYY(org.created_at)}
                       </Text>
                     </div>
 
-                    <div className="flex items-center justify-end pt-2 border-t">
-                      <Text type="secondary" className="text-sm flex items-center gap-1">
+                    <div className="flex items-center justify-end pt-2 border-t min-h-[44px]">
+                      <Text
+                        type="secondary"
+                        className="text-xs sm:text-sm flex items-center gap-1"
+                      >
                         Ver detalles
                         <RiArrowRightLine />
                       </Text>
@@ -193,7 +211,3 @@ export default function OrganizationsPage() {
     </div>
   );
 }
-
-
-
-

@@ -113,9 +113,9 @@ export default function InviteUserPage() {
 
   if (organization && !organization.isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4 pb-20 sm:pb-12">
         <div className="max-w-md w-full">
-          <Card>
+          <Card styles={{ body: { padding: "20px 16px" } }}>
             <Alert
               message="Acceso Denegado"
               description="No tienes permisos para invitar usuarios. Solo los administradores pueden invitar usuarios."
@@ -126,6 +126,7 @@ export default function InviteUserPage() {
               type="primary"
               onClick={() => router.push(`/organizations/${id}`)}
               className="w-full mt-4"
+              size="large"
             >
               Volver a la Organización
             </Button>
@@ -136,18 +137,18 @@ export default function InviteUserPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-8">
       <div className="max-w-2xl mx-auto">
-        <Card className="shadow-lg">
-          <Space direction="vertical" size="large" className="w-full">
+        <Card className="shadow-lg" styles={{ body: { padding: "20px 16px" } }}>
+          <Space direction="vertical" size="middle" className="w-full">
             <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <RiUserAddLine className="text-4xl text-blue-600" />
+              <div className="flex justify-center mb-3 sm:mb-4">
+                <RiUserAddLine className="text-3xl sm:text-4xl text-blue-600" />
               </div>
-              <Title level={2} className="mb-2">
+              <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                 Invitar Usuario
               </Title>
-              <Paragraph className="text-gray-600">
+              <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
                 Invita a un nuevo usuario a unirse a la organización
               </Paragraph>
             </div>
@@ -163,24 +164,30 @@ export default function InviteUserPage() {
               />
             )}
 
-            {successMessage && (
-              <Alert
-                message="Éxito"
-                description={successMessage}
-                type="success"
-                showIcon
-              />
-            )}
-
-            <Form
-              form={inviteForm}
-              onFinish={handleInvite}
-              layout="vertical"
-              requiredMark={false}
-            >
+            {successMessage ? (
+              <div className="text-center py-8">
+                <Alert
+                  message="Éxito"
+                  description={successMessage}
+                  type="success"
+                  showIcon
+                  className="mb-4"
+                />
+                <Paragraph type="secondary" className="text-sm">
+                  Redirigiendo...
+                </Paragraph>
+              </div>
+            ) : (
+              <Form
+                form={inviteForm}
+                onFinish={handleInvite}
+                layout="vertical"
+                requiredMark={false}
+                className="w-full"
+              >
               <Form.Item
                 name="first_name"
-                label="Nombre"
+                label={<span className="text-sm sm:text-base">Nombre</span>}
                 rules={[
                   {
                     required: true,
@@ -195,17 +202,19 @@ export default function InviteUserPage() {
                     message: "El nombre no puede tener más de 100 caracteres",
                   },
                 ]}
+                className="!mb-4"
               >
                 <Input
-                  prefixIcon={<RiUserLine />}
+                  prefixIcon={<RiUserLine className="text-base" />}
                   placeholder="Nombre"
                   size="large"
+                  className="w-full"
                 />
               </Form.Item>
 
               <Form.Item
                 name="last_name"
-                label="Apellido"
+                label={<span className="text-sm sm:text-base">Apellido</span>}
                 rules={[
                   {
                     required: true,
@@ -220,17 +229,19 @@ export default function InviteUserPage() {
                     message: "El apellido no puede tener más de 100 caracteres",
                   },
                 ]}
+                className="!mb-4"
               >
                 <Input
-                  prefixIcon={<RiUserLine />}
+                  prefixIcon={<RiUserLine className="text-base" />}
                   placeholder="Apellido"
                   size="large"
+                  className="w-full"
                 />
               </Form.Item>
 
               <Form.Item
                 name="email"
-                label="Email"
+                label={<span className="text-sm sm:text-base">Email</span>}
                 rules={[
                   {
                     required: true,
@@ -241,29 +252,37 @@ export default function InviteUserPage() {
                     message: "El email no es válido",
                   },
                 ]}
+                className="!mb-4"
               >
                 <Input
-                  prefixIcon={<RiMailLine />}
+                  prefixIcon={<RiMailLine className="text-base" />}
                   placeholder="email@ejemplo.com"
                   type="email"
                   size="large"
+                  className="w-full"
                 />
               </Form.Item>
 
               <Form.Item
                 name="organization_role_id"
-                label="Rol en la Organización"
+                label={
+                  <span className="text-sm sm:text-base">
+                    Rol en la Organización
+                  </span>
+                }
                 rules={[
                   {
                     required: true,
                     message: "Por favor selecciona un rol",
                   },
                 ]}
+                className="!mb-4"
               >
                 <Select
                   placeholder="Selecciona un rol"
                   size="large"
                   loading={loadingRoles}
+                  className="w-full"
                   options={organizationRoles.map((role) => ({
                     value: role.id,
                     label: getRoleDisplayName(role.name),
@@ -274,7 +293,11 @@ export default function InviteUserPage() {
 
               <Form.Item
                 name="description"
-                label="Descripción (Opcional)"
+                label={
+                  <span className="text-sm sm:text-base">
+                    Descripción (Opcional)
+                  </span>
+                }
                 rules={[
                   {
                     max: 500,
@@ -282,17 +305,19 @@ export default function InviteUserPage() {
                       "La descripción no puede tener más de 500 caracteres",
                   },
                 ]}
+                className="!mb-4"
               >
                 <TextArea
-                  rows={4}
+                  rows={3}
                   placeholder="Descripción del usuario (opcional)"
                   maxLength={500}
                   showCount
+                  className="w-full"
                 />
               </Form.Item>
 
-              <Form.Item>
-                <Space className="w-full" direction="vertical">
+              <Form.Item className="!mb-0">
+                <Space className="w-full" direction="vertical" size="middle">
                   <Button
                     type="primary"
                     htmlType="submit"
@@ -312,7 +337,8 @@ export default function InviteUserPage() {
                   </Button>
                 </Space>
               </Form.Item>
-            </Form>
+              </Form>
+            )}
           </Space>
         </Card>
       </div>

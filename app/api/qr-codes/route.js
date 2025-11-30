@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { randomUUID } from "crypto";
 import { randomBytes } from "crypto";
+import { generateIdentifier } from "@/utils/identifierGenerator";
 
 /**
  * POST /api/qr-codes
@@ -75,6 +76,9 @@ export async function POST(request) {
     // Generate QR code ID
     const qrCodeId = randomUUID();
 
+    // Generate identifier (superpower + animal)
+    const identifier = generateIdentifier();
+
     // Set expiration to 1 day from now
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 1);
@@ -90,6 +94,7 @@ export async function POST(request) {
         status: "active",
         is_used: false,
         expires_at: expiresAt.toISOString(),
+        identifier: identifier,
       })
       .select()
       .single();
@@ -127,7 +132,7 @@ export async function POST(request) {
 
 /**
  * GET /api/qr-codes
- * Get QR codes for the authenticated user (resident)
+ * Get QR codes for the authenticated user (resident) or unvalidated codes for security
  */
 export async function GET(request) {
   try {
@@ -152,11 +157,114 @@ export async function GET(request) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get("organization_id");
+    const role = searchParams.get("role");
 
+    // If role is security, return unvalidated QR codes for the organization
+    if (role === "security") {
+      if (!organizationId) {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "ID de organización es requerido para usuarios de seguridad.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check if user is security of the organization
+      const { data: memberCheck, error: memberError } = await supabase
+        .from("organization_members")
+        .select(
+          `
+          id,
+          organization_roles!inner(
+            name
+          )
+        `
+        )
+        .eq("organization_id", organizationId)
+        .eq("user_id", user.id)
+        .eq("organization_roles.name", "security")
+        .single();
+
+      if (memberError || !memberCheck) {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "No tienes permisos para ver códigos QR de esta organización. Debes ser personal de seguridad.",
+          },
+          { status: 403 }
+        );
+      }
+
+      // Get unvalidated QR codes (not used, active, not expired)
+      const now = new Date().toISOString();
+      const { data: qrCodes, error: fetchError } = await supabase
+        .from("qr_codes")
+        .select("id, identifier, created_by, created_at, expires_at")
+        .eq("organization_id", organizationId)
+        .eq("is_used", false)
+        .eq("status", "active")
+        .gt("expires_at", now)
+        .order("created_at", { ascending: false });
+
+      if (fetchError) {
+        console.error("Error fetching QR codes:", fetchError);
+        return NextResponse.json(
+          {
+            error: true,
+            message: "Error al obtener los códigos QR.",
+          },
+          { status: 500 }
+        );
+      }
+
+      // Get unique creator IDs
+      const creatorIds = [
+        ...new Set((qrCodes || []).map((qr) => qr.created_by).filter(Boolean)),
+      ];
+
+      // Fetch creator names
+      const creatorsMap = {};
+      if (creatorIds.length > 0) {
+        await Promise.all(
+          creatorIds.map(async (creatorId) => {
+            const { data: creatorName, error: creatorError } = await supabase.rpc(
+              "get_user_name",
+              { p_user_id: creatorId }
+            );
+            if (!creatorError && creatorName) {
+              creatorsMap[creatorId] = creatorName;
+            }
+          })
+        );
+      }
+
+      // Format response with creator names
+      const formattedCodes = (qrCodes || []).map((qr) => ({
+        id: qr.id,
+        identifier: qr.identifier,
+        created_by: qr.created_by,
+        created_by_name: creatorsMap[qr.created_by] || null,
+        created_at: qr.created_at,
+        expires_at: qr.expires_at,
+      }));
+
+      return NextResponse.json(
+        {
+          error: false,
+          data: formattedCodes,
+          message: "Códigos QR pendientes obtenidos exitosamente.",
+        },
+        { status: 200 }
+      );
+    }
+
+    // Default: Get QR codes for resident (existing behavior)
     // Build query
     let query = supabase
       .from("qr_codes")
-      .select("id, token, organization_id, created_by, created_at, status, is_used, expires_at, validated_at, validated_by")
+      .select("id, token, organization_id, created_by, created_at, updated_at, status, is_used, expires_at, validated_at, validated_by, identifier")
       .eq("created_by", user.id)
       .order("created_at", { ascending: false });
 

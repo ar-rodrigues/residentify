@@ -67,16 +67,16 @@ export default function HistoryLinkCard({ qrCode, organizationId, onDelete, dele
         hoverable
         onClick={() => setDetailsVisible(true)}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <RiQrCodeLine className="text-xl text-gray-400 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Text strong className="truncate">
-                  {qrCode.token}
-                </Text>
-                <Badge status={statusInfo.status} text={statusInfo.text} />
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <RiQrCodeLine className="text-xl text-gray-400 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Text strong className="truncate">
+                    {qrCode.identifier || qrCode.token}
+                  </Text>
+                  <Badge status={statusInfo.status} text={statusInfo.text} />
+                </div>
               <div className="flex items-center gap-4 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <RiCalendarLine />

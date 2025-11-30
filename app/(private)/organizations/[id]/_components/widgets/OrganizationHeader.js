@@ -1,123 +1,101 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  RiBuildingLine,
-  RiEditLine,
-  RiCalendarLine,
-  RiUserLine,
-  RiUserAddLine,
-} from "react-icons/ri";
-import { Card, Typography, Space } from "antd";
+import { RiBuildingLine, RiAddLine, RiArrowDownSLine } from "react-icons/ri";
+import { Typography, Dropdown, Space, Spin } from "antd";
 import Button from "@/components/ui/Button";
-import { formatDateDDMMYYYY } from "@/utils/date";
+import { useOrganizations } from "@/hooks/useOrganizations";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export default function OrganizationHeader({ organization, organizationId }) {
   const router = useRouter();
+  const { organizations, fetching } = useOrganizations();
+  const isMobile = useIsMobile();
 
-  const handleEdit = () => {
-    router.push(`/organizations/${organizationId}/edit`);
+  const handleOrganizationSelect = (orgId) => {
+    router.push(`/organizations/${orgId}`);
   };
 
-  const handleInvite = () => {
-    router.push(`/organizations/${organizationId}/invite`);
+  const handleCreateOrganization = () => {
+    router.push("/organizations/create");
   };
 
-  const getRoleDisplayName = (role) => {
-    const roleMap = {
-      admin: "Administrador",
-      resident: "Residente",
-      security: "Personal de Seguridad",
-    };
-    return roleMap[role] || role;
-  };
+  // Build dropdown menu items
+  const otherOrganizations = organizations.filter(
+    (org) => org.id !== organizationId
+  );
+
+  const menuItems = [
+    ...otherOrganizations.map((org) => ({
+      key: org.id,
+      label: org.name,
+      onClick: () => handleOrganizationSelect(org.id),
+    })),
+    ...(otherOrganizations.length > 0
+      ? [
+          {
+            type: "divider",
+          },
+        ]
+      : []),
+    {
+      key: "create",
+      label: (
+        <Space>
+          <RiAddLine />
+          <span>Crear Nueva Organización</span>
+        </Space>
+      ),
+      onClick: handleCreateOrganization,
+    },
+  ];
 
   return (
-    <Card>
-      <Space direction="vertical" size="large" className="w-full">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-lg">
-              <RiBuildingLine className="text-3xl text-blue-600" />
-            </div>
-            <div>
-              <Title level={2} className="!mb-2">
-                {organization.name}
-              </Title>
-              {organization.userRole && (
-                <Text type="secondary" className="text-sm">
-                  Tu rol: <Text strong>{getRoleDisplayName(organization.userRole)}</Text>
-                </Text>
-              )}
-            </div>
+    <div
+      className="w-full bg-white border-b border-gray-200"
+      style={{
+        padding: isMobile ? "12px 16px" : "16px 24px",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg flex-shrink-0">
+            <RiBuildingLine className="text-xl text-blue-600" />
           </div>
-          {organization.isAdmin && (
-            <Space>
+          <Text
+            strong
+            className="text-lg md:text-xl"
+            ellipsis
+            style={{ margin: 0 }}
+          >
+            {organization.name}
+          </Text>
+        </div>
+
+        <div className="flex-shrink-0 ml-4">
+          {fetching ? (
+            <Spin size="small" />
+          ) : (
+            <Dropdown
+              menu={{ items: menuItems }}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
               <Button
                 type="default"
-                icon={<RiUserAddLine />}
-                onClick={handleInvite}
-                size="large"
+                icon={<RiArrowDownSLine />}
+                iconPosition="end"
+                size={isMobile ? "middle" : "large"}
               >
-                Invitar Usuario
+                {isMobile ? "Cambiar" : "Cambiar Organización"}
               </Button>
-              <Button
-                type="primary"
-                icon={<RiEditLine />}
-                onClick={handleEdit}
-                size="large"
-              >
-                Editar
-              </Button>
-            </Space>
+            </Dropdown>
           )}
         </div>
-
-        <div className="border-t pt-6">
-          <Space direction="vertical" size="middle" className="w-full">
-            <div className="flex items-start gap-4">
-              <RiCalendarLine className="text-xl text-gray-500 mt-1" />
-              <div>
-                <Text strong className="block mb-1">
-                  Fecha de Creación
-                </Text>
-                <Text type="secondary">
-                  {formatDateDDMMYYYY(organization.created_at)}
-                </Text>
-              </div>
-            </div>
-
-            {organization.updated_at && (
-              <div className="flex items-start gap-4">
-                <RiCalendarLine className="text-xl text-gray-500 mt-1" />
-                <div>
-                  <Text strong className="block mb-1">
-                    Última Actualización
-                  </Text>
-                  <Text type="secondary">
-                    {formatDateDDMMYYYY(organization.updated_at)}
-                  </Text>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-start gap-4">
-              <RiUserLine className="text-xl text-gray-500 mt-1" />
-              <div>
-                <Text strong className="block mb-1">
-                  Creado por
-                </Text>
-                <Text type="secondary">
-                  {organization.created_by_name || "Usuario desconocido"}
-                </Text>
-              </div>
-            </div>
-          </Space>
-        </div>
-      </Space>
-    </Card>
+      </div>
+    </div>
   );
 }
 

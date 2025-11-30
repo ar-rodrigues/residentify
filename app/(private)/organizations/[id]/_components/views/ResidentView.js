@@ -11,11 +11,11 @@ import {
   Divider,
   App,
 } from "antd";
-import { RiQrCodeLine, RiAddLine, RiHistoryLine } from "react-icons/ri";
+import { RiQrCodeLine, RiHistoryLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
-import Button from "@/components/ui/Button";
 import ActiveLinkCard from "../widgets/ActiveLinkCard";
 import HistoryLinkCard from "../widgets/HistoryLinkCard";
+import GenerateInviteFAB from "../widgets/GenerateInviteFAB";
 
 const { Title, Text } = Typography;
 
@@ -25,6 +25,7 @@ export default function ResidentView({ organizationId }) {
     createQRCode,
     getQRCodes,
     deleteQRCode,
+    updateQRCode,
     data: qrCodesData,
     loading: qrLoading,
   } = useQRCodes();
@@ -39,15 +40,15 @@ export default function ResidentView({ organizationId }) {
     }
   }, [organizationId, loadQRCodes]);
 
-  const handleGenerateLink = async () => {
+  const handleGenerateInvite = async () => {
     const result = await createQRCode(organizationId);
     if (!result.error) {
       // Refresh QR codes list to display the new QR code
       await loadQRCodes();
-      message.success("Enlace de validación generado exitosamente");
+      message.success("Invitación generada exitosamente");
     } else {
       message.error(
-        result.message || "Error al generar el enlace de validación"
+        result.message || "Error al generar la invitación"
       );
     }
   };
@@ -107,39 +108,29 @@ export default function ResidentView({ organizationId }) {
   }, [qrCodesData]);
 
   return (
-    <div className="relative">
+    <div className="w-full">
       <Card className="w-full">
         <Space direction="vertical" size="large" className="w-full">
           <div>
-            <Title level={4} className="mb-2">
-              Enlaces de Validación
+            <Title level={4} className="mb-2 break-words">
+              Invitaciones
             </Title>
-            <Text type="secondary">
-              Genera enlaces únicos para que el personal de seguridad valide el
+            <Text type="secondary" className="break-words block">
+              Genera invitaciones únicas para que el personal de seguridad valide el
               acceso de visitantes
             </Text>
           </div>
 
-          {/* Active Links Section */}
+          {/* Active Invites Section */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <RiQrCodeLine className="text-xl text-blue-500" />
-                <Title level={5} className="mb-0">
-                  Enlaces Activos
-                </Title>
-                {activeLinks.length > 0 && (
-                  <Badge count={activeLinks.length} showZero={false} />
-                )}
-              </div>
-              <Button
-                type="primary"
-                icon={<RiAddLine />}
-                onClick={handleGenerateLink}
-                loading={qrLoading}
-              >
-                Generar Enlace
-              </Button>
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              <RiQrCodeLine className="text-xl text-blue-500 flex-shrink-0" />
+              <Title level={5} className="mb-0 break-words">
+                Invitaciones Activas
+              </Title>
+              {activeLinks.length > 0 && (
+                <Badge count={activeLinks.length} showZero={false} className="flex-shrink-0" />
+              )}
             </div>
 
             {qrLoading ? (
@@ -148,20 +139,11 @@ export default function ResidentView({ organizationId }) {
               </div>
             ) : activeLinks.length === 0 ? (
               <Empty
-                description="No tienes enlaces activos"
+                description="No tienes invitaciones activas"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                <Button
-                  type="primary"
-                  icon={<RiAddLine />}
-                  onClick={handleGenerateLink}
-                  loading={qrLoading}
-                >
-                  Generar Primer Enlace
-                </Button>
-              </Empty>
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeLinks.map((qrCode) => (
                   <ActiveLinkCard
                     key={qrCode.id}
@@ -169,6 +151,17 @@ export default function ResidentView({ organizationId }) {
                     organizationId={organizationId}
                     onDelete={handleDeleteQRCode}
                     deleting={qrLoading}
+                    onUpdateIdentifier={async (id, identifier) => {
+                      const result = await updateQRCode(id, { identifier });
+                      if (!result.error) {
+                        await loadQRCodes();
+                        message.success("Identificador actualizado exitosamente");
+                      } else {
+                        message.error(
+                          result.message || "Error al actualizar el identificador"
+                        );
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -180,12 +173,12 @@ export default function ResidentView({ organizationId }) {
             <>
               <Divider />
               <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <RiHistoryLine className="text-xl text-gray-500" />
-                  <Title level={5} className="mb-0">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  <RiHistoryLine className="text-xl text-gray-500 flex-shrink-0" />
+                  <Title level={5} className="mb-0 break-words">
                     Historial
                   </Title>
-                  <Badge count={historyLinks.length} showZero={false} />
+                  <Badge count={historyLinks.length} showZero={false} className="flex-shrink-0" />
                 </div>
 
                 <div className="space-y-3">
@@ -204,6 +197,11 @@ export default function ResidentView({ organizationId }) {
           )}
         </Space>
       </Card>
+      <GenerateInviteFAB
+        organizationId={organizationId}
+        onClick={handleGenerateInvite}
+        loading={qrLoading}
+      />
     </div>
   );
 }

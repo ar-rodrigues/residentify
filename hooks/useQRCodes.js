@@ -78,7 +78,7 @@ export function useQRCodes() {
       setLoading(true);
       setError(null);
 
-      const { organization_id, status } = filters;
+      const { organization_id, status, role } = filters;
       const params = new URLSearchParams();
 
       if (organization_id) {
@@ -89,7 +89,13 @@ export function useQRCodes() {
         params.append("status", status);
       }
 
-      const url = `/api/qr-codes${params.toString() ? `?${params.toString()}` : ""}`;
+      if (role) {
+        params.append("role", role);
+      }
+
+      const url = `/api/qr-codes${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -237,7 +243,13 @@ export function useQRCodes() {
         throw new Error("Token inválido.");
       }
 
-      const { visitor_name, visitor_id, document_photo_url, entry_type = "entry", notes = null } = validationData;
+      const {
+        visitor_name,
+        visitor_id,
+        document_photo_url,
+        entry_type = "entry",
+        notes = null,
+      } = validationData;
 
       if (!visitor_name || !visitor_id) {
         throw new Error("Nombre e ID del visitante son requeridos.");
@@ -398,6 +410,3 @@ export function useQRCodes() {
     refetch,
   };
 }
-
-
-
