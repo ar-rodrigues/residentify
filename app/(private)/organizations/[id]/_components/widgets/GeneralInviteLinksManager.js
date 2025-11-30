@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Space,
@@ -52,21 +52,14 @@ export default function GeneralInviteLinksManager({ organizationId }) {
   const [copiedLinkId, setCopiedLinkId] = useState(null);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    if (organizationId) {
-      loadLinks();
-      fetchRoles();
-    }
-  }, [organizationId]);
-
-  const loadLinks = async () => {
+  const loadLinks = useCallback(async () => {
     const result = await getGeneralInviteLinks(organizationId);
     if (!result.error && result.data) {
       setLinks(result.data);
     }
-  };
+  }, [organizationId, getGeneralInviteLinks]);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       setLoadingRoles(true);
       const response = await fetch("/api/organization-roles");
@@ -84,7 +77,14 @@ export default function GeneralInviteLinksManager({ organizationId }) {
     } finally {
       setLoadingRoles(false);
     }
-  };
+  }, [message]);
+
+  useEffect(() => {
+    if (organizationId) {
+      loadLinks();
+      fetchRoles();
+    }
+  }, [organizationId, loadLinks, fetchRoles]);
 
   const handleCreate = async (values) => {
     setIsCreating(true);

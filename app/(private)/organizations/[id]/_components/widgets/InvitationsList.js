@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Table, Card, Space, Spin, Alert, Typography, Badge, Tag } from "antd";
 import { RiMailLine, RiTimeLine, RiCheckLine, RiCloseLine } from "react-icons/ri";
 import { useInvitations } from "@/hooks/useInvitations";
@@ -12,18 +12,18 @@ export default function InvitationsList({ organizationId }) {
   const { loading, error, getInvitations } = useInvitations();
   const [invitations, setInvitations] = useState([]);
 
-  useEffect(() => {
-    if (organizationId) {
-      loadInvitations();
-    }
-  }, [organizationId]);
-
-  const loadInvitations = async () => {
+  const loadInvitations = useCallback(async () => {
     const result = await getInvitations(organizationId);
     if (!result.error && result.data) {
       setInvitations(result.data);
     }
-  };
+  }, [organizationId, getInvitations]);
+
+  useEffect(() => {
+    if (organizationId) {
+      loadInvitations();
+    }
+  }, [organizationId, loadInvitations]);
 
   const getStatusBadge = (status, isExpired) => {
     if (isExpired) {

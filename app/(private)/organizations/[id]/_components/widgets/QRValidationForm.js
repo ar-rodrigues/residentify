@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Form, Input, Upload, Space, Typography, App, Modal, Card, Switch } from "antd";
 import { RiUserLine, RiIdCardLine, RiUploadLine, RiDeleteBinLine, RiCameraLine, RiErrorWarningLine } from "react-icons/ri";
 import InputComponent from "@/components/ui/Input";
@@ -167,17 +168,19 @@ export default function QRValidationForm({ qrCode, onSubmit, onCancel, loading =
             Opcional: Toma una foto o sube una imagen del documento de identificación del visitante
           </div>
           <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
-            <img
+            <Image
               src={documentPreview}
               alt="Preview"
-              className="w-full h-full object-contain"
+              fill
+              className="object-contain"
+              unoptimized
             />
             <Button
               type="text"
               danger
               icon={<RiDeleteBinLine />}
               onClick={handleRemoveFile}
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+              className="absolute top-2 right-2 bg-white/80 hover:bg-white z-10"
               size="small"
             />
           </div>

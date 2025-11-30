@@ -26,3 +26,4 @@ export default function GenerateInviteFAB({ organizationId, onClick, loading = f
   );
 }
 
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Table,
   Card,
@@ -56,26 +56,26 @@ export default function InvitationsListResponsive({ organizationId }) {
   const [copiedLinkId, setCopiedLinkId] = useState(null);
   const isMobile = useIsMobile();
 
+  const loadInvitations = useCallback(async () => {
+    const result = await getInvitations(organizationId);
+    if (!result.error && result.data) {
+      setInvitations(result.data);
+    }
+  }, [organizationId, getInvitations]);
+
+  const loadGeneralLinks = useCallback(async () => {
+    const result = await getGeneralInviteLinks(organizationId);
+    if (!result.error && result.data) {
+      setGeneralLinks(result.data);
+    }
+  }, [organizationId, getGeneralInviteLinks]);
+
   useEffect(() => {
     if (organizationId) {
       loadInvitations();
       loadGeneralLinks();
     }
-  }, [organizationId]);
-
-  const loadInvitations = async () => {
-    const result = await getInvitations(organizationId);
-    if (!result.error && result.data) {
-      setInvitations(result.data);
-    }
-  };
-
-  const loadGeneralLinks = async () => {
-    const result = await getGeneralInviteLinks(organizationId);
-    if (!result.error && result.data) {
-      setGeneralLinks(result.data);
-    }
-  };
+  }, [organizationId, loadInvitations, loadGeneralLinks]);
 
   // Filter active (non-expired) general invite links
   const activeLinks = generalLinks.filter((link) => !link.is_expired);

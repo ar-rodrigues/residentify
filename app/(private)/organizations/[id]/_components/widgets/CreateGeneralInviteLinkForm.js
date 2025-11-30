@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Select, Switch, DatePicker, App } from "antd";
 import { RiAddLine } from "react-icons/ri";
 import { useGeneralInviteLinks } from "@/hooks/useGeneralInviteLinks";
@@ -19,11 +19,7 @@ export default function CreateGeneralInviteLinkForm({
   const formRef = useRef(null);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       setLoadingRoles(true);
       const response = await fetch("/api/organization-roles");
@@ -41,7 +37,11 @@ export default function CreateGeneralInviteLinkForm({
     } finally {
       setLoadingRoles(false);
     }
-  };
+  }, [message]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const handleCreate = async (values) => {
     // If a date is selected, set it to end of day (23:59:59) for expiration

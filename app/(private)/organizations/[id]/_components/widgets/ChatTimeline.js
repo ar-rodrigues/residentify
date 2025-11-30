@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Spin, Empty, Typography } from "antd";
 import { useQRCodes } from "@/hooks/useQRCodes";
 import { useAccessLogs } from "@/hooks/useAccessLogs";
@@ -24,22 +24,7 @@ export default function ChatTimeline({ organizationId, filter = "all" }) {
     markAsRead,
   } = useNotifications();
 
-  useEffect(() => {
-    loadTimelineData();
-  }, [organizationId, filter]);
-
-  useEffect(() => {
-    mergeTimelineItems();
-  }, [qrCodesData, accessLogsData, notificationsData, filter]);
-
-  useEffect(() => {
-    // Auto-scroll to bottom when new items are added
-    if (timelineRef.current) {
-      timelineRef.current.scrollTop = timelineRef.current.scrollHeight;
-    }
-  }, [timelineItems]);
-
-  const loadTimelineData = async () => {
+  const loadTimelineData = useCallback(async () => {
     setLoading(true);
     try {
       const filters = { organization_id: organizationId };
@@ -53,9 +38,9 @@ export default function ChatTimeline({ organizationId, filter = "all" }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, getQRCodes, getAccessLogs, getNotifications]);
 
-  const mergeTimelineItems = () => {
+  const mergeTimelineItems = useCallback(() => {
     const items = [];
 
     // Add QR codes
@@ -105,7 +90,22 @@ export default function ChatTimeline({ organizationId, filter = "all" }) {
     });
 
     setTimelineItems(items);
-  };
+  }, [qrCodesData, accessLogsData, notificationsData, filter]);
+
+  useEffect(() => {
+    loadTimelineData();
+  }, [organizationId, filter, loadTimelineData]);
+
+  useEffect(() => {
+    mergeTimelineItems();
+  }, [mergeTimelineItems]);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new items are added
+    if (timelineRef.current) {
+      timelineRef.current.scrollTop = timelineRef.current.scrollHeight;
+    }
+  }, [timelineItems]);
 
   const handleMessageClick = async (item) => {
     if (item.type === "notification" && !item.is_read) {

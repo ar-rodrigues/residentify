@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Space, Typography, Alert } from "antd";
 import {
   RiCameraLine,
@@ -17,6 +18,7 @@ export default function CameraCapture({ onCapture, onCancel }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const capturedImageRef = useRef(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState(null);
   const [facingMode, setFacingMode] = useState("environment"); // 'user' for front, 'environment' for back
@@ -41,7 +43,7 @@ export default function CameraCapture({ onCapture, onCancel }) {
     );
   };
 
-  const startCamera = async (facing = facingMode) => {
+  const startCamera = useCallback(async (facing = facingMode) => {
     if (!isCameraAvailable()) {
       setError(
         "La cámara no está disponible en este navegador. Por favor, usa un navegador moderno."
@@ -174,7 +176,7 @@ export default function CameraCapture({ onCapture, onCancel }) {
       setError(errorMessage);
       setIsStreaming(false);
     }
-  };
+  }, [facingMode]);
 
   const stopCamera = () => {
     if (streamRef.current) {
@@ -221,7 +223,9 @@ export default function CameraCapture({ onCapture, onCancel }) {
 
           // Create preview URL
           const previewUrl = URL.createObjectURL(blob);
-          setCapturedImage({ file, preview: previewUrl });
+          const imageData = { file, preview: previewUrl };
+          setCapturedImage(imageData);
+          capturedImageRef.current = imageData;
 
           // Stop camera after capture
           stopCamera();
@@ -233,6 +237,10 @@ export default function CameraCapture({ onCapture, onCancel }) {
   };
 
   const retakePhoto = () => {
+    if (capturedImageRef.current) {
+      URL.revokeObjectURL(capturedImageRef.current.preview);
+      capturedImageRef.current = null;
+    }
     setCapturedImage(null);
     startCamera();
   };
@@ -245,10 +253,11 @@ export default function CameraCapture({ onCapture, onCancel }) {
 
   const handleCancel = () => {
     stopCamera();
-    if (capturedImage) {
-      URL.revokeObjectURL(capturedImage.preview);
-      setCapturedImage(null);
+    if (capturedImageRef.current) {
+      URL.revokeObjectURL(capturedImageRef.current.preview);
+      capturedImageRef.current = null;
     }
+    setCapturedImage(null);
     // Call onCancel to close modal
     if (onCancel) {
       onCancel();
@@ -260,11 +269,12 @@ export default function CameraCapture({ onCapture, onCancel }) {
     startCamera();
     return () => {
       stopCamera();
-      if (capturedImage) {
-        URL.revokeObjectURL(capturedImage.preview);
+      if (capturedImageRef.current) {
+        URL.revokeObjectURL(capturedImageRef.current.preview);
+        capturedImageRef.current = null;
       }
     };
-  }, []);
+  }, [startCamera]);
 
   // If we have a captured image, show preview with confirm/retake options
   if (capturedImage) {
@@ -274,10 +284,12 @@ export default function CameraCapture({ onCapture, onCancel }) {
           className="relative w-full bg-black flex-1 flex items-center justify-center overflow-hidden"
           style={{ minHeight: 0 }}
         >
-          <img
+          <Image
             src={capturedImage.preview}
             alt="Foto capturada"
-            className="w-full h-full object-contain"
+            fill
+            className="object-contain"
+            unoptimized
           />
         </div>
         <div className="p-4 bg-white border-t border-gray-200">

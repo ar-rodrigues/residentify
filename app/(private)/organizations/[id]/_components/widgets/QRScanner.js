@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
+import Image from "next/image";
 import { Card, Space, Typography, Alert, App, Segmented } from "antd";
 import {
   RiQrScanLine,
@@ -835,11 +836,13 @@ export default function QRScanner({ onScan, loading = false }) {
           {imagePreview && (
             <div className="w-full">
               <Card title="Imagen Capturada">
-                <div className="w-full flex justify-center">
-                  <img
+                <div className="w-full flex justify-center relative" style={{ minHeight: "200px", maxHeight: "256px" }}>
+                  <Image
                     src={imagePreview}
                     alt="Preview"
-                    className="max-w-full max-h-64 object-contain rounded-lg"
+                    fill
+                    className="object-contain rounded-lg"
+                    unoptimized
                   />
                 </div>
               </Card>
