@@ -85,12 +85,11 @@ export default function LoginForm() {
           <Space size="middle" className="justify-center">
             <RiRocketLine className="text-4xl text-blue-600" />
             <Title level={2} className="!mb-0">
-              Proyecto Starter
+              Residentify
             </Title>
           </Space>
           <Paragraph className="text-gray-600">
-            Un proyecto base completo y listo para usar con Next.js 15, Tailwind
-            CSS 4 y autenticación
+            Sistema de control de acceso para edificios residenciales. Gestiona visitantes con códigos QR seguros.
           </Paragraph>
         </Space>
 

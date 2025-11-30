@@ -59,7 +59,7 @@ export default function ForgotPasswordForm() {
           <Space size="middle" className="justify-center">
             <RiRocketLine className="text-4xl text-blue-600" />
             <Title level={2} className="!mb-0">
-              Proyecto Starter
+              Residentify
             </Title>
           </Space>
           <Paragraph className="text-gray-600">

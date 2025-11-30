@@ -9,8 +9,9 @@ import {
   RiCheckLine,
   RiDeleteBinLine,
   RiEditLine,
+  RiCheckboxCircleLine,
 } from "react-icons/ri";
-import { formatDateDDMMYYYY } from "@/utils/date";
+import { formatDateDDMMYYYY, formatRelativeTime } from "@/utils/date";
 import Button from "@/components/ui/Button";
 import QRCodeSVG from "./QRCodeSVGWrapper";
 
@@ -497,6 +498,28 @@ export default function ActiveLinkCard({
             </div>
           )}
         </div>
+
+        {/* Arrival Notification - Show when QR code is validated */}
+        {qrCode?.is_used === true && qrCode?.validated_at && (
+          <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg">
+            <Space direction="vertical" size="small" className="w-full">
+              <div className="flex items-center gap-2">
+                <RiCheckboxCircleLine className="text-green-500 text-xl flex-shrink-0" />
+                <Text strong className="text-green-700 text-sm">
+                  {qrCode?.visitor_name
+                    ? `${qrCode.visitor_name} ha llegado`
+                    : "Visitante ha llegado"}
+                </Text>
+              </div>
+              <div className="flex items-center gap-2 pl-7">
+                <RiCalendarLine className="text-green-600 text-sm flex-shrink-0" />
+                <Text className="text-green-600 text-xs">
+                  {formatRelativeTime(qrCode.validated_at)}
+                </Text>
+              </div>
+            </Space>
+          </div>
+        )}
 
         {/* QR Code Display */}
         <div className="flex flex-col items-center p-3 bg-white rounded-lg border-2 border-dashed border-gray-300 w-full overflow-hidden">

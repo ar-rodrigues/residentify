@@ -38,4 +38,34 @@ This is a known issue in Supabase's codebase. The Supabase team is aware and wor
 
 **Action Required**: None - This warning can be safely ignored. Our implementation follows Supabase's security best practices.
 
+## React fileList Prop Warning
+
+### Issue Description
+When using Ant Design's `Form.Item` with custom file upload components (not using Ant Design's `Upload` component), you may see the following React warning:
+
+```
+Warning: React does not recognize the `fileList` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as `filelist` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
+```
+
+### Root Cause
+The `valuePropName="fileList"` prop in Ant Design's `Form.Item` is specifically designed for use with Ant Design's `Upload` component. When you use a custom file upload implementation (like custom divs with file input handlers) instead of the `Upload` component, React tries to pass the `fileList` prop to the DOM element (Card, div, etc.), which causes the warning.
+
+### Our Implementation
+✅ **Fixed** - We manage file uploads manually using `form.setFieldsValue()` instead of relying on `valuePropName`:
+- Component: `app/(private)/organizations/[id]/_components/widgets/QRValidationForm.js`
+- We removed `valuePropName="fileList"` and `getValueFromEvent` from the Form.Item
+- File state is managed manually via `handleFileChange` and `form.setFieldsValue()`
+
+### Status
+- **Functionality**: ✅ Working correctly
+- **Warning**: ✅ Fixed (no longer appears)
+
+### Resolution
+When using custom file upload components with Ant Design forms:
+1. **Don't use** `valuePropName="fileList"` unless you're using Ant Design's `Upload` component
+2. **Do use** manual form value management with `form.setFieldsValue()` when using custom upload implementations
+3. Remove `getValueFromEvent` if you're not using an Upload component
+
+**Action Required**: None - This has been fixed in the codebase.
+
 

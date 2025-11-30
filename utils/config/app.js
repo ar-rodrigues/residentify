@@ -140,19 +140,9 @@ export const USER_MENU = [
 // ============================================================================
 export const PRIVATE_MENU = [
   {
-    key: "/private",
-    iconName: "RiDashboardLine",
-    label: "Dashboard",
-  },
-  {
-    key: "/private/features",
-    iconName: "RiRocketLine",
-    label: "Características",
-  },
-  {
-    key: "/private/components",
-    iconName: "RiTeamLine",
-    label: "Componentes",
+    key: "/organizations",
+    iconName: "RiBuildingLine",
+    label: "Organizaciones",
   },
   {
     key: "/profile",

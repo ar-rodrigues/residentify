@@ -2,9 +2,7 @@
 
 import {
   RiRocketLine,
-  RiTeamLine,
   RiUserLine,
-  RiDashboardLine,
   RiBuildingLine,
   RiAddLine,
 } from "react-icons/ri";
@@ -17,11 +15,8 @@ import { getPrivateMenu } from "@/utils/config/app";
 
 // Icon mapping for menu items
 const iconMap = {
-  RiDashboardLine: RiDashboardLine,
-  RiRocketLine: RiRocketLine,
-  RiTeamLine: RiTeamLine,
-  RiUserLine: RiUserLine,
   RiBuildingLine: RiBuildingLine,
+  RiUserLine: RiUserLine,
 };
 
 export default function DesktopSidebar({
@@ -68,11 +63,21 @@ export default function DesktopSidebar({
         willChange: "width",
         display: "flex",
         flexDirection: "column",
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderRight: "1px solid rgba(0, 0, 0, 0.1)",
+        boxShadow: "2px 0 8px rgba(0, 0, 0, 0.1)",
       }}
       className="ant-layout-sider"
     >
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-gray-200">
+        <div 
+          className="p-4 border-b"
+          style={{
+            borderColor: "rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <Space size="small">
             <RiRocketLine className="text-2xl text-blue-600" />
             <Typography.Text
@@ -88,7 +93,7 @@ export default function DesktopSidebar({
                 display: "inline-block",
               }}
             >
-              Proyecto Starter
+              Residentify
             </Typography.Text>
           </Space>
         </div>
@@ -106,7 +111,12 @@ export default function DesktopSidebar({
         </div>
 
         {/* Organizations Section */}
-        <div className="border-t border-gray-200 flex-shrink-0">
+        <div 
+          className="border-t flex-shrink-0"
+          style={{
+            borderColor: "rgba(0, 0, 0, 0.1)",
+          }}
+        >
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <Space size="small">

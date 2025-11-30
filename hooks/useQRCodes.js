@@ -251,8 +251,10 @@ export function useQRCodes() {
         notes = null,
       } = validationData;
 
-      if (!visitor_name || !visitor_id) {
-        throw new Error("Nombre e ID del visitante son requeridos.");
+      if (!visitor_name || (!visitor_id && !document_photo_url)) {
+        throw new Error(
+          "Nombre del visitante y documento (ID o foto) son requeridos."
+        );
       }
 
       const response = await fetch(`/api/qr-codes/validate/${token}`, {

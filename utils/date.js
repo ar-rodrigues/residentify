@@ -141,3 +141,70 @@ export function isValidPastDate(utcDateString) {
 
   return date <= todayUTC;
 }
+
+/**
+ * Formats a datetime for display with relative time in Spanish
+ * Shows relative time (e.g., "Hace 5 minutos") for recent times, or formatted datetime for older times
+ * @param {string|Date} dateInput - ISO datetime string or Date object
+ * @returns {string} - Formatted time string in Spanish
+ */
+export function formatRelativeTime(dateInput) {
+  if (!dateInput) return "N/A";
+
+  try {
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
+    if (isNaN(date.getTime())) {
+      return "N/A";
+    }
+
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    // Less than 1 minute ago
+    if (diffSeconds < 60) {
+      return "Hace un momento";
+    }
+
+    // Less than 1 hour ago
+    if (diffMinutes < 60) {
+      if (diffMinutes === 1) {
+        return "Hace 1 minuto";
+      }
+      return `Hace ${diffMinutes} minutos`;
+    }
+
+    // Less than 24 hours ago
+    if (diffHours < 24) {
+      if (diffHours === 1) {
+        return "Hace 1 hora";
+      }
+      return `Hace ${diffHours} horas`;
+    }
+
+    // Less than 7 days ago
+    if (diffDays < 7) {
+      if (diffDays === 1) {
+        return "Ayer";
+      }
+      return `Hace ${diffDays} días`;
+    }
+
+    // Older than 7 days - show formatted date and time
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch (error) {
+    console.error("Error formatting relative time:", error);
+    return "N/A";
+  }
+}

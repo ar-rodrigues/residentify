@@ -154,9 +154,7 @@ export default function PrivateLayout({ children }) {
             </Space>
           </Header>
           <Content className="p-2 bg-gray-50">
-            <div className="bg-white rounded-lg shadow-sm p-6 min-h-full">
-              {children}
-            </div>
+            <div className="bg-white rounded-lg shadow-sm p-6">{children}</div>
           </Content>
         </Layout>
       </Layout>

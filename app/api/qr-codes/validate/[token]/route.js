@@ -177,11 +177,15 @@ export async function POST(request, { params }) {
       );
     }
 
-    if (!visitor_id || typeof visitor_id !== "string" || visitor_id.trim().length === 0) {
+    // Require either visitor_id OR document_photo_url
+    const hasVisitorId = visitor_id && typeof visitor_id === "string" && visitor_id.trim().length > 0;
+    const hasDocumentPhoto = document_photo_url && typeof document_photo_url === "string" && document_photo_url.trim().length > 0;
+    
+    if (!hasVisitorId && !hasDocumentPhoto) {
       return NextResponse.json(
         {
           error: true,
-          message: "El ID del visitante es requerido.",
+          message: "Debes proporcionar el número de documento o una foto del documento.",
         },
         { status: 400 }
       );
@@ -271,10 +275,9 @@ export async function POST(request, { params }) {
       .from("qr_codes")
       .update({
         visitor_name: visitor_name.trim(),
-        visitor_id: visitor_id.trim(),
+        visitor_id: hasVisitorId ? visitor_id.trim() : null,
         document_photo_url: document_photo_url || null,
         is_used: true,
-        status: "used",
         validated_at: now.toISOString(),
         validated_by: user.id,
       })

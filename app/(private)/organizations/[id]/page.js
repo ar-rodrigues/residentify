@@ -145,7 +145,7 @@ export default async function OrganizationDetailPage({ params }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <OrganizationIdStorage organizationId={id} />
       <div className="w-full">
         <OrganizationHeader organization={organization} organizationId={id} />

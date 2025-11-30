@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   Card,
   Space,
@@ -13,6 +13,8 @@ import {
 } from "antd";
 import { RiQrCodeLine, RiHistoryLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
+import { useUser } from "@/hooks/useUser";
+import { createClient } from "@/utils/supabase/client";
 import ActiveLinkCard from "../widgets/ActiveLinkCard";
 import HistoryLinkCard from "../widgets/HistoryLinkCard";
 import GenerateInviteFAB from "../widgets/GenerateInviteFAB";
@@ -21,6 +23,9 @@ const { Title, Text } = Typography;
 
 export default function ResidentView({ organizationId }) {
   const { message } = App.useApp();
+  const { data: user } = useUser();
+  const supabase = useMemo(() => createClient(), []);
+  const channelRef = useRef(null);
   const {
     createQRCode,
     getQRCodes,
@@ -40,6 +45,64 @@ export default function ResidentView({ organizationId }) {
     }
   }, [organizationId, loadQRCodes]);
 
+  // Set up realtime subscription for QR code updates
+  useEffect(() => {
+    if (!user?.id || !organizationId) {
+      return;
+    }
+
+    // Create a unique channel name for this component instance
+    const channelName = `qr-codes-updates-${organizationId}-${user.id}`;
+
+    // Create and subscribe to the channel
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "qr_codes",
+          filter: `created_by=eq.${user.id}`,
+        },
+        (payload) => {
+          // Check if the update is relevant (is_used changed to true or validated_at was set)
+          const newRecord = payload.new;
+          const oldRecord = payload.old;
+
+          const wasJustValidated =
+            (newRecord.is_used === true && oldRecord.is_used === false) ||
+            (newRecord.validated_at && !oldRecord.validated_at);
+
+          if (wasJustValidated) {
+            // Show notification to user
+            if (newRecord.visitor_name) {
+              message.success(`¡${newRecord.visitor_name} ha llegado!`, 3);
+            } else {
+              message.success("Tu visitante ha llegado", 3);
+            }
+
+            // Refresh QR codes list to get updated data
+            loadQRCodes();
+          } else {
+            // For other updates, just refresh silently
+            loadQRCodes();
+          }
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    // Cleanup function
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [user?.id, organizationId, supabase, loadQRCodes, message]);
+
   const handleGenerateInvite = async () => {
     const result = await createQRCode(organizationId);
     if (!result.error) {
@@ -47,9 +110,7 @@ export default function ResidentView({ organizationId }) {
       await loadQRCodes();
       message.success("Invitación generada exitosamente");
     } else {
-      message.error(
-        result.message || "Error al generar la invitación"
-      );
+      message.error(result.message || "Error al generar la invitación");
     }
   };
 
@@ -116,8 +177,8 @@ export default function ResidentView({ organizationId }) {
               Invitaciones
             </Title>
             <Text type="secondary" className="break-words block">
-              Genera invitaciones únicas para que el personal de seguridad valide el
-              acceso de visitantes
+              Genera invitaciones únicas para que el personal de seguridad
+              valide el acceso de visitantes
             </Text>
           </div>
 
@@ -129,7 +190,11 @@ export default function ResidentView({ organizationId }) {
                 Invitaciones Activas
               </Title>
               {activeLinks.length > 0 && (
-                <Badge count={activeLinks.length} showZero={false} className="flex-shrink-0" />
+                <Badge
+                  count={activeLinks.length}
+                  showZero={false}
+                  className="flex-shrink-0"
+                />
               )}
             </div>
 
@@ -155,10 +220,13 @@ export default function ResidentView({ organizationId }) {
                       const result = await updateQRCode(id, { identifier });
                       if (!result.error) {
                         await loadQRCodes();
-                        message.success("Identificador actualizado exitosamente");
+                        message.success(
+                          "Identificador actualizado exitosamente"
+                        );
                       } else {
                         message.error(
-                          result.message || "Error al actualizar el identificador"
+                          result.message ||
+                            "Error al actualizar el identificador"
                         );
                       }
                     }}
@@ -178,7 +246,11 @@ export default function ResidentView({ organizationId }) {
                   <Title level={5} className="mb-0 break-words">
                     Historial
                   </Title>
-                  <Badge count={historyLinks.length} showZero={false} className="flex-shrink-0" />
+                  <Badge
+                    count={historyLinks.length}
+                    showZero={false}
+                    className="flex-shrink-0"
+                  />
                 </div>
 
                 <div className="space-y-3">

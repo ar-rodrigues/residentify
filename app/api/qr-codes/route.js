@@ -63,7 +63,8 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error: true,
-          message: "No tienes permisos para crear códigos QR en esta organización. Debes ser residente.",
+          message:
+            "No tienes permisos para crear códigos QR en esta organización. Debes ser residente.",
         },
         { status: 403 }
       );
@@ -165,7 +166,8 @@ export async function GET(request) {
         return NextResponse.json(
           {
             error: true,
-            message: "ID de organización es requerido para usuarios de seguridad.",
+            message:
+              "ID de organización es requerido para usuarios de seguridad.",
           },
           { status: 400 }
         );
@@ -191,7 +193,8 @@ export async function GET(request) {
         return NextResponse.json(
           {
             error: true,
-            message: "No tienes permisos para ver códigos QR de esta organización. Debes ser personal de seguridad.",
+            message:
+              "No tienes permisos para ver códigos QR de esta organización. Debes ser personal de seguridad.",
           },
           { status: 403 }
         );
@@ -229,10 +232,8 @@ export async function GET(request) {
       if (creatorIds.length > 0) {
         await Promise.all(
           creatorIds.map(async (creatorId) => {
-            const { data: creatorName, error: creatorError } = await supabase.rpc(
-              "get_user_name",
-              { p_user_id: creatorId }
-            );
+            const { data: creatorName, error: creatorError } =
+              await supabase.rpc("get_user_name", { p_user_id: creatorId });
             if (!creatorError && creatorName) {
               creatorsMap[creatorId] = creatorName;
             }
@@ -264,7 +265,9 @@ export async function GET(request) {
     // Build query
     let query = supabase
       .from("qr_codes")
-      .select("id, token, organization_id, created_by, created_at, updated_at, status, is_used, expires_at, validated_at, validated_by, identifier")
+      .select(
+        "id, token, organization_id, created_by, created_at, updated_at, status, is_used, expires_at, validated_at, validated_by, visitor_name, visitor_id, document_photo_url, identifier"
+      )
       .eq("created_by", user.id)
       .order("created_at", { ascending: false });
 
@@ -325,4 +328,3 @@ export async function GET(request) {
     );
   }
 }
-

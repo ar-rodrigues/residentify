@@ -1,6 +1,6 @@
-# Mi Proyecto
+# Residentify
 
-Un proyecto base completo y listo para usar con Next.js 15, Tailwind CSS 4 y autenticación con Supabase.
+Sistema de control de acceso para edificios residenciales. Gestiona residentes, personal de seguridad y visitantes con códigos QR seguros y validación en tiempo real.
 
 ## 🚀 Características
 
@@ -275,6 +275,119 @@ export default function AdminView({ organizationId }) {
 2. Personaliza los estilos en `app/globals.css`
 3. Modifica los componentes según tus necesidades
 4. Añade nuevas funcionalidades al dashboard
+
+## 📦 Configuración de Storage en Supabase
+
+Este documento describe cómo configurar el bucket de almacenamiento en Supabase para las fotos de documentos de visitantes.
+
+### Requisitos
+
+- Acceso al dashboard de Supabase
+- Permisos de administrador en el proyecto
+
+### Pasos para Crear el Bucket
+
+#### 1. Acceder a Storage en Supabase
+
+1. Inicia sesión en tu proyecto de Supabase
+2. En el menú lateral, navega a **Storage**
+3. Haz clic en **Buckets** en el submenú
+
+#### 2. Crear el Bucket "documents"
+
+1. Haz clic en el botón **New bucket** o **Crear bucket**
+2. Configura el bucket con los siguientes valores:
+
+   - **Name**: `documents`
+   - **Public bucket**: Desactivado (debe ser privado)
+   - **File size limit**: Opcional (recomendado: 5MB o 10MB)
+   - **Allowed MIME types**: Opcional (recomendado: `image/jpeg,image/png,image/webp`)
+
+3. Haz clic en **Create bucket** o **Crear bucket**
+
+#### 3. Configurar Políticas RLS (Row Level Security)
+
+Para que los usuarios autenticados puedan subir archivos al bucket, necesitas configurar políticas RLS:
+
+1. En la página del bucket `documents`, haz clic en **Policies** o **Políticas**
+2. Haz clic en **New policy** o **Nueva política**
+
+##### Política para INSERT (Subir archivos)
+
+1. Selecciona **For full customization** o **Para personalización completa**
+2. Configura la política:
+   - **Policy name**: `Allow authenticated users to upload files`
+   - **Allowed operation**: `INSERT`
+   - **Target roles**: `authenticated`
+   - **Policy definition**:
+   ```sql
+   (bucket_id = 'documents'::text) AND (auth.role() = 'authenticated'::text)
+   ```
+3. Haz clic en **Review** y luego en **Save policy**
+
+##### Política para SELECT (Leer archivos)
+
+1. Crea otra política:
+   - **Policy name**: `Allow authenticated users to read files`
+   - **Allowed operation**: `SELECT`
+   - **Target roles**: `authenticated`
+   - **Policy definition**:
+   ```sql
+   (bucket_id = 'documents'::text) AND (auth.role() = 'authenticated'::text)
+   ```
+2. Haz clic en **Review** y luego en **Save policy**
+
+#### 4. Verificar la Estructura de Carpetas
+
+El bucket `documents` debe contener la carpeta `visitor-documents/` donde se almacenarán las fotos. Esta carpeta se crea automáticamente cuando se sube el primer archivo, pero puedes crearla manualmente:
+
+1. En el bucket `documents`, haz clic en **New folder** o **Nueva carpeta**
+2. Nombra la carpeta: `visitor-documents`
+3. Haz clic en **Create folder** o **Crear carpeta**
+
+### Estructura Final
+
+Después de la configuración, la estructura debería verse así:
+
+```
+documents/
+  └── visitor-documents/
+      └── [archivos de fotos de documentos]
+```
+
+### Verificación
+
+Para verificar que todo está configurado correctamente:
+
+1. Intenta subir una foto desde la aplicación
+2. Verifica en el dashboard de Supabase que el archivo aparece en `documents/visitor-documents/`
+3. Verifica que puedes descargar el archivo (si tienes permisos)
+
+### Notas Importantes
+
+- **Seguridad**: El bucket está configurado como privado, lo que significa que los archivos no son accesibles públicamente sin una URL firmada
+- **URLs firmadas**: La aplicación genera URLs firmadas con validez de 1 año para acceder a los archivos privados
+- **Límites**: Asegúrate de configurar límites de tamaño de archivo apropiados para evitar abusos
+- **Backup**: Considera configurar políticas de backup para los archivos importantes
+
+### Solución de Problemas
+
+#### Error: "Bucket not found"
+
+- Verifica que el bucket se llama exactamente `documents` (sin mayúsculas)
+- Asegúrate de que el bucket existe en el proyecto correcto de Supabase
+
+#### Error: "Permission denied"
+
+- Verifica que las políticas RLS están configuradas correctamente
+- Asegúrate de que el usuario está autenticado
+- Verifica que las políticas permiten las operaciones INSERT y SELECT
+
+#### Error: "File size limit exceeded"
+
+- Verifica el límite de tamaño configurado en el bucket
+- Considera aumentar el límite si es necesario
+- Asegúrate de que las imágenes no sean demasiado grandes antes de subirlas
 
 ## 📧 Nodemailer
 

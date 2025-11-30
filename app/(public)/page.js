@@ -43,7 +43,7 @@ export default function HomePage() {
       <Header>
         <Space size="middle">
           <RiRocketLine className="text-2xl text-blue-600" />
-          <Title level={3} className="!mb-0">
+          <Title level={3} className="!mb-0 !text-white">
             Residentify
           </Title>
         </Space>
@@ -53,7 +53,11 @@ export default function HomePage() {
               Ir al Dashboard
             </Button>
           ) : (
-            <Button type="primary" icon={<RiLoginBoxLine />} onClick={handleLogin}>
+            <Button
+              type="primary"
+              icon={<RiLoginBoxLine />}
+              onClick={handleLogin}
+            >
               Iniciar Sesión
             </Button>
           )}
@@ -62,10 +66,16 @@ export default function HomePage() {
 
       <Layout.Content className="p-8">
         <div className="max-w-6xl mx-auto">
-          <Space direction="vertical" size="large" className="w-full mb-16 text-center">
+          <Space
+            direction="vertical"
+            size="large"
+            className="w-full mb-16 text-center"
+          >
             <Title level={1}>Residentify</Title>
             <Paragraph className="text-xl text-gray-600">
-              Una base sólida para comenzar tu próximo proyecto web con Next.js
+              Sistema de control de acceso para edificios residenciales.
+              Gestiona residentes, personal de seguridad y visitantes con
+              códigos QR.
             </Paragraph>
             {!user && (
               <Button
@@ -94,11 +104,11 @@ export default function HomePage() {
                 <Space direction="vertical" size="large" className="w-full">
                   <RiRocketLine className="text-5xl text-blue-600 mx-auto" />
                   <Title level={4} className="!mb-0">
-                    Inicio Rápido
+                    Control de Acceso
                   </Title>
                   <Paragraph className="text-gray-600">
-                    Configuración lista para usar con Next.js 15, Tailwind CSS y
-                    autenticación
+                    Gestiona el acceso de visitantes con códigos QR seguros y
+                    validación en tiempo real
                   </Paragraph>
                 </Space>
               </Card>
@@ -117,11 +127,11 @@ export default function HomePage() {
                 <Space direction="vertical" size="large" className="w-full">
                   <RiCodeLine className="text-5xl text-green-600 mx-auto" />
                   <Title level={4} className="!mb-0">
-                    Código Limpio
+                    Gestión de Visitantes
                   </Title>
                   <Paragraph className="text-gray-600">
-                    Estructura organizada y componentes reutilizables para un
-                    desarrollo eficiente
+                    Los residentes pueden generar códigos QR para sus visitantes
+                    de forma rápida y sencilla
                   </Paragraph>
                 </Space>
               </Card>
@@ -140,10 +150,11 @@ export default function HomePage() {
                 <Space direction="vertical" size="large" className="w-full">
                   <RiSettingsLine className="text-5xl text-purple-600 mx-auto" />
                   <Title level={4} className="!mb-0">
-                    Fácil Personalización
+                    Seguridad Avanzada
                   </Title>
                   <Paragraph className="text-gray-600">
-                    Modifica y adapta según tus necesidades específicas del proyecto
+                    Registro completo de accesos, roles por organización y
+                    validación segura de códigos QR
                   </Paragraph>
                 </Space>
               </Card>
@@ -152,9 +163,12 @@ export default function HomePage() {
 
           <Card className="text-center bg-gray-50">
             <Space direction="vertical" size="middle" className="w-full">
-              <Title level={2}>¿Listo para construir algo increíble?</Title>
+              <Title level={2}>
+                ¿Listo para mejorar la seguridad de tu edificio?
+              </Title>
               <Paragraph className="text-lg text-gray-600">
-                Este starter te da todo lo que necesitas para comenzar tu proyecto
+                Residentify te ofrece una solución completa de control de acceso
+                para gestionar visitantes de forma segura y eficiente
               </Paragraph>
               {!user && (
                 <Button type="primary" size="large" onClick={handleLogin}>
