@@ -298,8 +298,8 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Note: User is NOT added to organization_members yet
-    // They will only be added when their invitation is approved
+    // Note: If requires_approval is false, user will be automatically added to organization_members
+    // If requires_approval is true, user will only be added when their invitation is approved
 
     // Generate secure token for the invitation record
     const invitationToken = crypto.randomBytes(32).toString("base64url");
@@ -403,6 +403,44 @@ export async function POST(request, { params }) {
         },
         { status: 500 }
       );
+    }
+
+    // If approval is not required, automatically accept the invitation
+    // This adds the user to organization_members and updates invitation status to "accepted"
+    if (!link.requires_approval) {
+      const { data: memberData, error: memberError } = await supabase.rpc(
+        "accept_organization_invitation",
+        {
+          p_token: invitationToken,
+          p_user_id: userId,
+        }
+      );
+
+      if (memberError) {
+        // Log the error but don't fail the request
+        // The invitation was created successfully and can be manually approved later if needed
+        console.error("Error auto-accepting invitation:", memberError);
+        console.error(
+          "Invitation created but user not automatically added to organization. Invitation ID:",
+          invitation.id,
+          "User ID:",
+          userId
+        );
+
+        // Log specific error codes for debugging
+        if (memberError.code === "P0001") {
+          console.error("Invitation not found or invalid token");
+        } else if (memberError.code === "P0002") {
+          console.error("Invitation expired");
+        } else if (memberError.code === "P0003") {
+          console.error("Invitation already accepted or cancelled");
+        } else if (memberError.code === "23505") {
+          console.error("User is already a member of this organization");
+        }
+      } else if (memberData && memberData.length > 0) {
+        // Successfully added to organization - update invitation status in response
+        invitation.status = "accepted";
+      }
     }
 
     // Ensure user is signed in
