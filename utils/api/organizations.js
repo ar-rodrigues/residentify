@@ -110,6 +110,28 @@ export async function getOrganizationById(organizationId) {
       // Continue without creator name if there's an error
     }
 
+    // Check invitation status for this user and organization
+    // Query organization_invitations to see if user has a pending_approval invitation
+    let invitationStatus = null;
+    let isPendingApproval = false;
+
+    if (user?.email) {
+      const { data: invitation, error: invitationError } = await supabase
+        .from("organization_invitations")
+        .select("status")
+        .eq("organization_id", organizationId)
+        .eq("email", user.email.toLowerCase())
+        .in("status", ["pending_approval", "accepted"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!invitationError && invitation) {
+        invitationStatus = invitation.status;
+        isPendingApproval = invitation.status === "pending_approval";
+      }
+    }
+
     return {
       error: false,
       data: {
@@ -121,6 +143,8 @@ export async function getOrganizationById(organizationId) {
         updated_at: organization.updated_at,
         userRole,
         isAdmin,
+        invitationStatus,
+        isPendingApproval,
       },
       status: 200,
     };

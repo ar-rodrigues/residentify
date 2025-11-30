@@ -1,22 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import { Tabs } from "antd";
 import MembersListResponsive from "../widgets/MembersListResponsive";
 import InvitationsListResponsive from "../widgets/InvitationsListResponsive";
 import AddMemberFAB from "../widgets/AddMemberFAB";
 
 export default function AdminView({ organizationId }) {
+  const [activeTab, setActiveTab] = useState("members");
+
   return (
     <div className="w-full">
       <Tabs
-        defaultActiveKey="members"
+        activeKey={activeTab}
+        onChange={setActiveTab}
         items={[
           {
             key: "members",
             label: "Miembros",
-            children: (
-              <MembersListResponsive organizationId={organizationId} />
-            ),
+            children: <MembersListResponsive organizationId={organizationId} />,
           },
           {
             key: "invitations",
@@ -27,10 +29,10 @@ export default function AdminView({ organizationId }) {
           },
         ]}
       />
-      <AddMemberFAB organizationId={organizationId} />
+      <AddMemberFAB
+        organizationId={organizationId}
+        onSwitchToInvitations={() => setActiveTab("invitations")}
+      />
     </div>
   );
 }
-
-
-

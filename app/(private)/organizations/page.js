@@ -20,9 +20,28 @@ const LAST_USED_ORG_KEY = "lastUsedOrganizationId";
 
 export default function OrganizationsPage() {
   const router = useRouter();
-  const { organizations, fetching, error } = useOrganizations();
+  const { organizations, fetching, error, refetch } = useOrganizations();
   const [checkingRedirect, setCheckingRedirect] = useState(true);
   const isMobile = useIsMobile();
+
+  // Refetch organizations when page becomes visible (e.g., after redirect from invitation acceptance)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refetch]);
+
+  // Also refetch when component mounts to ensure fresh data
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   useEffect(() => {
     // Only check redirect after organizations are loaded
@@ -30,19 +49,20 @@ export default function OrganizationsPage() {
       const lastUsedId = localStorage.getItem(LAST_USED_ORG_KEY);
 
       // If there's a last used organization and user is still a member, redirect
+      // But don't redirect if it's pending approval
       if (lastUsedId && organizations.length > 0) {
-        const isValidOrg = organizations.some((org) => org.id === lastUsedId);
-        if (isValidOrg) {
+        const org = organizations.find((org) => org.id === lastUsedId);
+        if (org && !org.isPendingApproval) {
           router.push(`/organizations/${lastUsedId}`);
           return;
         } else {
-          // Last used org is no longer valid, remove it
+          // Last used org is no longer valid or pending, remove it
           localStorage.removeItem(LAST_USED_ORG_KEY);
         }
       }
 
-      // If user has only one organization, redirect to it
-      if (organizations.length === 1) {
+      // If user has only one organization and it's not pending approval, redirect to it
+      if (organizations.length === 1 && !organizations[0].isPendingApproval) {
         const singleOrgId = organizations[0].id;
         localStorage.setItem(LAST_USED_ORG_KEY, singleOrgId);
         router.push(`/organizations/${singleOrgId}`);
@@ -165,10 +185,18 @@ export default function OrganizationsPage() {
             {organizations.map((org) => (
               <Col xs={24} sm={12} lg={8} key={org.id}>
                 <Card
-                  hoverable
-                  className="h-full cursor-pointer transition-all hover:shadow-lg"
-                  onClick={() => handleOrganizationClick(org.id)}
-                  bodyStyle={{ padding: "16px" }}
+                  hoverable={!org.isPendingApproval}
+                  className={`h-full transition-all ${
+                    org.isPendingApproval
+                      ? "opacity-75 cursor-not-allowed"
+                      : "cursor-pointer hover:shadow-lg"
+                  }`}
+                  onClick={() => {
+                    if (!org.isPendingApproval) {
+                      handleOrganizationClick(org.id);
+                    }
+                  }}
+                  styles={{ body: { padding: "16px" } }}
                 >
                   <Space direction="vertical" size="middle" className="w-full">
                     <div className="flex items-center gap-3">
@@ -185,6 +213,14 @@ export default function OrganizationsPage() {
                       </div>
                     </div>
 
+                    {org.isPendingApproval && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
+                        <Text className="text-xs sm:text-sm text-yellow-800">
+                          Solicitud pendiente de aprobación
+                        </Text>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2 text-gray-500">
                       <RiCalendarLine className="text-sm sm:text-base" />
                       <Text type="secondary" className="text-xs sm:text-sm">
@@ -192,15 +228,17 @@ export default function OrganizationsPage() {
                       </Text>
                     </div>
 
-                    <div className="flex items-center justify-end pt-2 border-t min-h-[44px]">
-                      <Text
-                        type="secondary"
-                        className="text-xs sm:text-sm flex items-center gap-1"
-                      >
-                        Ver detalles
-                        <RiArrowRightLine />
-                      </Text>
-                    </div>
+                    {!org.isPendingApproval && (
+                      <div className="flex items-center justify-end pt-2 border-t min-h-[44px]">
+                        <Text
+                          type="secondary"
+                          className="text-xs sm:text-sm flex items-center gap-1"
+                        >
+                          Ver detalles
+                          <RiArrowRightLine />
+                        </Text>
+                      </div>
+                    )}
                   </Space>
                 </Card>
               </Col>

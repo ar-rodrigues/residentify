@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   RiUserAddLine,
   RiLockLine,
   RiMailLine,
-  RiCalendarLine,
   RiBuildingLine,
   RiUserLine,
   RiLoginBoxLine,
@@ -15,12 +14,12 @@ import {
 import { useInvitations } from "@/hooks/useInvitations";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/utils/supabase/client";
-import { Form, Card, Typography, Space, Alert, DatePicker } from "antd";
-import dayjs from "dayjs";
+import { Form, Card, Typography, Space, Alert } from "antd";
 import { localDateToUTC } from "@/utils/date";
 import Input from "@/components/ui/Input";
 import Password from "@/components/ui/Password";
 import Button from "@/components/ui/Button";
+import DatePicker from "@/components/ui/DatePicker";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -37,7 +36,6 @@ export default function InvitationAcceptPage() {
   const [mode, setMode] = useState("checking"); // 'checking', 'logged-in', 'login', 'register'
   const [registerForm] = Form.useForm();
   const [loginForm] = Form.useForm();
-  const datePickerRef = useRef(null);
   const supabase = createClient();
   const {
     getInvitationByToken,
@@ -229,221 +227,6 @@ export default function InvitationAcceptPage() {
     }
   };
 
-  // Disable future dates for date of birth
-  const disabledDate = (current) => {
-    if (!current) return false;
-    return current && current.isAfter(dayjs(), "day");
-  };
-
-  // Format date input as user types (dd/mm/yyyy)
-  const formatDateInput = (value) => {
-    if (!value) return "";
-
-    const digits = value.replace(/\D/g, "");
-    const limitedDigits = digits.slice(0, 8);
-
-    let formatted = limitedDigits;
-    if (limitedDigits.length > 2) {
-      formatted = `${limitedDigits.slice(0, 2)}/${limitedDigits.slice(2)}`;
-    }
-    if (limitedDigits.length > 4) {
-      formatted = `${limitedDigits.slice(0, 2)}/${limitedDigits.slice(
-        2,
-        4
-      )}/${limitedDigits.slice(4)}`;
-    }
-
-    return formatted;
-  };
-
-  // Handle date input change with auto-formatting
-  const handleDateInputChange = useCallback(
-    (e) => {
-      const inputValue = e.target.value;
-      const formatted = formatDateInput(inputValue);
-
-      if (inputValue !== formatted) {
-        const cursorPos = e.target.selectionStart || 0;
-
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype,
-          "value"
-        )?.set;
-        if (nativeInputValueSetter) {
-          nativeInputValueSetter.call(e.target, formatted);
-        }
-
-        let newCursorPos = formatted.length;
-        if (cursorPos <= 2 && formatted.length > 2) {
-          newCursorPos = Math.min(cursorPos, 2);
-        } else if (cursorPos <= 5 && formatted.length > 5) {
-          newCursorPos = Math.min(cursorPos + 1, 5);
-        } else {
-          newCursorPos = formatted.length;
-        }
-
-        const inputEvent = new Event("input", {
-          bubbles: true,
-          cancelable: true,
-        });
-        e.target.dispatchEvent(inputEvent);
-
-        setTimeout(() => {
-          const input = e.target;
-          if (input) {
-            input.setSelectionRange(newCursorPos, newCursorPos);
-          }
-        }, 0);
-      } else {
-        setTimeout(() => {
-          const input = e.target;
-          if (input) {
-            input.setSelectionRange(formatted.length, formatted.length);
-          }
-        }, 0);
-      }
-
-      if (formatted.length === 10) {
-        const [day, month, year] = formatted.split("/").map(Number);
-        if (day && month && year && day <= 31 && month <= 12) {
-          const date = dayjs(
-            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
-              2,
-              "0"
-            )}`
-          );
-          if (date.isValid() && !date.isAfter(dayjs(), "day")) {
-            setTimeout(() => {
-              registerForm.setFieldValue("dateOfBirth", date);
-            }, 10);
-          }
-        }
-      }
-    },
-    [registerForm]
-  );
-
-  // Set up input event listener for date formatting
-  useEffect(() => {
-    if (loadingInvitation || !invitation || mode !== "register") {
-      return;
-    }
-
-    let cleanup = null;
-    let observer = null;
-
-    const attachListener = () => {
-      const datePickerInput =
-        datePickerRef.current?.querySelector("input") ||
-        datePickerRef.current?.querySelector(".ant-picker-input input") ||
-        datePickerRef.current?.querySelector("input.ant-picker-input");
-
-      if (datePickerInput && !datePickerInput.dataset.listenerAttached) {
-        const handleInput = (e) => {
-          handleDateInputChange(e);
-        };
-
-        const handleBeforeInput = (e) => {
-          if (e.data && /^\d$/.test(e.data)) {
-            const currentValue = e.target.value || "";
-            const newValue = currentValue + e.data;
-            const formatted = formatDateInput(newValue);
-
-            if (formatted !== newValue) {
-              e.preventDefault();
-
-              const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                window.HTMLInputElement.prototype,
-                "value"
-              )?.set;
-              if (nativeInputValueSetter) {
-                nativeInputValueSetter.call(e.target, formatted);
-              }
-
-              const inputEvent = new Event("input", { bubbles: true });
-              e.target.dispatchEvent(inputEvent);
-
-              setTimeout(() => {
-                e.target.setSelectionRange(formatted.length, formatted.length);
-              }, 0);
-
-              if (formatted.length === 10) {
-                const [day, month, year] = formatted.split("/").map(Number);
-                if (day && month && year && day <= 31 && month <= 12) {
-                  const date = dayjs(
-                    `${year}-${String(month).padStart(2, "0")}-${String(
-                      day
-                    ).padStart(2, "0")}`
-                  );
-                  if (date.isValid() && !date.isAfter(dayjs(), "day")) {
-                    setTimeout(() => {
-                      registerForm.setFieldValue("dateOfBirth", date);
-                    }, 10);
-                  }
-                }
-              }
-            }
-          }
-        };
-
-        datePickerInput.addEventListener("input", handleInput);
-        datePickerInput.addEventListener("beforeinput", handleBeforeInput);
-        datePickerInput.dataset.listenerAttached = "true";
-
-        cleanup = () => {
-          datePickerInput.removeEventListener("input", handleInput);
-          datePickerInput.removeEventListener("beforeinput", handleBeforeInput);
-          delete datePickerInput.dataset.listenerAttached;
-        };
-        return true;
-      }
-      return false;
-    };
-
-    if (!attachListener()) {
-      let lastCheck = 0;
-      const DEBOUNCE_MS = 50;
-
-      observer = new MutationObserver(() => {
-        const now = Date.now();
-        if (now - lastCheck > DEBOUNCE_MS) {
-          lastCheck = now;
-          if (attachListener()) {
-            observer.disconnect();
-          }
-        }
-      });
-
-      if (datePickerRef.current) {
-        observer.observe(datePickerRef.current, {
-          childList: true,
-          subtree: true,
-          attributes: false,
-        });
-      }
-
-      const timeoutIds = [100, 300, 500, 1000].map((delay) =>
-        setTimeout(() => attachListener(), delay)
-      );
-
-      return () => {
-        timeoutIds.forEach(clearTimeout);
-        if (observer) observer.disconnect();
-        if (cleanup) cleanup();
-      };
-    }
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [
-    handleDateInputChange,
-    registerForm,
-    loadingInvitation,
-    invitation,
-    mode,
-  ]);
-
   // Map role names to Spanish
   const getRoleDisplayName = (roleName) => {
     const roleMap = {
@@ -599,7 +382,11 @@ export default function InvitationAcceptPage() {
                       <Text strong className="block mb-1">
                         Rol
                       </Text>
-                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
+                      <Text>
+                        {invitation?.role
+                          ? getRoleDisplayName(invitation.role.name)
+                          : ""}
+                      </Text>
                     </div>
                   </div>
                   {invitation?.inviter_name && (
@@ -682,7 +469,11 @@ export default function InvitationAcceptPage() {
                       <Text strong className="block mb-1">
                         Rol
                       </Text>
-                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
+                      <Text>
+                        {invitation?.role
+                          ? getRoleDisplayName(invitation.role.name)
+                          : ""}
+                      </Text>
                     </div>
                   </div>
                 </Space>
@@ -800,7 +591,11 @@ export default function InvitationAcceptPage() {
                       <Text strong className="block mb-1">
                         Rol
                       </Text>
-                      <Text>{invitation?.role ? getRoleDisplayName(invitation.role.name) : ""}</Text>
+                      <Text>
+                        {invitation?.role
+                          ? getRoleDisplayName(invitation.role.name)
+                          : ""}
+                      </Text>
                     </div>
                   </div>
                   {invitation?.inviter_name && (
@@ -906,20 +701,11 @@ export default function InvitationAcceptPage() {
                     },
                   ]}
                 >
-                  <div ref={datePickerRef}>
-                    <DatePicker
-                      placeholder="DD/MM/YYYY"
-                      format="DD/MM/YYYY"
-                      disabledDate={disabledDate}
-                      className="w-full"
-                      size="large"
-                      style={{ width: "100%" }}
-                      suffixIcon={
-                        <RiCalendarLine className="text-gray-400" />
-                      }
-                      inputReadOnly={false}
-                    />
-                  </div>
+                  <DatePicker
+                    onFormFieldChange={(date) => {
+                      registerForm.setFieldValue("dateOfBirth", date);
+                    }}
+                  />
                 </Form.Item>
 
                 <Form.Item
@@ -932,8 +718,7 @@ export default function InvitationAcceptPage() {
                     },
                     {
                       min: 6,
-                      message:
-                        "La contraseña debe tener al menos 6 caracteres",
+                      message: "La contraseña debe tener al menos 6 caracteres",
                     },
                   ]}
                 >

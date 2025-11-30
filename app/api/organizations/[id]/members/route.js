@@ -96,6 +96,20 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Get all accepted invitations with general_invite_link_id for this organization
+    // to check which members joined via general invite links
+    const { data: generalLinkInvitations } = await supabase
+      .from("organization_invitations")
+      .select("email, general_invite_link_id")
+      .eq("organization_id", id)
+      .eq("status", "accepted")
+      .not("general_invite_link_id", "is", null);
+
+    // Create a set of emails that joined via general invite links
+    const generalLinkEmails = new Set(
+      (generalLinkInvitations || []).map((inv) => inv.email.toLowerCase())
+    );
+
     // Get user details for each member
     const membersWithDetails = await Promise.all(
       (members || []).map(async (member) => {
@@ -121,6 +135,37 @@ export async function GET(request, { params }) {
           inviterName = inviterNameData;
         }
 
+        // Check if member joined via general invite link
+        // We need to check if there's an accepted invitation for this user with general_invite_link_id
+        // Since we don't have direct email access, we'll check invitations by user_id if possible
+        // For now, we'll check if there's an accepted invitation that was created around the same time
+        // as the member joined, but a better approach would be to store the invitation_id in members
+        // For this implementation, we'll check if there's an accepted invitation with general_invite_link_id
+        // that matches the member's join time (within a reasonable window)
+        let isFromGeneralLink = false;
+        
+        // Try to find matching invitation by checking if member was created around the same time
+        // as an accepted invitation with general_invite_link_id
+        if (member.joined_at && generalLinkInvitations && generalLinkInvitations.length > 0) {
+          // Check if there's an accepted invitation with general_invite_link_id
+          // that was accepted around the time the member joined
+          const memberJoinTime = new Date(member.joined_at).getTime();
+          const { data: memberInvitations } = await supabase
+            .from("organization_invitations")
+            .select("email, general_invite_link_id, updated_at")
+            .eq("organization_id", id)
+            .eq("status", "accepted")
+            .not("general_invite_link_id", "is", null)
+            .gte("updated_at", new Date(memberJoinTime - 60000).toISOString()) // 1 minute before
+            .lte("updated_at", new Date(memberJoinTime + 60000).toISOString()); // 1 minute after
+          
+          // If we found invitations accepted around the same time, mark as from general link
+          // This is a heuristic approach - ideally we'd have a direct link
+          if (memberInvitations && memberInvitations.length > 0) {
+            isFromGeneralLink = true;
+          }
+        }
+
         return {
           id: member.id,
           user_id: member.user_id,
@@ -135,6 +180,7 @@ export async function GET(request, { params }) {
           created_at: member.created_at,
           invited_by: member.invited_by,
           invited_by_name: inviterName,
+          is_from_general_link: isFromGeneralLink,
         };
       })
     );

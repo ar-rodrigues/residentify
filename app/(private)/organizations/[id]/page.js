@@ -53,6 +53,7 @@ export default async function OrganizationDetailPage({ params }) {
   let organization;
   let errorMessage = null;
   let shouldRedirect = false;
+  let shouldRedirectToOrganizations = false;
 
   try {
     const result = await getOrganizationById(id);
@@ -64,8 +65,29 @@ export default async function OrganizationDetailPage({ params }) {
       if (result.status === 401) {
         shouldRedirect = true;
       }
+
+      // If user has pending approval, redirect to organizations page
+      if (result.status === 404) {
+        // Check if user has pending approval for this organization
+        const { data: pendingInvitation } = await supabase
+          .from("organization_invitations")
+          .select("id")
+          .eq("organization_id", id)
+          .eq("email", user.email.toLowerCase())
+          .eq("status", "pending_approval")
+          .single();
+
+        if (pendingInvitation) {
+          shouldRedirectToOrganizations = true;
+        }
+      }
     } else {
       organization = result.data;
+
+      // If user has pending approval, redirect to organizations page
+      if (organization.isPendingApproval) {
+        shouldRedirectToOrganizations = true;
+      }
     }
   } catch (error) {
     // Re-throw redirect errors (Next.js redirect() throws a special error)
@@ -85,6 +107,10 @@ export default async function OrganizationDetailPage({ params }) {
   // Handle redirect outside try-catch to avoid catching redirect error
   if (shouldRedirect) {
     redirect("/login");
+  }
+
+  if (shouldRedirectToOrganizations) {
+    redirect("/organizations");
   }
 
   // Error state

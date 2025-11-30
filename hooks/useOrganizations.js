@@ -30,16 +30,120 @@ export function useOrganizations() {
         return;
       }
 
-      const { data: orgs, error: orgError } = await supabase
-        .from("organizations")
-        .select("id, name, created_at")
-        .order("created_at", { ascending: false });
+      // Fetch organizations where user is a member
+      // First get the organization IDs from organization_members
+      let memberOrgs = [];
+      const { data: memberData, error: memberError } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", user.id);
 
-      if (orgError) {
-        throw orgError;
+      if (memberError) {
+        console.error("Error fetching member organization IDs:", memberError);
+        memberOrgs = [];
+      } else if (memberData && memberData.length > 0) {
+        // Extract organization IDs
+        const orgIds = memberData.map((m) => m.organization_id);
+
+        // Now fetch organizations separately (this uses the "Users can view organizations they belong to" policy)
+        const { data: orgsData, error: orgsError } = await supabase
+          .from("organizations")
+          .select("id, name, created_at")
+          .in("id", orgIds)
+          .order("created_at", { ascending: false });
+
+        if (orgsError) {
+          console.error("Error fetching organizations:", orgsError);
+          memberOrgs = [];
+        } else {
+          memberOrgs = orgsData || [];
+        }
       }
 
-      setOrganizations(orgs || []);
+      // Fetch organizations where user has pending approval invitations
+      // Query by user_id OR email (for cases where user_id might be NULL)
+      let pendingOrgs = [];
+
+      if (user.id) {
+        // First, fetch invitations by user_id (for general invite links where user_id is set)
+        const { data: pendingInvitationsById, error: pendingErrorById } =
+          await supabase
+            .from("organization_invitations")
+            .select("organization_id")
+            .eq("user_id", user.id)
+            .in("status", ["pending_approval", "pending"]);
+
+        if (pendingErrorById) {
+          console.error(
+            "Error fetching pending invitations by user_id:",
+            pendingErrorById
+          );
+        }
+
+        // Also fetch by email if user has email (for admin-created invitations where user_id is NULL)
+        let pendingInvitationsByEmail = [];
+        if (user.email) {
+          const { data: emailInvitations, error: pendingErrorByEmail } =
+            await supabase
+              .from("organization_invitations")
+              .select("organization_id")
+              .eq("email", user.email.toLowerCase())
+              .in("status", ["pending_approval", "pending"])
+              .is("user_id", null);
+
+          if (pendingErrorByEmail) {
+            console.warn(
+              "Error fetching pending invitations by email:",
+              pendingErrorByEmail
+            );
+          } else if (emailInvitations) {
+            pendingInvitationsByEmail = emailInvitations;
+          }
+        }
+
+        // Combine both invitation results and extract unique organization IDs
+        const allPendingInvitations = [
+          ...(pendingInvitationsById || []),
+          ...pendingInvitationsByEmail,
+        ];
+
+        if (allPendingInvitations.length > 0) {
+          const orgIds = [
+            ...new Set(allPendingInvitations.map((inv) => inv.organization_id)),
+          ];
+
+          // Now fetch organizations separately using the organization IDs
+          // This uses the "Users can view organizations with pending invitations" policy
+          const { data: orgsData, error: orgsError } = await supabase
+            .from("organizations")
+            .select("id, name, created_at")
+            .in("id", orgIds);
+
+          if (orgsError) {
+            console.error("Error fetching pending organizations:", orgsError);
+            pendingOrgs = [];
+          } else if (orgsData) {
+            // Mark all as pending approval
+            pendingOrgs = orgsData.map((org) => ({
+              ...org,
+              isPendingApproval: true,
+            }));
+          }
+        }
+      }
+
+      // Combine and deduplicate organizations
+      const allOrgs = [...memberOrgs, ...pendingOrgs];
+      const uniqueOrgs = Array.from(
+        new Map(allOrgs.map((org) => [org.id, org])).values()
+      );
+
+      // Sort by created_at
+      uniqueOrgs.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      setOrganizations(uniqueOrgs);
     } catch (err) {
       setError(err);
       setOrganizations([]);

@@ -79,7 +79,8 @@ export async function GET(request, { params }) {
         created_at,
         updated_at,
         organization_role_id,
-        invited_by
+        invited_by,
+        general_invite_link_id
       `
       )
       .eq("organization_id", id)
@@ -179,6 +180,8 @@ export async function GET(request, { params }) {
           updated_at: invitation.updated_at,
           invited_by: invitation.invited_by,
           invited_by_name: inviterName,
+          general_invite_link_id: invitation.general_invite_link_id,
+          is_from_general_link: !!invitation.general_invite_link_id,
         };
       })
     );

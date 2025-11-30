@@ -121,10 +121,13 @@ export default function MembersListResponsive({ organizationId }) {
       title: "Nombre",
       dataIndex: "name",
       key: "name",
-      render: (text) => (
+      render: (text, record) => (
         <Space>
           <RiUserLine className="text-gray-500" />
           <Text strong>{text}</Text>
+          {record.is_from_general_link && (
+            <Tag color="purple">Invitado por enlace general</Tag>
+          )}
         </Space>
       ),
     },
@@ -268,9 +271,16 @@ export default function MembersListResponsive({ organizationId }) {
               {/* Name - First row */}
               <div className="flex items-center mb-2">
                 <RiUserLine className="text-gray-500 text-base mr-2 flex-shrink-0" />
-                <Text strong className="text-base flex-1 break-words">
-                  {member.name}
-                </Text>
+                <div className="flex-1 break-words">
+                  <Text strong className="text-base">
+                    {member.name}
+                  </Text>
+                  {member.is_from_general_link && (
+                    <Tag color="purple" className="ml-2">
+                      Invitado por enlace general
+                    </Tag>
+                  )}
+                </div>
               </div>
 
               {/* Role - Second row */}

@@ -2,6 +2,7 @@
 import nodemailer from "nodemailer";
 import { getWelcomeEmailTemplate } from "./templates/welcomeEmail";
 import { getInvitationEmailTemplate } from "./templates/invitationEmail";
+import { getApprovalEmailTemplate } from "./templates/approvalEmail";
 
 export async function sendEmail(email, name, password, subject, body) {
   try {
@@ -109,6 +110,44 @@ export async function sendInvitationEmail(
     );
   } catch (error) {
     console.error("Error in sendInvitationEmail:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
+    throw error;
+  }
+}
+
+export async function sendApprovalEmail(
+  email,
+  firstName,
+  lastName,
+  organizationName,
+  baseUrl
+) {
+  if (!baseUrl) {
+    throw new Error("baseUrl is required for sending approval email");
+  }
+
+  try {
+    const subject = `Solicitud aprobada - ${organizationName}`;
+    const body = getApprovalEmailTemplate(
+      firstName,
+      lastName,
+      organizationName,
+      baseUrl
+    );
+
+    console.log("Approval email template generated successfully");
+    return await sendEmail(
+      email,
+      `${firstName} ${lastName}`,
+      null,
+      subject,
+      body
+    );
+  } catch (error) {
+    console.error("Error in sendApprovalEmail:", {
       name: error.name,
       message: error.message,
       stack: error.stack,

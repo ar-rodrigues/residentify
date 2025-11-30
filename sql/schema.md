@@ -1,393 +1,693 @@
-# Supabase Schema
+# Supabase schema
 
-| table_name               | column_name          | data_type                | is_nullable | column_default               | is_primary_key | referenced_table_name | referenced_column_name |
-| ------------------------ | -------------------- | ------------------------ | ----------- | ---------------------------- | -------------- | --------------------- | ---------------------- |
-| access_logs              | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| access_logs              | qr_code_id           | uuid                     | NO          | null                         | false          | qr_codes              | id                     |
-| access_logs              | scanned_by           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| access_logs              | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| access_logs              | entry_type           | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
-| access_logs              | timestamp            | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| access_logs              | notification_sent    | boolean                  | YES         | false                        | false          | null                  | null                   |
-| access_logs              | notes                | text                     | YES         | null                         | false          | null                  | null                   |
-| feature_flags            | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| feature_flags            | name                 | text                     | NO          | null                         | false          | null                  | null                   |
-| feature_flags            | description          | text                     | YES         | null                         | false          | null                  | null                   |
-| feature_flags            | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| feature_flags            | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| notifications            | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| notifications            | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| notifications            | qr_code_id           | uuid                     | YES         | null                         | false          | qr_codes              | id                     |
-| notifications            | access_log_id        | uuid                     | YES         | null                         | false          | access_logs           | id                     |
-| notifications            | from_user_id         | uuid                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | to_user_id           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | type                 | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
-| notifications            | message              | text                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | is_read              | boolean                  | YES         | false                        | false          | null                  | null                   |
-| notifications            | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| notifications            | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organization_invitations | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| organization_invitations | email                | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | token                | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | invited_by           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | status               | USER-DEFINED             | YES         | 'pending'::invitation_status | false          | null                  | null                   |
-| organization_invitations | expires_at           | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | organization_role_id | integer                  | NO          | null                         | false          | organization_roles    | id                     |
-| organization_invitations | first_name           | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | last_name            | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | description          | text                     | YES         | null                         | false          | null                  | null                   |
-| organization_members     | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organization_members     | user_id              | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organization_members     | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| organization_members     | invited_by           | uuid                     | YES         | null                         | false          | null                  | null                   |
-| organization_members     | joined_at            | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | organization_role_id | integer                  | NO          | null                         | false          | organization_roles    | id                     |
-| organization_roles       | id                   | integer                  | NO          | null                         | true           | null                  | null                   |
-| organization_roles       | name                 | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_roles       | description          | text                     | YES         | null                         | false          | null                  | null                   |
-| organization_roles       | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_roles       | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organizations            | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organizations            | name                 | text                     | NO          | null                         | false          | null                  | null                   |
-| organizations            | created_by           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organizations            | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organizations            | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| profiles                 | id                   | uuid                     | NO          | null                         | true           | null                  | null                   |
-| profiles                 | first_name           | text                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | last_name            | text                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | date_of_birth        | date                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | role_id              | uuid                     | NO          | null                         | false          | roles                 | id                     |
-| profiles                 | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| profiles                 | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| qr_codes                 | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| qr_codes                 | organization_id      | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| qr_codes                 | created_by           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | visitor_name         | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | is_used              | boolean                  | YES         | false                        | false          | null                  | null                   |
-| qr_codes                 | expires_at           | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| qr_codes                 | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| qr_codes                 | status               | USER-DEFINED             | YES         | 'active'::qr_code_status     | false          | null                  | null                   |
-| qr_codes                 | token                | text                     | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | visitor_id           | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | document_photo_url   | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | validated_at         | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | validated_by         | uuid                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | identifier           | text                     | YES         | null                         | false          | null                  | null                   |
-| roles                    | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| roles                    | name                 | text                     | NO          | null                         | false          | null                  | null                   |
-| roles                    | description          | text                     | YES         | null                         | false          | null                  | null                   |
-| roles                    | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| roles                    | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| user_flags               | id                   | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| user_flags               | user_id              | uuid                     | NO          | null                         | false          | null                  | null                   |
-| user_flags               | feature_flag_id      | uuid                     | NO          | null                         | false          | feature_flags         | id                     |
-| user_flags               | enabled              | boolean                  | NO          | false                        | false          | null                  | null                   |
-| user_flags               | created_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| user_flags               | updated_at           | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+
+
+| table_name               | column_name            | data_type                | is_nullable | column_default               | is_primary_key | referenced_table_name | referenced_column_name |
+| ------------------------ | ---------------------- | ------------------------ | ----------- | ---------------------------- | -------------- | --------------------- | ---------------------- |
+| access_logs              | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| access_logs              | qr_code_id             | uuid                     | NO          | null                         | false          | qr_codes              | id                     |
+| access_logs              | scanned_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| access_logs              | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| access_logs              | entry_type             | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
+| access_logs              | timestamp              | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| access_logs              | notification_sent      | boolean                  | YES         | false                        | false          | null                  | null                   |
+| access_logs              | notes                  | text                     | YES         | null                         | false          | null                  | null                   |
+| feature_flags            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| feature_flags            | name                   | text                     | NO          | null                         | false          | null                  | null                   |
+| feature_flags            | description            | text                     | YES         | null                         | false          | null                  | null                   |
+| feature_flags            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| feature_flags            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| general_invite_links     | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| general_invite_links     | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| general_invite_links     | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
+| general_invite_links     | token                  | text                     | NO          | null                         | false          | null                  | null                   |
+| general_invite_links     | requires_approval      | boolean                  | NO          | false                        | false          | null                  | null                   |
+| general_invite_links     | expires_at             | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
+| general_invite_links     | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| general_invite_links     | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| general_invite_links     | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| notifications            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| notifications            | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| notifications            | qr_code_id             | uuid                     | YES         | null                         | false          | qr_codes              | id                     |
+| notifications            | access_log_id          | uuid                     | YES         | null                         | false          | access_logs           | id                     |
+| notifications            | from_user_id           | uuid                     | NO          | null                         | false          | null                  | null                   |
+| notifications            | to_user_id             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| notifications            | type                   | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
+| notifications            | message                | text                     | NO          | null                         | false          | null                  | null                   |
+| notifications            | is_read                | boolean                  | YES         | false                        | false          | null                  | null                   |
+| notifications            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| notifications            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_invitations | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| organization_invitations | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| organization_invitations | email                  | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | token                  | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | invited_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | status                 | USER-DEFINED             | YES         | 'pending'::invitation_status | false          | null                  | null                   |
+| organization_invitations | expires_at             | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_invitations | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_invitations | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
+| organization_invitations | first_name             | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | last_name              | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_invitations | description            | text                     | YES         | null                         | false          | null                  | null                   |
+| organization_invitations | general_invite_link_id | uuid                     | YES         | null                         | false          | general_invite_links  | id                     |
+| organization_invitations | user_id                | uuid                     | YES         | null                         | false          | null                  | null                   |
+| organization_members     | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| organization_members     | user_id                | uuid                     | NO          | null                         | false          | null                  | null                   |
+| organization_members     | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| organization_members     | invited_by             | uuid                     | YES         | null                         | false          | null                  | null                   |
+| organization_members     | joined_at              | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_members     | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_members     | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_members     | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
+| organization_roles       | id                     | integer                  | NO          | null                         | true           | null                  | null                   |
+| organization_roles       | name                   | text                     | NO          | null                         | false          | null                  | null                   |
+| organization_roles       | description            | text                     | YES         | null                         | false          | null                  | null                   |
+| organization_roles       | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organization_roles       | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organizations            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| organizations            | name                   | text                     | NO          | null                         | false          | null                  | null                   |
+| organizations            | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| organizations            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| organizations            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| profiles                 | id                     | uuid                     | NO          | null                         | true           | null                  | null                   |
+| profiles                 | first_name             | text                     | NO          | null                         | false          | null                  | null                   |
+| profiles                 | last_name              | text                     | NO          | null                         | false          | null                  | null                   |
+| profiles                 | date_of_birth          | date                     | NO          | null                         | false          | null                  | null                   |
+| profiles                 | role_id                | uuid                     | NO          | null                         | false          | roles                 | id                     |
+| profiles                 | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| profiles                 | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| qr_codes                 | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| qr_codes                 | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
+| qr_codes                 | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
+| qr_codes                 | visitor_name           | text                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | is_used                | boolean                  | YES         | false                        | false          | null                  | null                   |
+| qr_codes                 | expires_at             | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
+| qr_codes                 | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| qr_codes                 | status                 | USER-DEFINED             | YES         | 'active'::qr_code_status     | false          | null                  | null                   |
+| qr_codes                 | token                  | text                     | NO          | null                         | false          | null                  | null                   |
+| qr_codes                 | visitor_id             | text                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | document_photo_url     | text                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | validated_at           | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | validated_by           | uuid                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | identifier             | text                     | YES         | null                         | false          | null                  | null                   |
+| qr_codes                 | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| roles                    | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| roles                    | name                   | text                     | NO          | null                         | false          | null                  | null                   |
+| roles                    | description            | text                     | YES         | null                         | false          | null                  | null                   |
+| roles                    | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| roles                    | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| user_flags               | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
+| user_flags               | user_id                | uuid                     | NO          | null                         | false          | null                  | null                   |
+| user_flags               | feature_flag_id        | uuid                     | NO          | null                         | false          | feature_flags         | id                     |
+| user_flags               | enabled                | boolean                  | NO          | false                        | false          | null                  | null                   |
+| user_flags               | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| user_flags               | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
 
 
 
 ## RLS Policies
 
 
-| schemaname | tablename                | policyname                                                   | permissive | roles    | cmd    | qual                                                                                                                                                                                                                                                                                  | with_check                                                                                                                                                                                                                                                                                                                                                              |
-| ---------- | ------------------------ | ------------------------------------------------------------ | ---------- | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| public     | access_logs              | Admins can view organization access logs                     | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+
+| schemaname | tablename                | policyname                                                   | permissive | roles           | cmd    | qual                                                                                                                                                                                                                                                                                                                                                                  | with_check                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | ------------------------ | ------------------------------------------------------------ | ---------- | --------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| public     | access_logs              | Admins can view organization access logs                     | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | access_logs              | Residents can view own QR code access logs                   | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | access_logs              | Residents can view own QR code access logs                   | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM qr_codes
-  WHERE ((qr_codes.id = access_logs.qr_code_id) AND (qr_codes.created_by = auth.uid()))))                                                                                                                                                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | access_logs              | Security can create access logs                              | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = scanned_by) AND (EXISTS ( SELECT 1
+  WHERE ((qr_codes.id = access_logs.qr_code_id) AND (qr_codes.created_by = auth.uid()))))                                                                                                                                                                                                                                         | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | access_logs              | Security can create access logs                              | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = scanned_by) AND (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text)))))                                                             |
-| public     | access_logs              | Security can view organization access logs                   | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+| public     | access_logs              | Security can view organization access logs                   | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))           | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | feature_flags            | Admins can delete feature flags                              | PERMISSIVE | {public} | DELETE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | feature_flags            | Admins can insert feature flags                              | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
-| public     | feature_flags            | Admins can update feature flags                              | PERMISSIVE | {public} | UPDATE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
-| public     | feature_flags            | Admins can view feature flags                                | PERMISSIVE | {public} | SELECT | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | notifications            | Admins can view organization notifications                   | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = access_logs.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))                                                                                           | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | feature_flags            | Admins can delete feature flags                              | PERMISSIVE | {public}        | DELETE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | feature_flags            | Admins can insert feature flags                              | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
+| public     | feature_flags            | Admins can update feature flags                              | PERMISSIVE | {public}        | UPDATE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
+| public     | feature_flags            | Admins can view feature flags                                | PERMISSIVE | {public}        | SELECT | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | general_invite_links     | Admins can create organization general invite links          | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = created_by) AND (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = notifications.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))            | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | notifications            | Residents can update own notifications                       | PERMISSIVE | {public} | UPDATE | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                             | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                                                                                                               |
-| public     | notifications            | Residents can view own notifications                         | PERMISSIVE | {public} | SELECT | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                             | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | notifications            | Security can create notifications                            | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = from_user_id) AND (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = general_invite_links.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))))                                                       |
+| public     | general_invite_links     | Admins can delete organization general invite links          | PERMISSIVE | {public}        | DELETE | (EXISTS ( SELECT 1
+   FROM (organization_members om
+     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+  WHERE ((om.organization_id = general_invite_links.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | general_invite_links     | Admins can update organization general invite links          | PERMISSIVE | {public}        | UPDATE | (EXISTS ( SELECT 1
+   FROM (organization_members om
+     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+  WHERE ((om.organization_id = general_invite_links.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                     | (EXISTS ( SELECT 1
+   FROM (organization_members om
+     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+  WHERE ((om.organization_id = general_invite_links.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                       |
+| public     | general_invite_links     | Admins can view organization general invite links            | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
+   FROM (organization_members om
+     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+  WHERE ((om.organization_id = general_invite_links.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | general_invite_links     | Public can read general invite links by token                | PERMISSIVE | {public}        | SELECT | true                                                                                                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | notifications            | Admins can view organization notifications                   | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
+   FROM (organization_members om
+     JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
+  WHERE ((om.organization_id = notifications.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                            | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | notifications            | Residents can update own notifications                       | PERMISSIVE | {public}        | UPDATE | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                                                                                                             | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                                                                                                               |
+| public     | notifications            | Residents can view own notifications                         | PERMISSIVE | {public}        | SELECT | (auth.uid() = to_user_id)                                                                                                                                                                                                                                                                                                                                             | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | notifications            | Security can create notifications                            | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = from_user_id) AND (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = notifications.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text)))))                                                         |
-| public     | organization_invitations | Admins can create invitations                                | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = invited_by) AND (EXISTS ( SELECT 1
+| public     | organization_invitations | Admins can create invitations                                | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = invited_by) AND (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))))                                                   |
-| public     | organization_invitations | Admins can delete invitations                                | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+| public     | organization_invitations | Admins can delete invitations                                | PERMISSIVE | {public}        | DELETE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Admins can update invitations                                | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_invitations | Admins can update invitations                                | PERMISSIVE | {public}        | UPDATE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_invitations | Admins can view organization invitations                     | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_invitations | Admins can view organization invitations                     | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text)))) | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Admins can add organization members                          | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organization_invitations.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_invitations | Users can view own pending invitations                       | PERMISSIVE | {public}        | SELECT | ((status = ANY (ARRAY['pending'::invitation_status, 'pending_approval'::invitation_status])) AND ((user_id = auth.uid()) OR ((user_id IS NULL) AND (lower(TRIM(BOTH FROM email)) = lower(TRIM(BOTH FROM (auth.jwt() ->> 'email'::text)))))))                                                                                                                          | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_members     | Admins can add organization members                          | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                       |
-| public     | organization_members     | Admins can remove organization members                       | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+| public     | organization_members     | Admins can remove organization members                       | PERMISSIVE | {public}        | DELETE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Admins can update member roles                               | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_members     | Admins can update member roles                               | PERMISSIVE | {public}        | UPDATE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can add themselves as admin when creating organization | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = user_id) AND (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organization_members.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_members     | Users can add themselves as admin when creating organization | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = user_id) AND (EXISTS ( SELECT 1
    FROM organizations
   WHERE ((organizations.id = organization_members.organization_id) AND (organizations.created_by = auth.uid())))) AND (EXISTS ( SELECT 1
    FROM organization_roles
   WHERE ((organization_roles.id = organization_members.organization_role_id) AND (organization_roles.name = 'admin'::text))))) |
-| public     | organization_members     | Users can leave organization                                 | PERMISSIVE | {public} | DELETE | (auth.uid() = user_id)                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can view organization members                          | PERMISSIVE | {public} | SELECT | is_user_organization_member(auth.uid(), organization_id)                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_members     | Users can view own memberships                               | PERMISSIVE | {public} | SELECT | (auth.uid() = user_id)                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organization_roles       | Everyone can read organization roles                         | PERMISSIVE | {public} | SELECT | true                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Organization admins can delete organization                  | PERMISSIVE | {public} | DELETE | (EXISTS ( SELECT 1
+| public     | organization_members     | Users can leave organization                                 | PERMISSIVE | {public}        | DELETE | (auth.uid() = user_id)                                                                                                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_members     | Users can view organization members                          | PERMISSIVE | {public}        | SELECT | is_user_organization_member(auth.uid(), organization_id)                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_members     | Users can view own memberships                               | PERMISSIVE | {public}        | SELECT | (auth.uid() = user_id)                                                                                                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_roles       | Everyone can read organization roles                         | PERMISSIVE | {public}        | SELECT | true                                                                                                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organizations            | Organization admins can delete organization                  | PERMISSIVE | {public}        | DELETE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Organization admins can update organization                  | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                                         | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organizations            | Organization admins can update organization                  | PERMISSIVE | {public}        | UPDATE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                         | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | organizations            | Users can create organizations                               | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (auth.uid() = created_by)                                                                                                                                                                                                                                                                                                                                               |
-| public     | organizations            | Users can view organizations they belong to                  | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = organizations.id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                                         | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organizations            | Users can create organizations                               | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | (auth.uid() = created_by)                                                                                                                                                                                                                                                                                                                                               |
+| public     | organizations            | Users can view organizations they belong to                  | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM organization_members
-  WHERE ((organization_members.organization_id = organizations.id) AND (organization_members.user_id = auth.uid()))))                                                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | profiles                 | Users can insert own profile                                 | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | (auth.uid() = id)                                                                                                                                                                                                                                                                                                                                                       |
-| public     | profiles                 | Users can update own profile                                 | PERMISSIVE | {public} | UPDATE | (auth.uid() = id)                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | profiles                 | Users can view own profile                                   | PERMISSIVE | {public} | SELECT | (auth.uid() = id)                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Admins can view organization QR codes                        | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((organization_members.organization_id = organizations.id) AND (organization_members.user_id = auth.uid()))))                                                                                                                                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organizations            | Users can view organizations with pending invitations        | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
+   FROM organization_invitations oi
+  WHERE ((oi.organization_id = organizations.id) AND (oi.status = ANY (ARRAY['pending'::invitation_status, 'pending_approval'::invitation_status])) AND ((oi.user_id = auth.uid()) OR ((oi.user_id IS NULL) AND (lower(TRIM(BOTH FROM oi.email)) = lower(TRIM(BOTH FROM (auth.jwt() ->> 'email'::text))))))))) | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | profiles                 | Users can insert own profile                                 | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | (auth.uid() = id)                                                                                                                                                                                                                                                                                                                                                       |
+| public     | profiles                 | Users can update own profile                                 | PERMISSIVE | {public}        | UPDATE | (auth.uid() = id)                                                                                                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | profiles                 | Users can view own profile                                   | PERMISSIVE | {public}        | SELECT | (auth.uid() = id)                                                                                                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Admins can view organization QR codes                        | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                 | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Residents can create QR codes                                | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | ((auth.uid() = created_by) AND (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'admin'::text))))                                                                                                 | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Residents can create QR codes                                | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((auth.uid() = created_by) AND (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
   WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'resident'::text)))))                                                                |
-| public     | qr_codes                 | Residents can delete own QR codes                            | PERMISSIVE | {public} | DELETE | ((auth.uid() = created_by) AND (is_used = false))                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Residents can update own QR codes                            | PERMISSIVE | {public} | UPDATE | ((auth.uid() = created_by) AND (is_used = false))                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Residents can view own QR codes                              | PERMISSIVE | {public} | SELECT | (auth.uid() = created_by)                                                                                                                                                                                                                                                             | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Security can mark QR codes as used                           | PERMISSIVE | {public} | UPDATE | (EXISTS ( SELECT 1
+| public     | qr_codes                 | Residents can delete own QR codes                            | PERMISSIVE | {public}        | DELETE | ((auth.uid() = created_by) AND (is_used = false))                                                                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Residents can update own QR codes                            | PERMISSIVE | {public}        | UPDATE | ((auth.uid() = created_by) AND (is_used = false))                                                                                                                                                                                                                                                                                                                     | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Residents can view own QR codes                              | PERMISSIVE | {public}        | SELECT | (auth.uid() = created_by)                                                                                                                                                                                                                                                                                                                                             | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Security can mark QR codes as used                           | PERMISSIVE | {public}        | UPDATE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | qr_codes                 | Security can view organization QR codes                      | PERMISSIVE | {public} | SELECT | (EXISTS ( SELECT 1
+  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | qr_codes                 | Security can view organization QR codes                      | PERMISSIVE | {public}        | SELECT | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
-  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | roles                    | Everyone can read roles                                      | PERMISSIVE | {public} | SELECT | true                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | user_flags               | Admins can delete user flags                                 | PERMISSIVE | {public} | DELETE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
-| public     | user_flags               | Admins can insert user flags                                 | PERMISSIVE | {public} | INSERT | null                                                                                                                                                                                                                                                                                  | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
-| public     | user_flags               | Admins can update user flags                                 | PERMISSIVE | {public} | UPDATE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
-| public     | user_flags               | Admins can view user flags                                   | PERMISSIVE | {public} | SELECT | is_app_admin(auth.uid())                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+  WHERE ((om.organization_id = qr_codes.organization_id) AND (om.user_id = auth.uid()) AND (org_role.name = 'security'::text))))                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | roles                    | Everyone can read roles                                      | PERMISSIVE | {public}        | SELECT | true                                                                                                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | user_flags               | Admins can delete user flags                                 | PERMISSIVE | {public}        | DELETE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | user_flags               | Admins can insert user flags                                 | PERMISSIVE | {public}        | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
+| public     | user_flags               | Admins can update user flags                                 | PERMISSIVE | {public}        | UPDATE | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                                |
+| public     | user_flags               | Admins can view user flags                                   | PERMISSIVE | {public}        | SELECT | is_app_admin(auth.uid())                                                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
+| storage    | objects                  | Allow authenticated users to read files flreew_0             | PERMISSIVE | {authenticated} | SELECT | ((bucket_id = 'documents'::text) AND (auth.role() = 'authenticated'::text))                                                                                                                                                                                                                                                                                           | null                                                                                                                                                                                                                                                                                                                                                                    |
+| storage    | objects                  | Allow authenticated users to upload files flreew_0           | PERMISSIVE | {authenticated} | INSERT | null                                                                                                                                                                                                                                                                                                                                                                  | ((bucket_id = 'documents'::text) AND (auth.role() = 'authenticated'::text))                                                                                                                                                                                                                                                                                             |
 
 
 
-### Supabase Functions
 
-| routine_schema | routine_name                   | routine_type | return_type | security_type | routine_definition | function_arguments | function_result | language | volatility | is_strict | is_security_definer |
-| -------------- | ------------------------------ | ------------ | ----------- | ------------- | ------------------ | ------------------ | --------------- | -------- | ---------- | --------- | ------------------- |
-| public         | accept_organization_invitation | FUNCTION     | record      | DEFINER       |
+### Supabase functions
 
+
+
+
+| routine_schema | routine_name                           | routine_type | return_type | security_type | routine_definition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | function_arguments                                                                                                                                                                                    | function_result                                                                                                                                                                                                                                                                                                                       | language | volatility | is_strict | is_security_definer |
+| -------------- | -------------------------------------- | ------------ | ----------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------- | --------- | ------------------- |
+| public         | accept_organization_invitation         | FUNCTION     | record      | DEFINER       | 
 DECLARE
-v_invitation RECORD;
-v_member_id UUID;
-v_existing_member UUID;
+  v_invitation RECORD;
+  v_member_id UUID;
+  v_existing_member UUID;
 BEGIN
--- Fetch and validate the invitation
-SELECT
-oi.id,
-oi.organization_id,
-oi.organization_role_id,
-oi.invited_by,
-oi.status,
-oi.expires_at,
-oi.email
-INTO v_invitation
-FROM public.organization_invitations oi
-WHERE oi.token = p_token
-LIMIT 1;
+  -- Fetch and validate the invitation
+  SELECT 
+    oi.id,
+    oi.organization_id,
+    oi.organization_role_id,
+    oi.invited_by,
+    oi.status,
+    oi.expires_at,
+    oi.email
+  INTO v_invitation
+  FROM public.organization_invitations oi
+  WHERE oi.token = p_token
+  LIMIT 1;
 
--- Check if invitation exists
-IF v_invitation.id IS NULL THEN
-RAISE EXCEPTION 'Invitación no encontrada o token inválido.'
-USING ERRCODE = 'P0001';
-END IF;
+  -- Check if invitation exists
+  IF v_invitation.id IS NULL THEN
+    RAISE EXCEPTION 'Invitación no encontrada o token inválido.'
+      USING ERRCODE = 'P0001';
+  END IF;
 
--- Check if invitation is expired
-IF v_invitation.expires_at < NOW() THEN
-RAISE EXCEPTION 'Esta invitación ha expirado.'
-USING ERRCODE = 'P0002';
-END IF;
+  -- Check if invitation is expired (only if expires_at is not NULL)
+  IF v_invitation.expires_at IS NOT NULL AND v_invitation.expires_at < NOW() THEN
+    RAISE EXCEPTION 'Esta invitación ha expirado.'
+      USING ERRCODE = 'P0002';
+  END IF;
 
--- Check if invitation is still pending
-IF v_invitation.status != 'pending' THEN
-RAISE EXCEPTION 'Esta invitación ya ha sido aceptada o cancelada.'
-USING ERRCODE = 'P0003';
-END IF;
+  -- Check if invitation is still pending
+  IF v_invitation.status != 'pending' THEN
+    RAISE EXCEPTION 'Esta invitación ya ha sido aceptada o cancelada.'
+      USING ERRCODE = 'P0003';
+  END IF;
 
--- Check if user is already a member
-SELECT om.id INTO v_existing_member
-FROM public.organization_members om
-WHERE om.organization_id = v_invitation.organization_id
-AND om.user_id = p_user_id
-LIMIT 1;
+  -- Check if user is already a member
+  SELECT om.id INTO v_existing_member
+  FROM public.organization_members om
+  WHERE om.organization_id = v_invitation.organization_id
+    AND om.user_id = p_user_id
+  LIMIT 1;
 
-IF v_existing_member IS NOT NULL THEN
-RAISE EXCEPTION 'Ya eres miembro de esta organización.'
-USING ERRCODE = '23505';
-END IF;
+  IF v_existing_member IS NOT NULL THEN
+    RAISE EXCEPTION 'Ya eres miembro de esta organización.'
+      USING ERRCODE = '23505';
+  END IF;
 
--- Add user to organization
-INSERT INTO public.organization_members (
-user_id,
-organization_id,
-organization_role_id,
-invited_by,
-joined_at
-)
-VALUES (
-p_user_id,
-v_invitation.organization_id,
-v_invitation.organization_role_id,
-v_invitation.invited_by,
-NOW()
-)
-RETURNING id INTO v_member_id;
+  -- Add user to organization
+  INSERT INTO public.organization_members (
+    user_id,
+    organization_id,
+    organization_role_id,
+    invited_by,
+    joined_at
+  )
+  VALUES (
+    p_user_id,
+    v_invitation.organization_id,
+    v_invitation.organization_role_id,
+    v_invitation.invited_by,
+    NOW()
+  )
+  RETURNING id INTO v_member_id;
 
--- Update invitation status to accepted
-UPDATE public.organization_invitations
-SET
-status = 'accepted',
-updated_at = NOW()
-WHERE id = v_invitation.id;
+  -- Update invitation status to accepted and set user_id
+  UPDATE public.organization_invitations
+  SET 
+    status = 'accepted',
+    user_id = p_user_id,
+    updated_at = NOW()
+  WHERE id = v_invitation.id;
 
--- Return the created member record
-RETURN QUERY
-SELECT
-om.id,
-om.user_id,
-om.organization_id,
-om.organization_role_id,
-om.joined_at
-FROM public.organization_members om
-WHERE om.id = v_member_id;
+  -- Return the created member record
+  RETURN QUERY
+  SELECT 
+    om.id,
+    om.user_id,
+    om.organization_id,
+    om.organization_role_id,
+    om.joined_at
+  FROM public.organization_members om
+  WHERE om.id = v_member_id;
 END;
-| p_token text, p_user_id uuid | TABLE(member_id uuid, user_id uuid, organization_id uuid, organization_role_id integer, joined_at timestamp with time zone) | plpgsql | VOLATILE | false | true |
-| public | check_user_exists_by_email | FUNCTION | boolean | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | p_token text, p_user_id uuid                                                                                                                                                                          | TABLE(member_id uuid, user_id uuid, organization_id uuid, organization_role_id integer, joined_at timestamp with time zone)                                                                                                                                                                                                           | plpgsql  | VOLATILE   | false     | true                |
+| public         | check_user_exists_by_email             | FUNCTION     | boolean     | DEFINER       | 
 DECLARE
-v_user_exists BOOLEAN;
+  v_user_exists BOOLEAN;
 BEGIN
--- Check if user exists in auth.users
-SELECT EXISTS(
-SELECT 1
-FROM auth.users
-WHERE email = LOWER(TRIM(p_email))
-) INTO v_user_exists;
+  -- Check if user exists in auth.users
+  SELECT EXISTS(
+    SELECT 1
+    FROM auth.users
+    WHERE email = LOWER(TRIM(p_email))
+  ) INTO v_user_exists;
 
-RETURN v_user_exists;
+  RETURN v_user_exists;
 END;
-| p_email text | boolean | plpgsql | VOLATILE | false | true |
-| public | create_organization_invitation | FUNCTION | record | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | p_email text                                                                                                                                                                                          | boolean                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_general_invite_link             | FUNCTION     | record      | DEFINER       | 
 DECLARE
-v_invitation_id UUID;
-v_existing_invitation UUID;
+    v_link_id UUID;
 BEGIN
--- Check for duplicate pending invitations
--- Use table alias to avoid ambiguity with RETURNS TABLE id column
-SELECT oi.id INTO v_existing_invitation
-FROM public.organization_invitations oi
-WHERE oi.organization_id = p_organization_id
-AND oi.email = LOWER(TRIM(p_email))
-AND oi.status = 'pending'
-LIMIT 1;
+    -- Validate organization exists
+    IF NOT EXISTS (SELECT 1 FROM public.organizations WHERE organizations.id = p_organization_id) THEN
+        RAISE EXCEPTION 'La organización no existe.'
+        USING ERRCODE = 'P0001';
+    END IF;
 
-IF v_existing_invitation IS NOT NULL THEN
-RAISE EXCEPTION 'Ya existe una invitación pendiente para este email en esta organización.'
-USING ERRCODE = '23505';
-END IF;
+    -- Validate role exists
+    IF NOT EXISTS (SELECT 1 FROM public.organization_roles WHERE organization_roles.id = p_organization_role_id) THEN
+        RAISE EXCEPTION 'El rol de organización especificado no existe.'
+        USING ERRCODE = 'P0002';
+    END IF;
 
--- Create the invitation
-INSERT INTO public.organization_invitations (
-organization_id,
-email,
-token,
-organization_role_id,
-invited_by,
-status,
-expires_at,
-first_name,
-last_name,
-description
-)
-VALUES (
-p_organization_id,
-LOWER(TRIM(p_email)),
-p_token,
-p_organization_role_id,
-p_invited_by,
-'pending',
-p_expires_at,
-TRIM(p_first_name),
-TRIM(p_last_name),
-CASE WHEN p_description IS NOT NULL THEN TRIM(p_description) ELSE NULL END
-)
-RETURNING organization_invitations.id INTO v_invitation_id;
+    -- Check if token already exists
+    IF EXISTS (SELECT 1 FROM public.general_invite_links WHERE general_invite_links.token = p_token) THEN
+        RAISE EXCEPTION 'El token ya existe. Por favor, genera uno nuevo.'
+        USING ERRCODE = '23505';
+    END IF;
 
--- Return the created invitation
-RETURN QUERY
-SELECT
-oi.id,
-oi.organization_id,
-oi.email,
-oi.token,
-oi.organization_role_id,
-oi.invited_by,
-oi.status::TEXT,
-oi.expires_at,
-oi.first_name,
-oi.last_name,
-oi.description,
-oi.created_at,
-oi.updated_at
-FROM public.organization_invitations oi
-WHERE oi.id = v_invitation_id;
+    -- Create the general invite link
+    -- Use a table alias and fully qualify the RETURNING clause
+    INSERT INTO public.general_invite_links AS gil (
+        organization_id,
+        organization_role_id,
+        token,
+        requires_approval,
+        expires_at,
+        created_by
+    )
+    VALUES (
+        p_organization_id,
+        p_organization_role_id,
+        p_token,
+        p_requires_approval,
+        p_expires_at,
+        p_created_by
+    )
+    RETURNING gil.id INTO v_link_id;
+
+    -- Return the created link
+    -- Explicitly qualify all column references to avoid ambiguity
+    RETURN QUERY
+    SELECT
+        gil.id AS id,
+        gil.organization_id AS organization_id,
+        gil.organization_role_id AS organization_role_id,
+        gil.token AS token,
+        gil.requires_approval AS requires_approval,
+        gil.expires_at AS expires_at,
+        gil.created_by AS created_by,
+        gil.created_at AS created_at,
+        gil.updated_at AS updated_at
+    FROM public.general_invite_links gil
+    WHERE gil.id = v_link_id;
 END;
-| p_organization_id uuid, p_email text, p_token text, p_organization_role_id integer, p_invited_by uuid, p_expires_at timestamp with time zone, p_first_name text, p_last_name text, p_description text | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, created_at timestamp with time zone, updated_at timestamp with time zone) | plpgsql | VOLATILE | false | true |
-| public | create_organization_with_admin | FUNCTION | record | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | p_organization_id uuid, p_organization_role_id integer, p_token text, p_requires_approval boolean, p_expires_at timestamp with time zone, p_created_by uuid                                           | TABLE(id uuid, organization_id uuid, organization_role_id integer, token text, requires_approval boolean, expires_at timestamp with time zone, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone)                                                                                             | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_invitation_from_general_link    | FUNCTION     | record      | DEFINER       | 
 DECLARE
-new_org_id UUID;
-admin_role_id INT4;
-new_member_id UUID;
+    v_invitation_id UUID;
+    v_existing_invitation UUID;
+    v_link RECORD;
 BEGIN
--- Get admin role ID
-SELECT id INTO admin_role_id
-FROM public.organization_roles
-WHERE name = 'admin'
-LIMIT 1;
+    -- Get general invite link details
+    SELECT 
+        gil.id,
+        gil.organization_id,
+        gil.organization_role_id,
+        gil.created_by,
+        gil.requires_approval,
+        gil.expires_at AS link_expires_at
+    INTO v_link
+    FROM public.general_invite_links gil
+    WHERE gil.id = p_general_invite_link_id;
+
+    -- Validate general invite link exists
+    IF v_link.id IS NULL THEN
+        RAISE EXCEPTION 'El enlace de invitación general no existe.'
+        USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Check if link is expired
+    IF v_link.link_expires_at IS NOT NULL AND v_link.link_expires_at < NOW() THEN
+        RAISE EXCEPTION 'Este enlace de invitación ha expirado.'
+        USING ERRCODE = 'P0002';
+    END IF;
+
+    -- Check for duplicate pending invitations (including pending_approval)
+    SELECT oi.id INTO v_existing_invitation
+    FROM public.organization_invitations oi
+    WHERE oi.organization_id = v_link.organization_id
+      AND oi.email = LOWER(TRIM(p_email))
+      AND oi.status IN ('pending', 'pending_approval')
+    LIMIT 1;
+
+    IF v_existing_invitation IS NOT NULL THEN
+        RAISE EXCEPTION 'Ya existe una invitación pendiente para este email en esta organización.'
+        USING ERRCODE = '23505';
+    END IF;
+
+    -- Validate status
+    IF p_status NOT IN ('pending', 'pending_approval') THEN
+        RAISE EXCEPTION 'El estado de la invitación debe ser "pending" o "pending_approval".'
+        USING ERRCODE = 'P0003';
+    END IF;
+
+    -- Create the invitation
+    INSERT INTO public.organization_invitations (
+        organization_id,
+        email,
+        token,
+        organization_role_id,
+        invited_by,
+        status,
+        expires_at,
+        first_name,
+        last_name,
+        general_invite_link_id,
+        user_id
+    )
+    VALUES (
+        v_link.organization_id,
+        LOWER(TRIM(p_email)),
+        p_token,
+        v_link.organization_role_id,
+        v_link.created_by,
+        p_status::invitation_status,
+        p_expires_at,
+        TRIM(p_first_name),
+        TRIM(p_last_name),
+        p_general_invite_link_id,
+        p_user_id
+    )
+    RETURNING organization_invitations.id INTO v_invitation_id;
+
+    -- Return the created invitation
+    RETURN QUERY
+    SELECT 
+        oi.id,
+        oi.organization_id,
+        oi.email,
+        oi.token,
+        oi.organization_role_id,
+        oi.invited_by,
+        oi.status::TEXT,
+        oi.expires_at,
+        oi.first_name,
+        oi.last_name,
+        oi.description,
+        oi.general_invite_link_id,
+        oi.user_id,
+        oi.created_at,
+        oi.updated_at
+    FROM public.organization_invitations oi
+    WHERE oi.id = v_invitation_id;
+END;
+ | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text, p_user_id uuid                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, user_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone) | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_invitation_from_general_link    | FUNCTION     | record      | DEFINER       | 
+DECLARE
+    v_invitation_id UUID;
+    v_existing_invitation UUID;
+    v_link RECORD;
+BEGIN
+    -- Get general invite link details
+    SELECT 
+        gil.id,
+        gil.organization_id,
+        gil.organization_role_id,
+        gil.created_by,
+        gil.requires_approval,
+        gil.expires_at AS link_expires_at
+    INTO v_link
+    FROM public.general_invite_links gil
+    WHERE gil.id = p_general_invite_link_id;
+
+    -- Validate general invite link exists
+    IF v_link.id IS NULL THEN
+        RAISE EXCEPTION 'El enlace de invitación general no existe.'
+        USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Check if link is expired
+    IF v_link.link_expires_at IS NOT NULL AND v_link.link_expires_at < NOW() THEN
+        RAISE EXCEPTION 'Este enlace de invitación ha expirado.'
+        USING ERRCODE = 'P0002';
+    END IF;
+
+    -- Check for duplicate pending invitations (including pending_approval)
+    SELECT oi.id INTO v_existing_invitation
+    FROM public.organization_invitations oi
+    WHERE oi.organization_id = v_link.organization_id
+      AND oi.email = LOWER(TRIM(p_email))
+      AND oi.status IN ('pending', 'pending_approval')
+    LIMIT 1;
+
+    IF v_existing_invitation IS NOT NULL THEN
+        RAISE EXCEPTION 'Ya existe una invitación pendiente para este email en esta organización.'
+        USING ERRCODE = '23505';
+    END IF;
+
+    -- Validate status
+    IF p_status NOT IN ('pending', 'pending_approval') THEN
+        RAISE EXCEPTION 'El estado de la invitación debe ser "pending" o "pending_approval".'
+        USING ERRCODE = 'P0003';
+    END IF;
+
+    -- Create the invitation
+    INSERT INTO public.organization_invitations (
+        organization_id,
+        email,
+        token,
+        organization_role_id,
+        invited_by,
+        status,
+        expires_at,
+        first_name,
+        last_name,
+        general_invite_link_id
+    )
+    VALUES (
+        v_link.organization_id,
+        LOWER(TRIM(p_email)),
+        p_token,
+        v_link.organization_role_id,
+        v_link.created_by,
+        p_status::invitation_status,
+        p_expires_at,
+        TRIM(p_first_name),
+        TRIM(p_last_name),
+        p_general_invite_link_id
+    )
+    RETURNING organization_invitations.id INTO v_invitation_id;
+
+    -- Return the created invitation
+    RETURN QUERY
+    SELECT 
+        oi.id,
+        oi.organization_id,
+        oi.email,
+        oi.token,
+        oi.organization_role_id,
+        oi.invited_by,
+        oi.status::TEXT,
+        oi.expires_at,
+        oi.first_name,
+        oi.last_name,
+        oi.description,
+        oi.general_invite_link_id,
+        oi.created_at,
+        oi.updated_at
+    FROM public.organization_invitations oi
+    WHERE oi.id = v_invitation_id;
+END;
+                                                            | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text                                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone)               | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_organization_invitation         | FUNCTION     | record      | DEFINER       | 
+DECLARE
+  v_invitation_id UUID;
+  v_existing_invitation UUID;
+BEGIN
+  -- Check for duplicate pending invitations
+  -- Use table alias to avoid ambiguity with RETURNS TABLE id column
+  SELECT oi.id INTO v_existing_invitation
+  FROM public.organization_invitations oi
+  WHERE oi.organization_id = p_organization_id
+    AND oi.email = LOWER(TRIM(p_email))
+    AND oi.status = 'pending'
+  LIMIT 1;
+
+  IF v_existing_invitation IS NOT NULL THEN
+    RAISE EXCEPTION 'Ya existe una invitación pendiente para este email en esta organización.'
+      USING ERRCODE = '23505';
+  END IF;
+
+  -- Create the invitation
+  INSERT INTO public.organization_invitations (
+    organization_id,
+    email,
+    token,
+    organization_role_id,
+    invited_by,
+    status,
+    expires_at,
+    first_name,
+    last_name,
+    description
+  )
+  VALUES (
+    p_organization_id,
+    LOWER(TRIM(p_email)),
+    p_token,
+    p_organization_role_id,
+    p_invited_by,
+    'pending',
+    p_expires_at,
+    TRIM(p_first_name),
+    TRIM(p_last_name),
+    CASE WHEN p_description IS NOT NULL THEN TRIM(p_description) ELSE NULL END
+  )
+  RETURNING organization_invitations.id INTO v_invitation_id;
+
+  -- Return the created invitation
+  RETURN QUERY
+  SELECT 
+    oi.id,
+    oi.organization_id,
+    oi.email,
+    oi.token,
+    oi.organization_role_id,
+    oi.invited_by,
+    oi.status::TEXT,
+    oi.expires_at,
+    oi.first_name,
+    oi.last_name,
+    oi.description,
+    oi.created_at,
+    oi.updated_at
+  FROM public.organization_invitations oi
+  WHERE oi.id = v_invitation_id;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | p_organization_id uuid, p_email text, p_token text, p_organization_role_id integer, p_invited_by uuid, p_expires_at timestamp with time zone, p_first_name text, p_last_name text, p_description text | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, created_at timestamp with time zone, updated_at timestamp with time zone)                                            | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_organization_with_admin         | FUNCTION     | record      | DEFINER       | 
+DECLARE
+    new_org_id UUID;
+    admin_role_id INT4;
+    new_member_id UUID;
+BEGIN
+    -- Get admin role ID
+    SELECT id INTO admin_role_id
+    FROM public.organization_roles
+    WHERE name = 'admin'
+    LIMIT 1;
 
     IF admin_role_id IS NULL THEN
         RAISE EXCEPTION 'Admin role not found in organization_roles table';
@@ -405,7 +705,7 @@ LIMIT 1;
 
     -- Return organization and member data
     RETURN QUERY
-    SELECT
+    SELECT 
         o.id,
         o.name,
         o.created_by,
@@ -418,80 +718,117 @@ LIMIT 1;
     JOIN public.organization_roles org_role ON org_role.id = om.organization_role_id
     WHERE o.id = new_org_id
     AND om.id = new_member_id;
-
 END;
-| org_name text, creator_user_id uuid | TABLE(organization_id uuid, organization_name text, created_by uuid, created_at timestamp with time zone, member_id uuid, member_role_id integer, member_role_name text) | plpgsql | VOLATILE | false | true |
-| public | create_user_profile | FUNCTION | void | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | org_name text, creator_user_id uuid                                                                                                                                                                   | TABLE(organization_id uuid, organization_name text, created_by uuid, created_at timestamp with time zone, member_id uuid, member_role_id integer, member_role_name text)                                                                                                                                                              | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_user_profile                    | FUNCTION     | void        | DEFINER       | 
 BEGIN
-INSERT INTO public.profiles (
-id,
-first_name,
-last_name,
-date_of_birth,
-role_id
-)
-VALUES (
-p_user_id,
-p_first_name,
-p_last_name,
-p_date_of_birth,
-p_role_id
-)
-ON CONFLICT (id) DO NOTHING;
+    INSERT INTO public.profiles (
+        id,
+        first_name,
+        last_name,
+        date_of_birth,
+        role_id
+    )
+    VALUES (
+        p_user_id,
+        p_first_name,
+        p_last_name,
+        p_date_of_birth,
+        p_role_id
+    )
+    ON CONFLICT (id) DO NOTHING;
 END;
-| p_user_id uuid, p_first_name text, p_last_name text, p_date_of_birth date, p_role_id uuid | void | plpgsql | VOLATILE | false | true |
-| public | get_invitation_by_token | FUNCTION | record | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | p_user_id uuid, p_first_name text, p_last_name text, p_date_of_birth date, p_role_id uuid                                                                                                             | void                                                                                                                                                                                                                                                                                                                                  | plpgsql  | VOLATILE   | false     | true                |
+| public         | get_general_invite_link_by_token       | FUNCTION     | record      | DEFINER       | 
 BEGIN
-RETURN QUERY
-SELECT
-oi.id,
-oi.email,
-oi.first_name,
-oi.last_name,
-oi.description,
-oi.status::TEXT,
-oi.expires_at,
-oi.created_at,
-oi.organization_id,
-oi.organization_role_id,
-oi.invited_by,
-o.name AS organization_name,
-or_role.id AS role_id,
-or_role.name AS role_name,
-or_role.description AS role_description
-FROM public.organization_invitations oi
-INNER JOIN public.organizations o ON o.id = oi.organization_id
-INNER JOIN public.organization_roles or_role ON or_role.id = oi.organization_role_id
-WHERE oi.token = p_token;
+    RETURN QUERY
+    SELECT
+        gil.id,
+        gil.organization_id,
+        o.name AS organization_name,
+        gil.organization_role_id,
+        or_role.name AS role_name,
+        or_role.description AS role_description,
+        gil.token,
+        gil.requires_approval,
+        gil.expires_at,
+        gil.created_by,
+        gil.created_at,
+        gil.updated_at,
+        CASE 
+            WHEN gil.expires_at IS NOT NULL AND gil.expires_at < NOW() THEN true
+            ELSE false
+        END AS is_expired
+    FROM public.general_invite_links gil
+    INNER JOIN public.organizations o ON o.id = gil.organization_id
+    INNER JOIN public.organization_roles or_role ON or_role.id = gil.organization_role_id
+    WHERE gil.token = p_token;
 END;
-| p_token text | TABLE(id uuid, email text, first_name text, last_name text, description text, status text, expires_at timestamp with time zone, created_at timestamp with time zone, organization_id uuid, organization_role_id integer, invited_by uuid, organization_name text, role_id integer, role_name text, role_description text) | plpgsql | VOLATILE | false | true |
-| public | get_user_name | FUNCTION | text | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | p_token text                                                                                                                                                                                          | TABLE(id uuid, organization_id uuid, organization_name text, organization_role_id integer, role_name text, role_description text, token text, requires_approval boolean, expires_at timestamp with time zone, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone, is_expired boolean)          | plpgsql  | VOLATILE   | false     | true                |
+| public         | get_invitation_by_token                | FUNCTION     | record      | DEFINER       | 
+BEGIN
+  RETURN QUERY
+  SELECT 
+    oi.id,
+    oi.email,
+    oi.first_name,
+    oi.last_name,
+    oi.description,
+    oi.status::TEXT,
+    oi.expires_at,
+    oi.created_at,
+    oi.organization_id,
+    oi.organization_role_id,
+    oi.invited_by,
+    o.name AS organization_name,
+    or_role.id AS role_id,
+    or_role.name AS role_name,
+    or_role.description AS role_description
+  FROM public.organization_invitations oi
+  INNER JOIN public.organizations o ON o.id = oi.organization_id
+  INNER JOIN public.organization_roles or_role ON or_role.id = oi.organization_role_id
+  WHERE oi.token = p_token;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | p_token text                                                                                                                                                                                          | TABLE(id uuid, email text, first_name text, last_name text, description text, status text, expires_at timestamp with time zone, created_at timestamp with time zone, organization_id uuid, organization_role_id integer, invited_by uuid, organization_name text, role_id integer, role_name text, role_description text)             | plpgsql  | VOLATILE   | false     | true                |
+| public         | get_user_flags                         | FUNCTION     | record      | DEFINER       | 
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ff.id,
+        ff.name,
+        ff.description,
+        COALESCE(uf.enabled, false) as enabled
+    FROM public.feature_flags ff
+    LEFT JOIN public.user_flags uf ON uf.feature_flag_id = ff.id AND uf.user_id = p_user_id
+    ORDER BY ff.name;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | p_user_id uuid                                                                                                                                                                                        | TABLE(id uuid, name text, description text, enabled boolean)                                                                                                                                                                                                                                                                          | plpgsql  | VOLATILE   | false     | true                |
+| public         | get_user_name                          | FUNCTION     | text        | DEFINER       | 
 DECLARE
-v_first_name TEXT;
-v_last_name TEXT;
+    v_first_name TEXT;
+    v_last_name TEXT;
 BEGIN
-SELECT first_name, last_name
-INTO v_first_name, v_last_name
-FROM public.profiles
-WHERE id = p_user_id;
-
+    SELECT first_name, last_name
+    INTO v_first_name, v_last_name
+    FROM public.profiles
+    WHERE id = p_user_id;
+    
     IF v_first_name IS NULL AND v_last_name IS NULL THEN
         RETURN NULL;
     END IF;
-
+    
     RETURN TRIM(COALESCE(v_first_name, '') || ' ' || COALESCE(v_last_name, ''));
-
 END;
-| p_user_id uuid | text | plpgsql | STABLE | false | true |
-| public | handle_new_user | FUNCTION | trigger | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | p_user_id uuid                                                                                                                                                                                        | text                                                                                                                                                                                                                                                                                                                                  | plpgsql  | STABLE     | false     | true                |
+| public         | handle_new_user                        | FUNCTION     | trigger     | DEFINER       | 
 DECLARE
-default_role_id UUID;
+    default_role_id UUID;
 BEGIN
--- Get the default "user" role ID
-SELECT id INTO default_role_id
-FROM public.roles
-WHERE name = 'user'
-LIMIT 1;
+    -- Get the default "user" role ID
+    SELECT id INTO default_role_id
+    FROM public.roles
+    WHERE name = 'user'
+    LIMIT 1;
 
     -- If role doesn't exist, create it
     IF default_role_id IS NULL THEN
@@ -503,32 +840,124 @@ LIMIT 1;
     -- Note: Profile will be created by the signup action with user data
     -- This trigger is here for reference but profile creation happens
     -- in the application code to include first_name, last_name, date_of_birth
-
+    
     RETURN NEW;
-
 END;
-| | trigger | plpgsql | VOLATILE | false | true |
-| public | is_user_organization_member | FUNCTION | boolean | DEFINER |
-BEGIN
-RETURN EXISTS (
-SELECT 1
-FROM public.organization_members
-WHERE user_id = p_user_id
-AND organization_id = p_organization_id
-);
-END;
-| p_user_id uuid, p_organization_id uuid | boolean | plpgsql | STABLE | false | true |
-| public | set_default_role_id | FUNCTION | trigger | DEFINER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | true                |
+| public         | is_app_admin                           | FUNCTION     | boolean     | DEFINER       | 
 DECLARE
-default_role_id UUID;
+    v_is_admin BOOLEAN;
 BEGIN
--- If role_id is not provided, set it to the default "user" role
-IF NEW.role_id IS NULL THEN
--- Get the default "user" role ID
-SELECT id INTO default_role_id
-FROM public.roles
-WHERE name = 'user'
-LIMIT 1;
+    SELECT EXISTS (
+        SELECT 1
+        FROM public.profiles p
+        INNER JOIN public.roles r ON r.id = p.role_id
+        WHERE p.id = p_user_id
+        AND r.name = 'admin'
+    ) INTO v_is_admin;
+    
+    RETURN COALESCE(v_is_admin, false);
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | p_user_id uuid                                                                                                                                                                                        | boolean                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | true                |
+| public         | is_qr_code_valid_for_date              | FUNCTION     | boolean     | DEFINER       | 
+DECLARE
+    v_qr_code RECORD;
+    v_is_valid BOOLEAN := false;
+    v_day_of_week INTEGER;
+    v_day_of_month INTEGER;
+    v_days_of_week INTEGER[];
+    v_custom_dates DATE[];
+BEGIN
+    -- Get QR code details
+    SELECT 
+        recurrence_type,
+        recurrence_config,
+        valid_from,
+        valid_until,
+        status,
+        max_uses,
+        use_count
+    INTO v_qr_code
+    FROM public.qr_codes
+    WHERE id = p_qr_code_id;
+
+    -- Check if QR code exists
+    IF v_qr_code IS NULL THEN
+        RETURN false;
+    END IF;
+
+    -- Check if status is active
+    IF v_qr_code.status != 'active' THEN
+        RETURN false;
+    END IF;
+
+    -- Check date range
+    IF p_check_date < DATE(v_qr_code.valid_from) OR 
+       (v_qr_code.valid_until IS NOT NULL AND p_check_date > DATE(v_qr_code.valid_until)) THEN
+        RETURN false;
+    END IF;
+
+    -- Check max uses
+    IF v_qr_code.max_uses IS NOT NULL AND v_qr_code.use_count >= v_qr_code.max_uses THEN
+        RETURN false;
+    END IF;
+
+    -- Check recurrence pattern
+    CASE v_qr_code.recurrence_type
+        WHEN 'none' THEN
+            -- Single use: check if date matches valid_from
+            v_is_valid := (DATE(v_qr_code.valid_from) = p_check_date);
+        
+        WHEN 'daily' THEN
+            -- Valid every day in range
+            v_is_valid := true;
+        
+        WHEN 'weekly' THEN
+            -- Check if day of week matches
+            v_day_of_week := EXTRACT(DOW FROM p_check_date); -- 0=Sunday, 6=Saturday
+            v_days_of_week := ARRAY(SELECT jsonb_array_elements_text(v_qr_code.recurrence_config->'daysOfWeek'));
+            v_is_valid := v_day_of_week::TEXT = ANY(v_days_of_week);
+        
+        WHEN 'monthly' THEN
+            -- Check if day of month matches
+            v_day_of_month := EXTRACT(DAY FROM p_check_date);
+            v_is_valid := (v_qr_code.recurrence_config->>'dayOfMonth')::INTEGER = v_day_of_month;
+        
+        WHEN 'custom' THEN
+            -- Check if date is in custom dates array
+            v_custom_dates := ARRAY(
+                SELECT (jsonb_array_elements_text(v_qr_code.recurrence_config->'dates'))::DATE
+            );
+            v_is_valid := p_check_date = ANY(v_custom_dates);
+        
+        ELSE
+            v_is_valid := false;
+    END CASE;
+
+    RETURN v_is_valid;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | p_qr_code_id uuid, p_check_date date                                                                                                                                                                  | boolean                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | true                |
+| public         | is_user_organization_member            | FUNCTION     | boolean     | DEFINER       | 
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM public.organization_members
+        WHERE user_id = p_user_id
+        AND organization_id = p_organization_id
+    );
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | p_user_id uuid, p_organization_id uuid                                                                                                                                                                | boolean                                                                                                                                                                                                                                                                                                                               | plpgsql  | STABLE     | false     | true                |
+| public         | set_default_role_id                    | FUNCTION     | trigger     | DEFINER       | 
+DECLARE
+    default_role_id UUID;
+BEGIN
+    -- If role_id is not provided, set it to the default "user" role
+    IF NEW.role_id IS NULL THEN
+        -- Get the default "user" role ID
+        SELECT id INTO default_role_id
+        FROM public.roles
+        WHERE name = 'user'
+        LIMIT 1;
 
         -- If role doesn't exist, create it
         IF default_role_id IS NULL THEN
@@ -539,20 +968,25 @@ LIMIT 1;
 
         NEW.role_id := default_role_id;
     END IF;
-
+    
     RETURN NEW;
-
 END;
-| | trigger | plpgsql | VOLATILE | false | true |
-| public | update_updated_at_column | FUNCTION | trigger | INVOKER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | true                |
+| public         | update_general_invite_links_updated_at | FUNCTION     | trigger     | INVOKER       | 
 BEGIN
-NEW.updated_at = NOW();
-RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
-| | trigger | plpgsql | VOLATILE | false | false |
-| public | update_updated_at_column | FUNCTION | trigger | INVOKER |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | false               |
+| public         | update_updated_at_column               | FUNCTION     | trigger     | INVOKER       | 
 BEGIN
-NEW.updated_at = NOW();
-RETURN NEW;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
-| | trigger | plpgsql | VOLATILE | false | false |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | false               |
+| public         | update_updated_at_column               | FUNCTION     | trigger     | INVOKER       | 
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | false               |

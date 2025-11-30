@@ -321,6 +321,111 @@ export function useInvitations() {
     }
   }, []);
 
+  const approveInvitation = useCallback(
+    async (organizationId, invitationId) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (!organizationId || typeof organizationId !== "string") {
+          throw new Error("ID de organización inválido.");
+        }
+
+        if (!invitationId || typeof invitationId !== "string") {
+          throw new Error("ID de invitación inválido.");
+        }
+
+        const response = await fetch(
+          `/api/organizations/${organizationId}/invitations/${invitationId}/approve`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Error al aprobar la invitación.");
+        }
+
+        if (result.error) {
+          throw new Error(result.message || "Error al aprobar la invitación.");
+        }
+
+        return {
+          error: false,
+          message: result.message || "Invitación aprobada exitosamente.",
+          data: result.data,
+        };
+      } catch (err) {
+        const errorMessage =
+          err.message || "Error inesperado al aprobar la invitación.";
+        setError(err);
+        return {
+          error: true,
+          message: errorMessage,
+        };
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const rejectInvitation = useCallback(async (organizationId, invitationId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!organizationId || typeof organizationId !== "string") {
+        throw new Error("ID de organización inválido.");
+      }
+
+      if (!invitationId || typeof invitationId !== "string") {
+        throw new Error("ID de invitación inválido.");
+      }
+
+      const response = await fetch(
+        `/api/organizations/${organizationId}/invitations/${invitationId}/reject`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Error al rechazar la invitación.");
+      }
+
+      if (result.error) {
+        throw new Error(result.message || "Error al rechazar la invitación.");
+      }
+
+      return {
+        error: false,
+        message: result.message || "Invitación rechazada exitosamente.",
+        data: result.data,
+      };
+    } catch (err) {
+      const errorMessage =
+        err.message || "Error inesperado al rechazar la invitación.";
+      setError(err);
+      return {
+        error: true,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
@@ -330,5 +435,7 @@ export function useInvitations() {
     checkEmail,
     acceptInvitationLoggedIn,
     getInvitations,
+    approveInvitation,
+    rejectInvitation,
   };
 }
