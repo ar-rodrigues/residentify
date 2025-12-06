@@ -98,6 +98,3 @@ export default function OrganizationHeader({ organization, organizationId }) {
     </div>
   );
 }
-
-
-

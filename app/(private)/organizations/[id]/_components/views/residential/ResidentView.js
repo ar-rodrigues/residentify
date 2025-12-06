@@ -15,9 +15,9 @@ import { RiQrCodeLine, RiHistoryLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/utils/supabase/client";
-import ActiveLinkCard from "../widgets/ActiveLinkCard";
-import HistoryLinkCard from "../widgets/HistoryLinkCard";
-import GenerateInviteFAB from "../widgets/GenerateInviteFAB";
+import ActiveLinkCard from "../../widgets/residential/ActiveLinkCard";
+import HistoryLinkCard from "../../widgets/residential/HistoryLinkCard";
+import GenerateInviteFAB from "../../widgets/residential/GenerateInviteFAB";
 
 const { Title, Text } = Typography;
 

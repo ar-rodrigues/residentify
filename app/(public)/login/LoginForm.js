@@ -64,7 +64,14 @@ export default function LoginForm() {
           setLoading(false);
         }
       } catch (error) {
-        // Handle actual errors (redirect errors are automatically handled by Next.js in startTransition)
+        // Check if this is a Next.js redirect error - if so, don't show error message
+        // Redirect errors have a digest property starting with 'NEXT_REDIRECT'
+        if (error?.digest?.startsWith('NEXT_REDIRECT')) {
+          // This is a redirect, let Next.js handle it - don't set error state
+          return;
+        }
+        
+        // Handle actual errors
         setErrorMessage(
           "Ocurrió un error inesperado. Por favor, intenta nuevamente."
         );

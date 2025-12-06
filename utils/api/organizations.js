@@ -33,10 +33,24 @@ export async function getOrganizationById(organizationId) {
       };
     }
 
-    // First, get the organization (RLS will check if user is a member)
+    // First, get the organization with organization type (RLS will check if user is a member)
     const { data: organization, error: orgError } = await supabase
       .from("organizations")
-      .select("id, name, created_by, created_at, updated_at")
+      .select(
+        `
+        id,
+        name,
+        created_by,
+        created_at,
+        updated_at,
+        organization_type_id,
+        organization_types(
+          id,
+          name,
+          description
+        )
+      `
+      )
       .eq("id", organizationId)
       .single();
 
@@ -68,7 +82,8 @@ export async function getOrganizationById(organizationId) {
     }
 
     // Get user's membership separately (using the "own memberships" policy to avoid recursion)
-    const { data: userMember, error: memberError } = await supabase
+    // First, check if user is a member at all (without type filter)
+    const { data: rawUserMember, error: rawMemberError } = await supabase
       .from("organization_members")
       .select(
         `
@@ -78,7 +93,8 @@ export async function getOrganizationById(organizationId) {
         organization_roles(
           id,
           name,
-          description
+          description,
+          organization_type_id
         )
       `
       )
@@ -86,9 +102,74 @@ export async function getOrganizationById(organizationId) {
       .eq("user_id", user.id)
       .single();
 
-    if (memberError && memberError.code !== "PGRST116") {
-      // PGRST116 is "not found" which is fine - user might not be a member
-      console.error("Error fetching user membership:", memberError);
+    // If there's an error other than "not found", log it
+    if (rawMemberError && rawMemberError.code !== "PGRST116") {
+      console.error("Error fetching user membership:", rawMemberError);
+    }
+
+    // Check if user is a member
+    if (rawMemberError?.code === "PGRST116" || !rawUserMember) {
+      // User is not a member - this is fine, they might have a pending invitation
+      // userRole will be null, which is handled by the frontend
+    } else if (rawUserMember) {
+      // User IS a member - now check if their role matches the organization type
+      const memberRoleTypeId =
+        rawUserMember.organization_roles?.organization_type_id;
+
+      if (memberRoleTypeId !== organization.organization_type_id) {
+        // User has a membership but with a role that doesn't match the organization type
+        // This indicates a data inconsistency (e.g., from partial migrations)
+        const roleName =
+          rawUserMember.organization_roles?.name || "desconocido";
+        const orgTypeName =
+          organization.organization_types?.name || "desconocido";
+
+        return {
+          error: true,
+          message: `Inconsistencia de datos detectada: Tienes un rol asignado (${roleName}) que no corresponde al tipo de organización (${orgTypeName}). Por favor, contacta al administrador del sistema.`,
+          status: 400,
+        };
+      }
+    }
+
+    // If we get here, user is either not a member OR their role matches the org type
+    // Now get the membership with the type filter to ensure we have the correct role
+    const { data: userMember, error: memberError } = await supabase
+      .from("organization_members")
+      .select(
+        `
+        id,
+        user_id,
+        organization_role_id,
+        organization_roles!inner(
+          id,
+          name,
+          description,
+          organization_type_id
+        )
+      `
+      )
+      .eq("organization_id", organizationId)
+      .eq("user_id", user.id)
+      .eq(
+        "organization_roles.organization_type_id",
+        organization.organization_type_id
+      )
+      .single();
+
+    // If we know the user is a member but this query fails, it's a data inconsistency
+    if (memberError && rawUserMember) {
+      console.error(
+        "Error fetching user membership with type filter:",
+        memberError
+      );
+      // This shouldn't happen if our check above worked, but handle it gracefully
+      return {
+        error: true,
+        message:
+          "Error al obtener tu rol en esta organización. Por favor, contacta al administrador del sistema.",
+        status: 500,
+      };
     }
 
     // Check if user is admin
@@ -141,6 +222,10 @@ export async function getOrganizationById(organizationId) {
         created_by_name: creatorName,
         created_at: organization.created_at,
         updated_at: organization.updated_at,
+        organization_type_id: organization.organization_type_id,
+        organization_type: organization.organization_types?.name || null,
+        organization_type_description:
+          organization.organization_types?.description || null,
         userRole,
         isAdmin,
         invitationStatus,

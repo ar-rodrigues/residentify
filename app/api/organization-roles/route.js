@@ -3,18 +3,37 @@ import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/organization-roles
- * Get all organization roles (public read access)
+ * Get organization roles (public read access)
+ * Optional query parameter: organization_type_id - filter roles by organization type
  */
-export async function GET() {
+export async function GET(request) {
   try {
     const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+    const organizationTypeId = searchParams.get("organization_type_id");
 
-    // Fetch all organization roles
-    // RLS policy allows everyone to read organization roles
-    const { data: roles, error } = await supabase
+    // Build query
+    let query = supabase
       .from("organization_roles")
-      .select("id, name, description")
-      .order("id", { ascending: true });
+      .select("id, name, description");
+
+    // Filter by organization type if provided
+    if (organizationTypeId) {
+      const typeId = parseInt(organizationTypeId, 10);
+      if (isNaN(typeId)) {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "organization_type_id debe ser un número válido.",
+          },
+          { status: 400 }
+        );
+      }
+      query = query.eq("organization_type_id", typeId);
+    }
+
+    // Order and execute
+    const { data: roles, error } = await query.order("id", { ascending: true });
 
     if (error) {
       console.error("Error fetching organization roles:", error);
@@ -46,7 +65,3 @@ export async function GET() {
     );
   }
 }
-
-
-
-

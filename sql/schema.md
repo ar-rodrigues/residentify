@@ -1,113 +1,123 @@
+1.[Supabase Schema](#supabase-schema)
+2.[RLS Policies](#rls-policies)
+3.[Supabase Functions](#supabase-functions)
+
+
 # Supabase schema
 
 
-
-| table_name               | column_name            | data_type                | is_nullable | column_default               | is_primary_key | referenced_table_name | referenced_column_name |
-| ------------------------ | ---------------------- | ------------------------ | ----------- | ---------------------------- | -------------- | --------------------- | ---------------------- |
-| access_logs              | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| access_logs              | qr_code_id             | uuid                     | NO          | null                         | false          | qr_codes              | id                     |
-| access_logs              | scanned_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| access_logs              | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| access_logs              | entry_type             | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
-| access_logs              | timestamp              | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| access_logs              | notification_sent      | boolean                  | YES         | false                        | false          | null                  | null                   |
-| access_logs              | notes                  | text                     | YES         | null                         | false          | null                  | null                   |
-| feature_flags            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| feature_flags            | name                   | text                     | NO          | null                         | false          | null                  | null                   |
-| feature_flags            | description            | text                     | YES         | null                         | false          | null                  | null                   |
-| feature_flags            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| feature_flags            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| general_invite_links     | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| general_invite_links     | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| general_invite_links     | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
-| general_invite_links     | token                  | text                     | NO          | null                         | false          | null                  | null                   |
-| general_invite_links     | requires_approval      | boolean                  | NO          | false                        | false          | null                  | null                   |
-| general_invite_links     | expires_at             | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
-| general_invite_links     | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| general_invite_links     | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| general_invite_links     | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| notifications            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| notifications            | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| notifications            | qr_code_id             | uuid                     | YES         | null                         | false          | qr_codes              | id                     |
-| notifications            | access_log_id          | uuid                     | YES         | null                         | false          | access_logs           | id                     |
-| notifications            | from_user_id           | uuid                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | to_user_id             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | type                   | USER-DEFINED             | NO          | null                         | false          | null                  | null                   |
-| notifications            | message                | text                     | NO          | null                         | false          | null                  | null                   |
-| notifications            | is_read                | boolean                  | YES         | false                        | false          | null                  | null                   |
-| notifications            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| notifications            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organization_invitations | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| organization_invitations | email                  | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | token                  | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | invited_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | status                 | USER-DEFINED             | YES         | 'pending'::invitation_status | false          | null                  | null                   |
-| organization_invitations | expires_at             | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_invitations | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
-| organization_invitations | first_name             | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | last_name              | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_invitations | description            | text                     | YES         | null                         | false          | null                  | null                   |
-| organization_invitations | general_invite_link_id | uuid                     | YES         | null                         | false          | general_invite_links  | id                     |
-| organization_invitations | user_id                | uuid                     | YES         | null                         | false          | null                  | null                   |
-| organization_members     | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organization_members     | user_id                | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organization_members     | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| organization_members     | invited_by             | uuid                     | YES         | null                         | false          | null                  | null                   |
-| organization_members     | joined_at              | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_members     | organization_role_id   | integer                  | NO          | null                         | false          | organization_roles    | id                     |
-| organization_roles       | id                     | integer                  | NO          | null                         | true           | null                  | null                   |
-| organization_roles       | name                   | text                     | NO          | null                         | false          | null                  | null                   |
-| organization_roles       | description            | text                     | YES         | null                         | false          | null                  | null                   |
-| organization_roles       | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organization_roles       | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organizations            | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| organizations            | name                   | text                     | NO          | null                         | false          | null                  | null                   |
-| organizations            | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| organizations            | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| organizations            | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| profiles                 | id                     | uuid                     | NO          | null                         | true           | null                  | null                   |
-| profiles                 | first_name             | text                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | last_name              | text                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | date_of_birth          | date                     | NO          | null                         | false          | null                  | null                   |
-| profiles                 | role_id                | uuid                     | NO          | null                         | false          | roles                 | id                     |
-| profiles                 | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| profiles                 | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| qr_codes                 | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| qr_codes                 | organization_id        | uuid                     | NO          | null                         | false          | organizations         | id                     |
-| qr_codes                 | created_by             | uuid                     | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | visitor_name           | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | is_used                | boolean                  | YES         | false                        | false          | null                  | null                   |
-| qr_codes                 | expires_at             | timestamp with time zone | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| qr_codes                 | status                 | USER-DEFINED             | YES         | 'active'::qr_code_status     | false          | null                  | null                   |
-| qr_codes                 | token                  | text                     | NO          | null                         | false          | null                  | null                   |
-| qr_codes                 | visitor_id             | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | document_photo_url     | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | validated_at           | timestamp with time zone | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | validated_by           | uuid                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | identifier             | text                     | YES         | null                         | false          | null                  | null                   |
-| qr_codes                 | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| roles                    | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| roles                    | name                   | text                     | NO          | null                         | false          | null                  | null                   |
-| roles                    | description            | text                     | YES         | null                         | false          | null                  | null                   |
-| roles                    | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| roles                    | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| user_flags               | id                     | uuid                     | NO          | uuid_generate_v4()           | true           | null                  | null                   |
-| user_flags               | user_id                | uuid                     | NO          | null                         | false          | null                  | null                   |
-| user_flags               | feature_flag_id        | uuid                     | NO          | null                         | false          | feature_flags         | id                     |
-| user_flags               | enabled                | boolean                  | NO          | false                        | false          | null                  | null                   |
-| user_flags               | created_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
-| user_flags               | updated_at             | timestamp with time zone | YES         | now()                        | false          | null                  | null                   |
+| table_name               | column_name            | data_type                | is_nullable | column_default                                 | is_primary_key | referenced_table_name | referenced_column_name |
+| ------------------------ | ---------------------- | ------------------------ | ----------- | ---------------------------------------------- | -------------- | --------------------- | ---------------------- |
+| access_logs              | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| access_logs              | qr_code_id             | uuid                     | NO          | null                                           | false          | qr_codes              | id                     |
+| access_logs              | scanned_by             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| access_logs              | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| access_logs              | entry_type             | USER-DEFINED             | NO          | null                                           | false          | null                  | null                   |
+| access_logs              | timestamp              | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| access_logs              | notification_sent      | boolean                  | YES         | false                                          | false          | null                  | null                   |
+| access_logs              | notes                  | text                     | YES         | null                                           | false          | null                  | null                   |
+| feature_flags            | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| feature_flags            | name                   | text                     | NO          | null                                           | false          | null                  | null                   |
+| feature_flags            | description            | text                     | YES         | null                                           | false          | null                  | null                   |
+| feature_flags            | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| feature_flags            | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| general_invite_links     | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| general_invite_links     | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| general_invite_links     | organization_role_id   | integer                  | NO          | null                                           | false          | organization_roles    | id                     |
+| general_invite_links     | token                  | text                     | NO          | null                                           | false          | null                  | null                   |
+| general_invite_links     | requires_approval      | boolean                  | NO          | false                                          | false          | null                  | null                   |
+| general_invite_links     | expires_at             | timestamp with time zone | YES         | null                                           | false          | null                  | null                   |
+| general_invite_links     | created_by             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| general_invite_links     | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| general_invite_links     | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| notifications            | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| notifications            | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| notifications            | qr_code_id             | uuid                     | YES         | null                                           | false          | qr_codes              | id                     |
+| notifications            | access_log_id          | uuid                     | YES         | null                                           | false          | access_logs           | id                     |
+| notifications            | from_user_id           | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| notifications            | to_user_id             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| notifications            | type                   | USER-DEFINED             | NO          | null                                           | false          | null                  | null                   |
+| notifications            | message                | text                     | NO          | null                                           | false          | null                  | null                   |
+| notifications            | is_read                | boolean                  | YES         | false                                          | false          | null                  | null                   |
+| notifications            | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| notifications            | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_invitations | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| organization_invitations | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| organization_invitations | email                  | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | token                  | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | invited_by             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | status                 | USER-DEFINED             | YES         | 'pending'::invitation_status                   | false          | null                  | null                   |
+| organization_invitations | expires_at             | timestamp with time zone | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_invitations | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_invitations | organization_role_id   | integer                  | NO          | null                                           | false          | organization_roles    | id                     |
+| organization_invitations | first_name             | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | last_name              | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_invitations | description            | text                     | YES         | null                                           | false          | null                  | null                   |
+| organization_invitations | general_invite_link_id | uuid                     | YES         | null                                           | false          | general_invite_links  | id                     |
+| organization_invitations | user_id                | uuid                     | YES         | null                                           | false          | null                  | null                   |
+| organization_members     | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| organization_members     | user_id                | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| organization_members     | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| organization_members     | invited_by             | uuid                     | YES         | null                                           | false          | null                  | null                   |
+| organization_members     | joined_at              | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_members     | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_members     | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_members     | organization_role_id   | integer                  | NO          | null                                           | false          | organization_roles    | id                     |
+| organization_roles       | id                     | integer                  | NO          | null                                           | true           | null                  | null                   |
+| organization_roles       | name                   | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_roles       | description            | text                     | YES         | null                                           | false          | null                  | null                   |
+| organization_roles       | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_roles       | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_roles       | organization_type_id   | integer                  | NO          | null                                           | false          | organization_types    | id                     |
+| organization_types       | id                     | integer                  | NO          | nextval('organization_types_id_seq'::regclass) | true           | null                  | null                   |
+| organization_types       | name                   | text                     | NO          | null                                           | false          | null                  | null                   |
+| organization_types       | description            | text                     | YES         | null                                           | false          | null                  | null                   |
+| organization_types       | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organization_types       | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organizations            | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| organizations            | name                   | text                     | NO          | null                                           | false          | null                  | null                   |
+| organizations            | created_by             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| organizations            | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organizations            | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| organizations            | organization_type_id   | integer                  | NO          | null                                           | false          | organization_types    | id                     |
+| profiles                 | id                     | uuid                     | NO          | null                                           | true           | null                  | null                   |
+| profiles                 | first_name             | text                     | NO          | null                                           | false          | null                  | null                   |
+| profiles                 | last_name              | text                     | NO          | null                                           | false          | null                  | null                   |
+| profiles                 | date_of_birth          | date                     | NO          | null                                           | false          | null                  | null                   |
+| profiles                 | role_id                | uuid                     | NO          | null                                           | false          | roles                 | id                     |
+| profiles                 | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| profiles                 | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| qr_codes                 | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| qr_codes                 | organization_id        | uuid                     | NO          | null                                           | false          | organizations         | id                     |
+| qr_codes                 | created_by             | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| qr_codes                 | visitor_name           | text                     | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | is_used                | boolean                  | YES         | false                                          | false          | null                  | null                   |
+| qr_codes                 | expires_at             | timestamp with time zone | NO          | null                                           | false          | null                  | null                   |
+| qr_codes                 | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| qr_codes                 | status                 | USER-DEFINED             | YES         | 'active'::qr_code_status                       | false          | null                  | null                   |
+| qr_codes                 | token                  | text                     | NO          | null                                           | false          | null                  | null                   |
+| qr_codes                 | visitor_id             | text                     | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | document_photo_url     | text                     | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | validated_at           | timestamp with time zone | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | validated_by           | uuid                     | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | identifier             | text                     | YES         | null                                           | false          | null                  | null                   |
+| qr_codes                 | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| roles                    | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| roles                    | name                   | text                     | NO          | null                                           | false          | null                  | null                   |
+| roles                    | description            | text                     | YES         | null                                           | false          | null                  | null                   |
+| roles                    | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| roles                    | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| user_flags               | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |
+| user_flags               | user_id                | uuid                     | NO          | null                                           | false          | null                  | null                   |
+| user_flags               | feature_flag_id        | uuid                     | NO          | null                                           | false          | feature_flags         | id                     |
+| user_flags               | enabled                | boolean                  | NO          | false                                          | false          | null                  | null                   |
+| user_flags               | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
+| user_flags               | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
 
 
 
 ## RLS Policies
-
 
 
 | schemaname | tablename                | policyname                                                   | permissive | roles           | cmd    | qual                                                                                                                                                                                                                                                                                                                                                                  | with_check                                                                                                                                                                                                                                                                                                                                                              |
@@ -199,6 +209,7 @@
 | public     | organization_members     | Users can view organization members                          | PERMISSIVE | {public}        | SELECT | is_user_organization_member(auth.uid(), organization_id)                                                                                                                                                                                                                                                                                                              | null                                                                                                                                                                                                                                                                                                                                                                    |
 | public     | organization_members     | Users can view own memberships                               | PERMISSIVE | {public}        | SELECT | (auth.uid() = user_id)                                                                                                                                                                                                                                                                                                                                                | null                                                                                                                                                                                                                                                                                                                                                                    |
 | public     | organization_roles       | Everyone can read organization roles                         | PERMISSIVE | {public}        | SELECT | true                                                                                                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
+| public     | organization_types       | Everyone can read organization types                         | PERMISSIVE | {public}        | SELECT | true                                                                                                                                                                                                                                                                                                                                                                  | null                                                                                                                                                                                                                                                                                                                                                                    |
 | public     | organizations            | Organization admins can delete organization                  | PERMISSIVE | {public}        | DELETE | (EXISTS ( SELECT 1
    FROM (organization_members om
      JOIN organization_roles org_role ON ((om.organization_role_id = org_role.id)))
@@ -248,8 +259,6 @@
 
 
 ### Supabase functions
-
-
 
 
 | routine_schema | routine_name                           | routine_type | return_type | security_type | routine_definition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | function_arguments                                                                                                                                                                                    | function_result                                                                                                                                                                                                                                                                                                                       | language | volatility | is_strict | is_security_definer |
@@ -474,8 +483,7 @@ BEGIN
         expires_at,
         first_name,
         last_name,
-        general_invite_link_id,
-        user_id
+        general_invite_link_id
     )
     VALUES (
         v_link.organization_id,
@@ -487,8 +495,7 @@ BEGIN
         p_expires_at,
         TRIM(p_first_name),
         TRIM(p_last_name),
-        p_general_invite_link_id,
-        p_user_id
+        p_general_invite_link_id
     )
     RETURNING organization_invitations.id INTO v_invitation_id;
 
@@ -507,13 +514,12 @@ BEGIN
         oi.last_name,
         oi.description,
         oi.general_invite_link_id,
-        oi.user_id,
         oi.created_at,
         oi.updated_at
     FROM public.organization_invitations oi
     WHERE oi.id = v_invitation_id;
 END;
- | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text, p_user_id uuid                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, user_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone) | plpgsql  | VOLATILE   | false     | true                |
+                                                            | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text                                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone)               | plpgsql  | VOLATILE   | false     | true                |
 | public         | create_invitation_from_general_link    | FUNCTION     | record      | DEFINER       | 
 DECLARE
     v_invitation_id UUID;
@@ -574,7 +580,8 @@ BEGIN
         expires_at,
         first_name,
         last_name,
-        general_invite_link_id
+        general_invite_link_id,
+        user_id
     )
     VALUES (
         v_link.organization_id,
@@ -586,7 +593,8 @@ BEGIN
         p_expires_at,
         TRIM(p_first_name),
         TRIM(p_last_name),
-        p_general_invite_link_id
+        p_general_invite_link_id,
+        p_user_id
     )
     RETURNING organization_invitations.id INTO v_invitation_id;
 
@@ -605,12 +613,13 @@ BEGIN
         oi.last_name,
         oi.description,
         oi.general_invite_link_id,
+        oi.user_id,
         oi.created_at,
         oi.updated_at
     FROM public.organization_invitations oi
     WHERE oi.id = v_invitation_id;
 END;
-                                                            | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text                                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone)               | plpgsql  | VOLATILE   | false     | true                |
+ | p_general_invite_link_id uuid, p_email text, p_token text, p_first_name text, p_last_name text, p_expires_at timestamp with time zone, p_status text, p_user_id uuid                                  | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, general_invite_link_id uuid, user_id uuid, created_at timestamp with time zone, updated_at timestamp with time zone) | plpgsql  | VOLATILE   | false     | true                |
 | public         | create_organization_invitation         | FUNCTION     | record      | DEFINER       | 
 DECLARE
   v_invitation_id UUID;
@@ -677,6 +686,68 @@ BEGIN
   WHERE oi.id = v_invitation_id;
 END;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | p_organization_id uuid, p_email text, p_token text, p_organization_role_id integer, p_invited_by uuid, p_expires_at timestamp with time zone, p_first_name text, p_last_name text, p_description text | TABLE(id uuid, organization_id uuid, email text, token text, organization_role_id integer, invited_by uuid, status text, expires_at timestamp with time zone, first_name text, last_name text, description text, created_at timestamp with time zone, updated_at timestamp with time zone)                                            | plpgsql  | VOLATILE   | false     | true                |
+| public         | create_organization_with_admin         | FUNCTION     | record      | DEFINER       | 
+DECLARE
+  new_org_id UUID;
+  admin_role_id INT4;
+  new_member_id UUID;
+  final_type_id INTEGER;
+BEGIN
+  -- Determine organization type ID
+  -- If provided, use it; otherwise default to residential
+  IF p_organization_type_id IS NOT NULL THEN
+    final_type_id := p_organization_type_id;
+  ELSE
+    -- Default to residential type
+    SELECT id INTO final_type_id
+    FROM public.organization_types
+    WHERE name = 'residential'
+    LIMIT 1;
+  END IF;
+
+  -- Validate organization type exists
+  IF final_type_id IS NULL THEN
+    RAISE EXCEPTION 'Organization type not found';
+  END IF;
+
+  -- Get admin role ID for the specified organization type
+  SELECT id INTO admin_role_id
+  FROM public.organization_roles
+  WHERE name = 'admin'
+    AND organization_type_id = final_type_id
+  LIMIT 1;
+
+  IF admin_role_id IS NULL THEN
+    RAISE EXCEPTION 'Admin role not found for the specified organization type';
+  END IF;
+
+  -- Create organization with organization_type_id
+  INSERT INTO public.organizations (name, created_by, organization_type_id)
+  VALUES (org_name, creator_user_id, final_type_id)
+  RETURNING id INTO new_org_id;
+
+  -- Add creator as admin member
+  INSERT INTO public.organization_members (user_id, organization_id, organization_role_id)
+  VALUES (creator_user_id, new_org_id, admin_role_id)
+  RETURNING id INTO new_member_id;
+
+  -- Return organization and member data
+  RETURN QUERY
+  SELECT 
+    o.id,
+    o.name,
+    o.created_by,
+    o.created_at,
+    om.id,
+    om.organization_role_id,
+    org_role.name
+  FROM public.organizations o
+  JOIN public.organization_members om ON om.organization_id = o.id
+  JOIN public.organization_roles org_role ON org_role.id = om.organization_role_id
+  WHERE o.id = new_org_id
+  AND om.id = new_member_id;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | org_name text, creator_user_id uuid, p_organization_type_id integer                                                                                                                                   | TABLE(organization_id uuid, organization_name text, created_by uuid, created_at timestamp with time zone, member_id uuid, member_role_id integer, member_role_name text)                                                                                                                                                              | plpgsql  | VOLATILE   | false     | true                |
 | public         | create_organization_with_admin         | FUNCTION     | record      | DEFINER       | 
 DECLARE
     new_org_id UUID;
@@ -978,6 +1049,12 @@ BEGIN
     RETURN NEW;
 END;
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | false               |
+| public         | update_organization_types_updated_at   | FUNCTION     | trigger     | INVOKER       | 
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                       | trigger                                                                                                                                                                                                                                                                                                                               | plpgsql  | VOLATILE   | false     | false               |
 | public         | update_updated_at_column               | FUNCTION     | trigger     | INVOKER       | 
 BEGIN
     NEW.updated_at = NOW();

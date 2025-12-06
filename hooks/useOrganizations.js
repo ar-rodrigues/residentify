@@ -157,7 +157,7 @@ export function useOrganizations() {
   }, [fetchOrganizations]);
 
   const createOrganization = useCallback(
-    async (name) => {
+    async (name, organizationTypeId = null) => {
       try {
         setLoading(true);
         setError(null);
@@ -181,12 +181,18 @@ export function useOrganizations() {
           );
         }
 
+        // Build request body
+        const requestBody = { name: trimmedName };
+        if (organizationTypeId !== null && organizationTypeId !== undefined) {
+          requestBody.organization_type_id = organizationTypeId;
+        }
+
         const response = await fetch("/api/organizations", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ name: trimmedName }),
+          body: JSON.stringify(requestBody),
         });
 
         const result = await response.json();

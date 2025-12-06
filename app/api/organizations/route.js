@@ -27,7 +27,7 @@ export async function POST(request) {
 
     // Parse request body
     const body = await request.json();
-    const { name } = body;
+    const { name, organization_type_id } = body;
 
     // Validate organization name
     if (!name || typeof name !== "string") {
@@ -64,12 +64,70 @@ export async function POST(request) {
       );
     }
 
+    // Validate and get organization type ID
+    let finalOrganizationTypeId = null;
+
+    if (organization_type_id) {
+      // Validate that organization_type_id is a number
+      const typeId = parseInt(organization_type_id, 10);
+      if (isNaN(typeId)) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "El ID del tipo de organización debe ser un número válido.",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Verify that the organization type exists
+      const { data: orgType, error: typeError } = await supabase
+        .from("organization_types")
+        .select("id")
+        .eq("id", typeId)
+        .single();
+
+      if (typeError || !orgType) {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "El tipo de organización especificado no existe.",
+          },
+          { status: 400 }
+        );
+      }
+
+      finalOrganizationTypeId = typeId;
+    } else {
+      // Default to residential type if not provided (for backward compatibility)
+      const { data: residentialType, error: residentialError } = await supabase
+        .from("organization_types")
+        .select("id")
+        .eq("name", "residential")
+        .single();
+
+      if (residentialError || !residentialType) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "Error al obtener el tipo de organización por defecto. Por favor, especifica un tipo de organización.",
+          },
+          { status: 500 }
+        );
+      }
+
+      finalOrganizationTypeId = residentialType.id;
+    }
+
     // Call database function to create organization and add creator as admin atomically
     const { data, error } = await supabase.rpc(
       "create_organization_with_admin",
       {
         org_name: trimmedName,
         creator_user_id: user.id,
+        p_organization_type_id: finalOrganizationTypeId,
       }
     );
 
@@ -139,10 +197,3 @@ export async function POST(request) {
     );
   }
 }
-
-
-
-
-
-
-

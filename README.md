@@ -1,6 +1,6 @@
 # Residentify
 
-Sistema de control de acceso para edificios residenciales. Gestiona residentes, personal de seguridad y visitantes con códigos QR seguros y validación en tiempo real.
+Sistema de control de acceso multi-tipo para organizaciones. Soporta diferentes tipos de organizaciones (residenciales, comerciales, oficinas, etc.) con roles y vistas personalizadas. Gestiona miembros, personal de seguridad y visitantes con códigos QR seguros y validación en tiempo real.
 
 ## 🚀 Características
 
@@ -51,26 +51,31 @@ app/
 │       ├── page.js    # Lista de organizaciones
 │       ├── create/    # Crear organización
 │       └── [id]/      # Detalle de organización
-│           ├── page.js              # Controlador principal (Client Component)
+│           ├── page.js              # Controlador principal (Server Component)
 │           ├── edit/                # Editar organización
 │           ├── invite/              # Invitar usuarios
 │           └── _components/         # Componentes privados (no son rutas)
-│               ├── views/           # Vistas específicas por rol
-│               │   ├── AdminView.js
-│               │   ├── ResidentView.js
-│               │   └── SecurityView.js
+│               ├── type-router.js   # Router de vistas por tipo de organización
+│               ├── views/           # Vistas específicas por tipo y rol
+│               │   └── residential/ # Vistas para organizaciones residenciales
+│               │       ├── AdminView.js
+│               │       ├── ResidentView.js
+│               │       └── SecurityView.js
 │               └── widgets/         # Componentes reutilizables
-│                   ├── OrganizationHeader.js
-│                   ├── OrganizationIdStorage.js
-│                   ├── MembersList.js
-│                   ├── InvitationsList.js
-│                   └── ...
+│                   ├── shared/      # Widgets compartidos entre tipos
+│                   │   ├── OrganizationHeader.js
+│                   │   └── OrganizationIdStorage.js
+│                   └── residential/ # Widgets específicos para residenciales
+│                       ├── MembersList.js
+│                       ├── InvitationsList.js
+│                       └── ...
 └── globals.css        # Estilos globales
 
 components/             # Componentes reutilizables globales
 hooks/                  # Custom hooks
 ├── useOrganizations.js
 ├── useOrganization.js
+├── useOrganizationTypes.js
 ├── useOrganizationMembers.js
 ├── useInvitations.js
 ├── useQRCodes.js
@@ -81,46 +86,69 @@ utils/                  # Utilidades y configuración
 └── mailer/            # Sistema de envío de emails
 ```
 
-## 🏢 Sistema de Organizaciones y Vistas por Rol
+## 🏢 Sistema de Organizaciones Multi-Tipo y Vistas por Rol
 
-El proyecto implementa un sistema completo de gestión de organizaciones con vistas específicas según el rol del usuario. Esta arquitectura asegura seguridad, escalabilidad y una clara separación de responsabilidades.
+El proyecto implementa un sistema completo de gestión de organizaciones con soporte para múltiples tipos de organizaciones. Cada tipo puede tener sus propios roles y vistas personalizadas. Esta arquitectura asegura seguridad, escalabilidad y una clara separación de responsabilidades.
 
 ### Arquitectura
 
-El sistema utiliza un patrón de **"Traffic Controller"** donde:
+El sistema utiliza un patrón de **"Type Router"** donde:
 
-- **`page.js`** actúa como controlador principal (Client Component) que:
+- **`page.js`** actúa como controlador principal (Server Component) que:
 
   - Verifica la autenticación del usuario
-  - Obtiene los datos de la organización
+  - Obtiene los datos de la organización (incluyendo el tipo)
   - Determina el rol del usuario en la organización
-  - Renderiza la vista apropiada según el rol
+  - Pasa los datos al `TypeRouter` para renderizar la vista apropiada
+
+- **`type-router.js`** es el componente que:
+
+  - Recibe el tipo de organización y el rol del usuario
+  - Enruta a la vista correcta según el tipo y rol
+  - Maneja tipos desconocidos de forma elegante
 
 - **`_components/`** es una carpeta privada (no es una ruta) que contiene:
-  - **`views/`**: Vistas específicas por rol (Admin, Resident, Security)
-  - **`widgets/`**: Componentes reutilizables usados dentro de las vistas
+  - **`views/`**: Vistas organizadas por tipo de organización (residential, commercial, office, etc.)
+  - **`widgets/`**: Componentes reutilizables organizados en `shared/` (compartidos) y por tipo (específicos)
 
 ### Estructura de Carpetas
 
 ```
 app/(private)/organizations/[id]/
-├── page.js                    # Controlador principal
+├── page.js                    # Controlador principal (Server Component)
 └── _components/               # Carpeta privada (no es ruta)
-    ├── views/                 # Vistas por rol
-    │   ├── AdminView.js       # Vista de administrador
-    │   ├── ResidentView.js    # Vista de residente
-    │   └── SecurityView.js    # Vista de personal de seguridad
+    ├── type-router.js         # Router de vistas por tipo y rol
+    ├── views/                 # Vistas organizadas por tipo
+    │   └── residential/       # Vistas para organizaciones residenciales
+    │       ├── AdminView.js   # Vista de administrador
+    │       ├── ResidentView.js # Vista de residente
+    │       └── SecurityView.js # Vista de personal de seguridad
     └── widgets/               # Componentes reutilizables
-        ├── OrganizationHeader.js      # Encabezado de organización
-        ├── OrganizationIdStorage.js   # Almacenamiento de ID en localStorage
-        ├── MembersList.js             # Lista de miembros (admin)
-        ├── InvitationsList.js         # Lista de invitaciones (admin)
-        └── ...                        # Otros widgets
+        ├── shared/            # Widgets compartidos entre todos los tipos
+        │   ├── OrganizationHeader.js
+        │   └── OrganizationIdStorage.js
+        └── residential/       # Widgets específicos para residenciales
+            ├── MembersList.js
+            ├── InvitationsList.js
+            └── ...
 ```
 
-### Roles y Permisos
+### Tipos de Organización
 
-El sistema soporta tres roles a nivel de organización:
+El sistema soporta múltiples tipos de organizaciones. Actualmente implementado:
+
+- **Residential** (Residencial): Para edificios y condominios
+  - Roles: `admin`, `resident`, `security`
+  - Vistas: `AdminView`, `ResidentView`, `SecurityView`
+
+Futuros tipos pueden incluir:
+
+- **Commercial** (Comercial): Para centros comerciales y negocios
+- **Office** (Oficina): Para edificios de oficinas corporativas
+
+### Roles y Permisos por Tipo
+
+Cada tipo de organización puede tener sus propios roles. Para organizaciones **residenciales**, el sistema soporta tres roles:
 
 #### 1. **Admin** (Administrador)
 
@@ -163,7 +191,7 @@ El sistema utiliza varios hooks personalizados para gestionar el estado:
 
 #### `useOrganization(id)`
 
-Obtiene los datos de una organización específica, incluyendo el rol del usuario.
+Obtiene los datos de una organización específica, incluyendo el rol del usuario y el tipo de organización.
 
 ```javascript
 const { data: organization, loading, error } = useOrganization(organizationId);
@@ -171,9 +199,11 @@ const { data: organization, loading, error } = useOrganization(organizationId);
 
 **Retorna**:
 
-- `organization.userRole`: Rol del usuario (`"admin"`, `"resident"`, `"security"`)
+- `organization.userRole`: Rol del usuario (`"admin"`, `"resident"`, `"security"`, etc.)
 - `organization.isAdmin`: Boolean indicando si es administrador
 - `organization.name`: Nombre de la organización
+- `organization.organization_type`: Nombre del tipo de organización (ej: `"residential"`)
+- `organization.organization_type_id`: ID del tipo de organización
 - `organization.created_by_name`: Nombre del creador
 
 #### `useOrganizations()`
@@ -189,6 +219,26 @@ const {
   updateOrganization,
 } = useOrganizations();
 ```
+
+**`createOrganization(name, organizationTypeId)`**: Crea una nueva organización
+
+- `name`: Nombre de la organización
+- `organizationTypeId`: ID del tipo de organización (opcional, por defecto usa "residential")
+
+#### `useOrganizationTypes()`
+
+Obtiene los tipos de organización disponibles.
+
+```javascript
+const { types, loading, error, refetch } = useOrganizationTypes();
+```
+
+**Retorna**:
+
+- `types`: Array de tipos de organización con `id`, `name`, `description`
+- `loading`: Estado de carga
+- `error`: Error si existe
+- `refetch`: Función para recargar los tipos
 
 #### `useOrganizationMembers()`
 
@@ -229,7 +279,20 @@ El sistema normaliza los nombres de roles entre la base de datos y el frontend:
 Esta normalización se realiza automáticamente en:
 
 - API route: `/api/organizations/[id]/route.js`
-- Hook: `useOrganization.js`
+- Utility function: `utils/api/organizations.js`
+
+### Base de Datos
+
+El sistema utiliza las siguientes tablas relacionadas con tipos de organización:
+
+- **`organization_types`**: Almacena los tipos de organizaciones disponibles
+- **`organization_roles`**: Almacena los roles, vinculados a un tipo específico mediante `organization_type_id`
+- **`organizations`**: Almacena las organizaciones, vinculadas a un tipo mediante `organization_type_id`
+
+**Migraciones SQL**:
+
+- `sql/001_add_organization_types.sql`: Crea la tabla `organization_types` y migra datos existentes
+- `sql/002_update_create_organization_function.sql`: Actualiza la función `create_organization_with_admin` para soportar tipos
 
 ### Seguridad
 
@@ -245,28 +308,51 @@ Esta normalización se realiza automáticamente en:
 
 Para agregar nuevas funcionalidades:
 
-1. **Nuevo Widget**: Agrega el componente en `_components/widgets/`
-2. **Nueva Vista**: Modifica la vista correspondiente en `_components/views/`
-3. **Nuevo Rol**:
-   - Agrega el caso en `page.js` → `renderRoleView()`
-   - Crea `_components/views/NewRoleView.js`
-   - Actualiza la normalización de roles si es necesario
+1. **Nuevo Widget Compartido**: Agrega el componente en `_components/widgets/shared/`
+2. **Nuevo Widget por Tipo**: Agrega el componente en `_components/widgets/[tipo]/`
+3. **Nueva Vista por Tipo**: Crea la vista en `_components/views/[tipo]/[Rol]View.js`
+4. **Nuevo Tipo de Organización**:
+   - Agrega el tipo en la base de datos (`organization_types` table)
+   - Crea los roles para ese tipo en `organization_roles` table
+   - Crea la carpeta `_components/views/[nuevo-tipo]/` con las vistas
+   - Crea la carpeta `_components/widgets/[nuevo-tipo]/` con los widgets
+   - Actualiza `type-router.js` para manejar el nuevo tipo
+5. **Nuevo Rol para un Tipo Existente**:
+   - Agrega el rol en la base de datos para ese tipo
+   - Crea la vista `_components/views/[tipo]/[NuevoRol]View.js`
+   - Actualiza la función de routing en `type-router.js`
 
 ### Ejemplo de Uso
 
 ```javascript
-// En AdminView.js
-import MembersList from "../widgets/MembersList";
-import InvitationsList from "../widgets/InvitationsList";
+// En residential/AdminView.js
+import MembersListResponsive from "../../widgets/residential/MembersListResponsive";
+import InvitationsListResponsive from "../../widgets/residential/InvitationsListResponsive";
+import AddMemberFAB from "../../widgets/residential/AddMemberFAB";
 
 export default function AdminView({ organizationId }) {
   return (
     <>
-      <MembersList organizationId={organizationId} />
-      <InvitationsList organizationId={organizationId} />
+      <MembersListResponsive organizationId={organizationId} />
+      <InvitationsListResponsive organizationId={organizationId} />
+      <AddMemberFAB organizationId={organizationId} />
     </>
   );
 }
+```
+
+### Crear una Nueva Organización
+
+```javascript
+// En create/page.js
+import { useOrganizationTypes } from "@/hooks/useOrganizationTypes";
+import { useOrganizations } from "@/hooks/useOrganizations";
+
+const { types } = useOrganizationTypes();
+const { createOrganization } = useOrganizations();
+
+// Crear organización con tipo específico
+await createOrganization("Mi Organización", types[0].id);
 ```
 
 ## 🔧 Configuración

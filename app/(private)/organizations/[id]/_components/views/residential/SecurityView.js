@@ -12,10 +12,10 @@ import {
   RiCheckboxCircleLine,
   RiErrorWarningLine,
 } from "react-icons/ri";
-import QRValidationForm from "../widgets/QRValidationForm";
-import QRScanner from "../widgets/QRScanner";
-import PendingCodesList from "../widgets/PendingCodesList";
-import AccessHistoryList from "../widgets/AccessHistoryList";
+import QRValidationForm from "../../widgets/residential/QRValidationForm";
+import QRScanner from "../../widgets/residential/QRScanner";
+import PendingCodesList from "../../widgets/residential/PendingCodesList";
+import AccessHistoryList from "../../widgets/residential/AccessHistoryList";
 import { useQRCodes } from "@/hooks/useQRCodes";
 import Button from "@/components/ui/Button";
 

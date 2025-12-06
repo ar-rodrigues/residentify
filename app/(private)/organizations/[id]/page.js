@@ -4,11 +4,9 @@ import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
 import { Card, Space, Alert } from "antd";
 import Button from "@/components/ui/Button";
-import OrganizationHeader from "./_components/widgets/OrganizationHeader";
-import OrganizationIdStorage from "./_components/widgets/OrganizationIdStorage";
-import AdminView from "./_components/views/AdminView";
-import ResidentView from "./_components/views/ResidentView";
-import SecurityView from "./_components/views/SecurityView";
+import OrganizationHeader from "./_components/widgets/shared/OrganizationHeader";
+import OrganizationIdStorage from "./_components/widgets/shared/OrganizationIdStorage";
+import TypeRouter from "./_components/type-router";
 
 export default async function OrganizationDetailPage({ params }) {
   const supabase = await createClient();
@@ -140,42 +138,18 @@ export default async function OrganizationDetailPage({ params }) {
     );
   }
 
-  // Render role-specific view
-  const renderRoleView = () => {
-    if (!organization.userRole) {
-      return (
-        <Card title="Información">
-          <p className="text-gray-500">
-            No tienes un rol asignado en esta organización.
-          </p>
-        </Card>
-      );
-    }
-
-    switch (organization.userRole) {
-      case "admin":
-        return <AdminView organizationId={id} />;
-      case "resident":
-        return <ResidentView organizationId={id} />;
-      case "security":
-        return <SecurityView organizationId={id} />;
-      default:
-        return (
-          <Card title="Información">
-            <p className="text-gray-500">
-              Rol no reconocido: {organization.userRole}
-            </p>
-          </Card>
-        );
-    }
-  };
-
   return (
     <div className="bg-gray-50">
       <OrganizationIdStorage organizationId={id} />
       <div className="w-full">
         <OrganizationHeader organization={organization} organizationId={id} />
-        <div className="w-full">{renderRoleView()}</div>
+        <div className="w-full">
+          <TypeRouter
+            organizationType={organization.organization_type}
+            userRole={organization.userRole}
+            organizationId={id}
+          />
+        </div>
       </div>
     </div>
   );

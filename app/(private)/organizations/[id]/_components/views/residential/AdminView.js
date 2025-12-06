@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Tabs } from "antd";
-import MembersListResponsive from "../widgets/MembersListResponsive";
-import InvitationsListResponsive from "../widgets/InvitationsListResponsive";
-import AddMemberFAB from "../widgets/AddMemberFAB";
+import MembersListResponsive from "../../widgets/residential/MembersListResponsive";
+import InvitationsListResponsive from "../../widgets/residential/InvitationsListResponsive";
+import AddMemberFAB from "../../widgets/residential/AddMemberFAB";
 
 export default function AdminView({ organizationId }) {
   const [activeTab, setActiveTab] = useState("members");

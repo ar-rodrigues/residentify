@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RiBuildingLine } from "react-icons/ri";
 import { useOrganizations } from "@/hooks/useOrganizations";
-import { Form, Card, Typography, Space, Alert } from "antd";
+import { useOrganizationTypes } from "@/hooks/useOrganizationTypes";
+import { Form, Card, Typography, Space, Alert, Select, Spin } from "antd";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
@@ -16,12 +17,16 @@ export default function CreateOrganizationPage() {
   const [createForm] = Form.useForm();
   const router = useRouter();
   const { createOrganization, loading } = useOrganizations();
+  const { types, loading: typesLoading } = useOrganizationTypes();
 
   const handleCreate = async (values) => {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const result = await createOrganization(values.name);
+    const result = await createOrganization(
+      values.name,
+      values.organization_type_id
+    );
 
     if (result.error) {
       setErrorMessage(result.message);
@@ -105,6 +110,43 @@ export default function CreateOrganizationPage() {
                 />
               </Form.Item>
 
+              <Form.Item
+                name="organization_type_id"
+                label="Tipo de Organización"
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor selecciona un tipo de organización",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Selecciona el tipo de organización"
+                  size="large"
+                  loading={typesLoading}
+                  notFoundContent={
+                    typesLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      "No hay tipos disponibles"
+                    )
+                  }
+                >
+                  {types.map((type) => (
+                    <Select.Option key={type.id} value={type.id}>
+                      <div>
+                        <div className="font-medium">{type.name}</div>
+                        {type.description && (
+                          <div className="text-xs text-gray-500">
+                            {type.description}
+                          </div>
+                        )}
+                      </div>
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
               <Form.Item>
                 <Button
                   type="primary"
@@ -123,10 +165,3 @@ export default function CreateOrganizationPage() {
     </div>
   );
 }
-
-
-
-
-
-
-

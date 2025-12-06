@@ -15,6 +15,3 @@ export default function OrganizationIdStorage({ organizationId }) {
 
   return null; // This component doesn't render anything
 }
-
-
-
