@@ -139,7 +139,7 @@ export default async function OrganizationDetailPage({ params }) {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-gray-50 overflow-x-hidden">
       <OrganizationIdStorage organizationId={id} />
       <div className="w-full">
         <OrganizationHeader organization={organization} organizationId={id} />

@@ -96,7 +96,10 @@ export default function PrivateLayout({ children }) {
 
   return (
     <FeatureFlagsProvider>
-      <Layout className="min-h-screen">
+      <Layout
+        className="min-h-screen overflow-x-hidden"
+        style={{ maxWidth: "100vw" }}
+      >
         <AppNavigation
           collapsed={collapsed}
           onCollapse={setCollapsed}
@@ -108,6 +111,13 @@ export default function PrivateLayout({ children }) {
             marginLeft: isMobile ? 0 : collapsed ? 80 : 256,
             transition: "margin-left 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             paddingBottom: isMobile ? "64px" : 0,
+            width: isMobile
+              ? "100%"
+              : `calc(100vw - ${collapsed ? 80 : 256}px)`,
+            maxWidth: isMobile
+              ? "100%"
+              : `calc(100vw - ${collapsed ? 80 : 256}px)`,
+            overflowX: "hidden",
           }}
         >
           <Header
@@ -153,8 +163,10 @@ export default function PrivateLayout({ children }) {
               )}
             </Space>
           </Header>
-          <Content className="p-2 bg-gray-50">
-            <div className="bg-white rounded-lg shadow-sm p-6">{children}</div>
+          <Content className="p-2 bg-gray-50 overflow-x-hidden">
+            <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden">
+              {children}
+            </div>
           </Content>
         </Layout>
       </Layout>

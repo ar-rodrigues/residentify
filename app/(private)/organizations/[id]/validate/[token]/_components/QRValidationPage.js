@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, Space, Typography, Alert, App } from "antd";
 import { RiQrCodeLine, RiCheckLine, RiCloseLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
-import QRValidationForm from "../../../_components/widgets/QRValidationForm";
+import QRValidationForm from "../../../_components/widgets/residential/QRValidationForm";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 

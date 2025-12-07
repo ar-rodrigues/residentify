@@ -122,10 +122,21 @@ export default function MembersListResponsive({ organizationId }) {
       title: "Nombre",
       dataIndex: "name",
       key: "name",
+      width: 200,
+      ellipsis: true,
       render: (text, record) => (
         <Space>
           <RiUserLine className="text-gray-500" />
-          <Text strong>{text}</Text>
+          <Text 
+            strong 
+            style={{ 
+              wordBreak: 'normal', 
+              whiteSpace: 'normal',
+              display: 'inline-block'
+            }}
+          >
+            {text}
+          </Text>
           {record.is_from_general_link && (
             <Tag color="purple">Invitado por enlace general</Tag>
           )}
@@ -136,6 +147,7 @@ export default function MembersListResponsive({ organizationId }) {
       title: "Rol",
       dataIndex: ["role", "name"],
       key: "role",
+      width: 150,
       render: (roleName) => (
         <Badge
           status={
@@ -153,25 +165,29 @@ export default function MembersListResponsive({ organizationId }) {
       title: "Fecha de Ingreso",
       dataIndex: "joined_at",
       key: "joined_at",
+      width: 140,
       render: (date) => (date ? formatDateDDMMYYYY(date) : "N/A"),
     },
     {
       title: "Invitado por",
       dataIndex: "invited_by_name",
       key: "invited_by_name",
+      width: 180,
+      ellipsis: true,
       render: (text) => text || "N/A",
     },
     {
       title: "Acciones",
       key: "actions",
+      width: 280,
       render: (_, record) => (
-        <Space>
+        <Space size="small" wrap={false}>
           <Select
             value={record.role.id}
             onChange={(value) => handleRoleChange(record.id, value)}
             loading={updatingMemberId === record.id}
             disabled={updatingMemberId !== null}
-            style={{ width: 180 }}
+            style={{ width: 160 }}
             size="small"
           >
             {roles.map((role) => (
@@ -187,6 +203,7 @@ export default function MembersListResponsive({ organizationId }) {
             size="small"
             onClick={() => handleRemoveMember(record)}
             disabled={updatingMemberId !== null}
+            style={{ whiteSpace: 'nowrap' }}
           >
             Eliminar
           </Button>
@@ -353,12 +370,13 @@ export default function MembersListResponsive({ organizationId }) {
 
   // Desktop: Table layout
   return (
-    <Card title="Miembros">
+    <Card title="Miembros" style={{ overflow: 'hidden' }}>
       <Table
         columns={columns}
         dataSource={members}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 'max-content' }}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
