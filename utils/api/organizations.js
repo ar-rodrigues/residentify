@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * Server-side utility to get organization details by ID
@@ -24,13 +25,10 @@ export async function getOrganizationById(organizationId) {
       };
     }
 
-    // Validate organization ID
-    if (!organizationId || typeof organizationId !== "string") {
-      return {
-        error: true,
-        message: "ID de organización inválido.",
-        status: 400,
-      };
+    // Validate organization ID (UUID format)
+    const uuidValidation = validateUUID(organizationId, "organización");
+    if (uuidValidation) {
+      return uuidValidation;
     }
 
     // First, get the organization with organization type (RLS will check if user is a member)
@@ -55,7 +53,13 @@ export async function getOrganizationById(organizationId) {
       .single();
 
     if (orgError) {
-      console.error("Error fetching organization:", orgError);
+      // Log error with better serialization
+      console.error("Error fetching organization:", {
+        code: orgError.code,
+        message: orgError.message,
+        details: orgError.details,
+        hint: orgError.hint,
+      });
 
       if (orgError.code === "PGRST116") {
         // Not found
@@ -63,6 +67,15 @@ export async function getOrganizationById(organizationId) {
           error: true,
           message: "Organización no encontrada o no tienes acceso a ella.",
           status: 404,
+        };
+      }
+
+      if (orgError.code === "22P02") {
+        // Invalid input syntax for type uuid (shouldn't happen with our validation, but handle it anyway)
+        return {
+          error: true,
+          message: "ID de organización inválido. El formato del ID no es válido.",
+          status: 400,
         };
       }
 

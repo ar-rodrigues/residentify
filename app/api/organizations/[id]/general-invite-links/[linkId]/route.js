@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * DELETE /api/organizations/[id]/general-invite-links/[linkId]
@@ -26,25 +27,27 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const orgValidation = validateUUID(id, "organización");
+    if (orgValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: orgValidation.error,
+          message: orgValidation.message,
         },
-        { status: 400 }
+        { status: orgValidation.status }
       );
     }
 
-    // Validate link ID
-    if (!linkId || typeof linkId !== "string") {
+    // Validate link ID (UUID format)
+    const linkValidation = validateUUID(linkId, "enlace");
+    if (linkValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de enlace inválido.",
+          error: linkValidation.error,
+          message: linkValidation.message,
         },
-        { status: 400 }
+        { status: linkValidation.status }
       );
     }
 

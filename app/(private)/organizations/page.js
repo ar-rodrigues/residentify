@@ -87,7 +87,7 @@ export default function OrganizationsPage() {
   if (checkingRedirect || fetching) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Space direction="vertical" align="center" size="large">
+        <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph>Cargando organizaciones...</Paragraph>
         </Space>
@@ -100,7 +100,7 @@ export default function OrganizationsPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 sm:py-12">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Paragraph type="danger">
                 Error al cargar las organizaciones. Por favor, intenta
                 nuevamente.
@@ -126,7 +126,7 @@ export default function OrganizationsPage() {
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
             <Space
-              direction="vertical"
+              orientation="vertical"
               size="large"
               className="w-full text-center"
             >
@@ -160,7 +160,7 @@ export default function OrganizationsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <Space direction="vertical" size="large" className="w-full">
+        <Space orientation="vertical" size="large" className="w-full">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
               <Title level={3} className="sm:!text-3xl !mb-1 sm:!mb-2">
@@ -198,7 +198,7 @@ export default function OrganizationsPage() {
                   }}
                   styles={{ body: { padding: "16px" } }}
                 >
-                  <Space direction="vertical" size="middle" className="w-full">
+                  <Space orientation="vertical" size="middle" className="w-full">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex-shrink-0">
                         <RiBuildingLine className="text-xl sm:text-2xl text-blue-600" />

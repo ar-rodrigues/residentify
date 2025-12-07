@@ -84,7 +84,7 @@ export default function AddMemberFAB({ organizationId, onSwitchToInvitations }) 
             onSuccess={handleLinkCreated}
           />
         ) : (
-          <Space direction="vertical" size="large" className="w-full">
+          <Space orientation="vertical" size="large" className="w-full">
             <Button
               type="primary"
               icon={<RiMailLine />}

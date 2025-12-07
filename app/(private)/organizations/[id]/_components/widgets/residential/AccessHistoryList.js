@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, List, Typography, Space, Empty, Spin, Tag, App } from "antd";
+import { Card, Typography, Space, Empty, Spin, Tag, App } from "antd";
 import {
   RiHistoryLine,
   RiUserLine,
@@ -101,7 +101,7 @@ export default function AccessHistoryList({ organizationId }) {
   return (
     <div className="w-full">
       <Card>
-        <Space direction="vertical" size="middle" className="w-full">
+        <Space orientation="vertical" size="middle" className="w-full">
           <div className="flex justify-between items-center">
             <Title level={5} className="mb-0">
               Historial de Acceso
@@ -111,69 +111,65 @@ export default function AccessHistoryList({ organizationId }) {
             </Text>
           </div>
 
-          <List
-            dataSource={accessLogs}
-            loading={loading}
-            renderItem={(log) => {
+          <div className="space-y-3">
+            {accessLogs.map((log, index) => {
               const entryTypeInfo = getEntryTypeDisplay(log.entry_type);
               return (
-                <List.Item>
-                  <Card className="w-full" size="small">
-                    <Space direction="vertical" size="small" className="w-full">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {entryTypeInfo.icon}
-                          <Tag color={entryTypeInfo.color}>
-                            {entryTypeInfo.text}
-                          </Tag>
-                        </div>
-                        <Text type="secondary" className="text-xs">
-                          {formatDate(log.timestamp)}
-                        </Text>
+                <Card key={log.id || `log-${index}-${log.timestamp}`} className="w-full" size="small">
+                  <Space orientation="vertical" size="small" className="w-full">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {entryTypeInfo.icon}
+                        <Tag color={entryTypeInfo.color}>
+                          {entryTypeInfo.text}
+                        </Tag>
                       </div>
+                      <Text type="secondary" className="text-xs">
+                        {formatDate(log.timestamp)}
+                      </Text>
+                    </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        {log.visitor_name && (
-                          <div className="flex items-center gap-1">
-                            <RiUserLine className="text-gray-500" />
-                            <Text type="secondary">
-                              Visitante: <Text strong>{log.visitor_name}</Text>
-                            </Text>
-                          </div>
-                        )}
-
-                        {log.scanned_by_name && (
-                          <div className="flex items-center gap-1">
-                            <RiHistoryLine className="text-gray-500" />
-                            <Text type="secondary">
-                              Escaneado por: <Text strong>{log.scanned_by_name}</Text>
-                            </Text>
-                          </div>
-                        )}
-
-                        {log.qr_code?.identifier && (
-                          <div className="flex items-center gap-1">
-                            <RiFileTextLine className="text-gray-500" />
-                            <Text type="secondary">
-                              Identificador: <Text code>{log.qr_code.identifier}</Text>
-                            </Text>
-                          </div>
-                        )}
-                      </div>
-
-                      {log.notes && (
-                        <div className="mt-2">
-                          <Text type="secondary" className="text-xs italic">
-                            Notas: {log.notes}
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      {log.visitor_name && (
+                        <div className="flex items-center gap-1">
+                          <RiUserLine className="text-gray-500" />
+                          <Text type="secondary">
+                            Visitante: <Text strong>{log.visitor_name}</Text>
                           </Text>
                         </div>
                       )}
-                    </Space>
-                  </Card>
-                </List.Item>
+
+                      {log.scanned_by_name && (
+                        <div className="flex items-center gap-1">
+                          <RiHistoryLine className="text-gray-500" />
+                          <Text type="secondary">
+                            Escaneado por: <Text strong>{log.scanned_by_name}</Text>
+                          </Text>
+                        </div>
+                      )}
+
+                      {log.qr_code?.identifier && (
+                        <div className="flex items-center gap-1">
+                          <RiFileTextLine className="text-gray-500" />
+                          <Text type="secondary">
+                            Identificador: <Text code>{log.qr_code.identifier}</Text>
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+
+                    {log.notes && (
+                      <div className="mt-2">
+                        <Text type="secondary" className="text-xs italic">
+                          Notas: {log.notes}
+                        </Text>
+                      </div>
+                    )}
+                  </Space>
+                </Card>
               );
-            }}
-          />
+            })}
+          </div>
         </Space>
       </Card>
     </div>

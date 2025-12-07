@@ -296,9 +296,9 @@ export default function InvitationAcceptPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Invitación no encontrada"
+                title="Invitación no encontrada"
                 description={
                   errorMessage ||
                   "La invitación no existe o ha expirado. Por favor, solicita una nueva invitación."
@@ -319,7 +319,7 @@ export default function InvitationAcceptPage() {
       <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <div className="text-center">
                 <div className="flex justify-center mb-4">
                   <RiUserAddLine className="text-4xl text-green-600" />
@@ -329,7 +329,7 @@ export default function InvitationAcceptPage() {
                 </Title>
               </div>
               <Alert
-                message="Éxito"
+                title="Éxito"
                 description={successMessage}
                 type="success"
                 showIcon
@@ -349,7 +349,7 @@ export default function InvitationAcceptPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg">
-          <Space direction="vertical" size="large" className="w-full">
+          <Space orientation="vertical" size="large" className="w-full">
             {/* Logged-in user with matching email - show direct accept button */}
             <div style={{ display: mode === "logged-in" ? "block" : "none" }}>
               <div className="text-center">
@@ -366,7 +366,7 @@ export default function InvitationAcceptPage() {
 
               {/* Invitation Details */}
               <Card className="bg-blue-50 border-blue-200">
-                <Space direction="vertical" size="middle" className="w-full">
+                <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
@@ -405,7 +405,7 @@ export default function InvitationAcceptPage() {
 
               {errorMessage && (
                 <Alert
-                  message="Error"
+                  title="Error"
                   description={errorMessage}
                   type="error"
                   showIcon
@@ -416,7 +416,7 @@ export default function InvitationAcceptPage() {
 
               {successMessage && (
                 <Alert
-                  message="Éxito"
+                  title="Éxito"
                   description={successMessage}
                   type="success"
                   showIcon
@@ -453,7 +453,7 @@ export default function InvitationAcceptPage() {
 
               {/* Invitation Details */}
               <Card className="bg-blue-50 border-blue-200">
-                <Space direction="vertical" size="middle" className="w-full">
+                <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
@@ -481,7 +481,7 @@ export default function InvitationAcceptPage() {
 
               {errorMessage && (
                 <Alert
-                  message="Error"
+                  title="Error"
                   description={errorMessage}
                   type="error"
                   showIcon
@@ -532,7 +532,7 @@ export default function InvitationAcceptPage() {
                 </Form.Item>
 
                 <Form.Item>
-                  <Space className="w-full" direction="vertical">
+                  <Space className="w-full" orientation="vertical">
                     <Button
                       type="primary"
                       htmlType="submit"
@@ -575,7 +575,7 @@ export default function InvitationAcceptPage() {
 
               {/* Invitation Details */}
               <Card className="bg-blue-50 border-blue-200">
-                <Space direction="vertical" size="middle" className="w-full">
+                <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
@@ -614,7 +614,7 @@ export default function InvitationAcceptPage() {
 
               {errorMessage && (
                 <Alert
-                  message="Error"
+                  title="Error"
                   description={errorMessage}
                   type="error"
                   showIcon
@@ -625,7 +625,7 @@ export default function InvitationAcceptPage() {
 
               {successMessage && (
                 <Alert
-                  message="Éxito"
+                  title="Éxito"
                   description={successMessage}
                   type="success"
                   showIcon

@@ -22,7 +22,7 @@ export default function SignupSuccessPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Space
-          direction="vertical"
+          orientation="vertical"
           size="large"
           className="w-full text-center mb-8"
         >
@@ -36,7 +36,7 @@ export default function SignupSuccessPage() {
 
         <Card>
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="large"
             className="w-full text-center"
           >
@@ -48,7 +48,7 @@ export default function SignupSuccessPage() {
               Tu cuenta ha sido creada exitosamente. Ya puedes comenzar a usar
               la plataforma.
             </Paragraph>
-            <Space direction="vertical" className="w-full" size="small">
+            <Space orientation="vertical" className="w-full" size="small">
               <Button
                 type="primary"
                 onClick={handleContinue}

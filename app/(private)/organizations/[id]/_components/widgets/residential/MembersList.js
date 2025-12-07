@@ -89,7 +89,7 @@ export default function MembersList({ organizationId }) {
       title: "¿Eliminar miembro?",
       content: `¿Estás seguro de que deseas eliminar a ${member.name} de la organización?`,
       okText: "Eliminar",
-      okType: "danger",
+      okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
         try {
@@ -177,13 +177,11 @@ export default function MembersList({ organizationId }) {
             disabled={updatingMemberId !== null}
             style={{ width: 180 }}
             size="small"
-          >
-            {roles.map((role) => (
-              <Select.Option key={role.id} value={role.id}>
-                {getRoleDisplayName(role.name)}
-              </Select.Option>
-            ))}
-          </Select>
+            options={roles.map((role) => ({
+              value: role.id,
+              label: getRoleDisplayName(role.name),
+            }))}
+          />
           <Button
             type="default"
             danger
@@ -203,7 +201,7 @@ export default function MembersList({ organizationId }) {
     return (
       <Card>
         <div className="flex justify-center py-8">
-          <Space direction="vertical" align="center">
+          <Space orientation="vertical" align="center">
             <Spin size="large" />
             <Text type="secondary">Cargando miembros...</Text>
           </Space>
@@ -216,7 +214,7 @@ export default function MembersList({ organizationId }) {
     return (
       <Card>
         <Alert
-          message="Error"
+          title="Error"
           description={error.message || "Error al cargar los miembros."}
           type="error"
           showIcon

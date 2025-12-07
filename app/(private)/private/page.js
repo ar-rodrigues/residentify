@@ -19,7 +19,7 @@ export default function PrivatePage() {
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Space direction="vertical" align="center" size="large">
+        <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph className="text-gray-600">Cargando...</Paragraph>
         </Space>
@@ -29,7 +29,7 @@ export default function PrivatePage() {
 
   return (
     <div>
-      <Space direction="vertical" size="large" className="w-full">
+      <Space orientation="vertical" size="large" className="w-full">
         <div className="text-center">
           <Title level={1}>¡Bienvenido a tu proyecto!</Title>
           <Paragraph className="text-lg text-gray-600">
@@ -41,7 +41,7 @@ export default function PrivatePage() {
         <Row gutter={[24, 24]}>
           <Col xs={24} md={12}>
             <Card title="Información del Usuario">
-              <Space direction="vertical" size="middle" className="w-full">
+              <Space orientation="vertical" size="middle" className="w-full">
                 <Space size="middle">
                   <Avatar
                     icon={<RiUserLine />}
@@ -68,7 +68,7 @@ export default function PrivatePage() {
 
           <Col xs={24} md={12}>
             <Card title="Acciones Rápidas">
-              <Space direction="vertical" className="w-full" size="small">
+              <Space orientation="vertical" className="w-full" size="small">
                 <Button
                   type="primary"
                   icon={<RiRocketLine />}

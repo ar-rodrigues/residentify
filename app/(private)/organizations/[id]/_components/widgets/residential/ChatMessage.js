@@ -145,7 +145,7 @@ export default function ChatMessage({ item, type, onClick }) {
       onClick={onClick}
       size="small"
     >
-      <Space direction="vertical" size="small" className="w-full">
+      <Space orientation="vertical" size="small" className="w-full">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1">
             <div className="mt-1">{getTypeIcon()}</div>

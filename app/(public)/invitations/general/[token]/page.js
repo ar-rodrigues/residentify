@@ -93,7 +93,7 @@ export default function GeneralInviteLinkPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
         <Card className="max-w-md w-full">
           <div className="flex justify-center py-8">
-            <Space direction="vertical" align="center">
+            <Space orientation="vertical" align="center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <Text type="secondary">Cargando enlace de invitación...</Text>
             </Space>
@@ -109,7 +109,7 @@ export default function GeneralInviteLinkPage() {
         <div className="max-w-md w-full">
           <Card>
             <Alert
-              message="Error"
+              title="Error"
               description={errorMessage}
               type="error"
               showIcon
@@ -138,7 +138,7 @@ export default function GeneralInviteLinkPage() {
         <div className="max-w-md w-full">
           <Card>
             <Alert
-              message="Enlace Expirado"
+              title="Enlace Expirado"
               description="Este enlace de invitación ha expirado. Por favor, contacta al administrador para obtener un nuevo enlace."
               type="error"
               showIcon
@@ -163,7 +163,7 @@ export default function GeneralInviteLinkPage() {
         <div className="max-w-md w-full">
           <Card>
             <Alert
-              message="Éxito"
+              title="Éxito"
               description={successMessage}
               type="success"
               showIcon
@@ -182,7 +182,7 @@ export default function GeneralInviteLinkPage() {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg" styles={{ body: { padding: "20px 16px" } }}>
-          <Space direction="vertical" size="middle" className="w-full">
+          <Space orientation="vertical" size="middle" className="w-full">
             <div className="text-center">
               <div className="flex justify-center mb-3 sm:mb-4">
                 <RiUserAddLine className="text-3xl sm:text-4xl text-blue-600" />
@@ -197,7 +197,7 @@ export default function GeneralInviteLinkPage() {
 
             {errorMessage && (
               <Alert
-                message="Error"
+                title="Error"
                 description={errorMessage}
                 type="error"
                 showIcon
@@ -339,7 +339,7 @@ export default function GeneralInviteLinkPage() {
 
               {link.requires_approval && (
                 <Alert
-                  message="Aprobación Requerida"
+                  title="Aprobación Requerida"
                   description="Tu solicitud será revisada por un administrador. Te notificaremos cuando sea aprobada."
                   type="info"
                   showIcon
@@ -351,7 +351,7 @@ export default function GeneralInviteLinkPage() {
               <Form.Item className="!mb-0">
                 <Space
                   className="w-full mt-4"
-                  direction="vertical"
+                  orientation="vertical"
                   size="middle"
                 >
                   <Button

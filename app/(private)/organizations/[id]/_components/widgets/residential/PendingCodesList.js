@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, List, Typography, Space, Empty, Spin, App } from "antd";
+import { Card, Typography, Space, Empty, Spin, App } from "antd";
 import { RiQrCodeLine, RiUserLine, RiTimeLine, RiCalendarLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
 
@@ -109,7 +109,7 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
   return (
     <div className="w-full">
       <Card>
-        <Space direction="vertical" size="middle" className="w-full">
+        <Space orientation="vertical" size="middle" className="w-full">
           <div className="flex justify-between items-center">
             <Title level={5} className="mb-0">
               Códigos QR Pendientes
@@ -119,48 +119,44 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
             </Text>
           </div>
 
-          <List
-            dataSource={pendingCodes}
-            loading={loading}
-            renderItem={(code) => (
-              <List.Item>
-                <Card className="w-full" size="small">
-                  <Space direction="vertical" size="small" className="w-full">
-                    <div className="flex items-center gap-2">
-                      <RiQrCodeLine className="text-blue-500" />
-                      <Text strong className="text-lg">
-                        {code.identifier || "Sin identificador"}
+          <div className="space-y-3">
+            {pendingCodes.map((code) => (
+              <Card key={code.id} className="w-full" size="small">
+                <Space orientation="vertical" size="small" className="w-full">
+                  <div className="flex items-center gap-2">
+                    <RiQrCodeLine className="text-blue-500" />
+                    <Text strong className="text-lg">
+                      {code.identifier || "Sin identificador"}
+                    </Text>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <RiUserLine className="text-gray-500" />
+                      <Text type="secondary">
+                        Creado por:{" "}
+                        <Text strong>{code.created_by_name || "Desconocido"}</Text>
                       </Text>
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <RiUserLine className="text-gray-500" />
-                        <Text type="secondary">
-                          Creado por:{" "}
-                          <Text strong>{code.created_by_name || "Desconocido"}</Text>
-                        </Text>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <RiTimeLine className="text-gray-500" />
-                        <Text type="secondary">
-                          Creado: {formatDate(code.created_at)}
-                        </Text>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <RiCalendarLine className="text-gray-500" />
-                        <Text type="secondary">
-                          Expira: {formatDate(code.expires_at)}
-                        </Text>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <RiTimeLine className="text-gray-500" />
+                      <Text type="secondary">
+                        Creado: {formatDate(code.created_at)}
+                      </Text>
                     </div>
-                  </Space>
-                </Card>
-              </List.Item>
-            )}
-          />
+
+                    <div className="flex items-center gap-1">
+                      <RiCalendarLine className="text-gray-500" />
+                      <Text type="secondary">
+                        Expira: {formatDate(code.expires_at)}
+                      </Text>
+                    </div>
+                  </div>
+                </Space>
+              </Card>
+            ))}
+          </div>
         </Space>
       </Card>
     </div>

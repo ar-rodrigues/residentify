@@ -16,7 +16,7 @@ export default function NotFound() {
         subTitle="Lo sentimos, la página que buscas no existe o ha sido movida."
         extra={
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="middle"
             className="w-full"
             style={{ maxWidth: "400px" }}

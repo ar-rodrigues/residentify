@@ -111,7 +111,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
       content:
         "Esta acción no se puede deshacer. El enlace dejará de funcionar inmediatamente.",
       okText: "Eliminar",
-      okType: "danger",
+      okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
         const result = await deleteGeneralInviteLink(organizationId, linkId);
@@ -156,7 +156,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
     return (
       <Card>
         <div className="flex justify-center py-8">
-          <Space direction="vertical" align="center">
+          <Space orientation="vertical" align="center">
             <Spin size="large" />
             <Text type="secondary">Cargando enlaces de invitación...</Text>
           </Space>
@@ -169,7 +169,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
     return (
       <Card>
         <Alert
-          message="Error"
+          title="Error"
           description={error.message || "Error al cargar los enlaces de invitación."}
           type="error"
           showIcon
@@ -257,7 +257,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
             No hay enlaces de invitación creados. Crea uno nuevo arriba.
           </Paragraph>
         ) : isMobile ? (
-          <Space direction="vertical" size="middle" className="w-full">
+          <Space orientation="vertical" size="middle" className="w-full">
             {links.map((link) => (
               <Card
                 key={link.id}
@@ -265,7 +265,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
                 className="shadow-sm"
                 styles={{ body: { padding: "16px" } }}
               >
-                <Space direction="vertical" size="small" className="w-full">
+                <Space orientation="vertical" size="small" className="w-full">
                   <div className="flex items-center justify-between">
                     <Space>
                       <RiLinksLine className="text-gray-500 text-lg" />
@@ -330,7 +330,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
 
                   <Divider className="my-2" />
 
-                  <Space className="w-full" direction="vertical" size="small">
+                  <Space className="w-full" orientation="vertical" size="small">
                     <Button
                       type="default"
                       icon={

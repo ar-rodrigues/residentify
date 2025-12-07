@@ -86,7 +86,7 @@ export default function OrganizationHeader({ organization, organizationId }) {
               <Button
                 type="default"
                 icon={<RiArrowDownSLine />}
-                iconPosition="end"
+                iconPlacement="end"
                 size={isMobile ? "middle" : "large"}
               >
                 {isMobile ? "Cambiar" : "Cambiar Organización"}

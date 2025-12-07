@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * GET /api/organizations/[id]/members
@@ -26,14 +27,15 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const uuidValidation = validateUUID(id, "organización");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 
@@ -230,14 +232,15 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const uuidValidation = validateUUID(id, "organización");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 
@@ -402,14 +405,15 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const uuidValidation = validateUUID(id, "organización");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 

@@ -193,7 +193,7 @@ export default function QRValidationForm({ qrCode, onSubmit, onCancel, loading =
           className="mb-3 sm:mb-4"
         >
           <Card className="w-full">
-            <Space direction="vertical" size="middle" className="w-full">
+            <Space orientation="vertical" size="middle" className="w-full">
               <div className="flex items-center justify-between">
                 <Text className="text-sm sm:text-base">Modo:</Text>
                 <Switch
@@ -295,7 +295,7 @@ export default function QRValidationForm({ qrCode, onSubmit, onCancel, loading =
 
       <Form.Item className="mb-0 mt-4 sm:mt-6">
         <Space 
-          direction="vertical" 
+          orientation="vertical" 
           size="middle" 
           className="w-full sm:flex sm:justify-end sm:flex-row"
         >

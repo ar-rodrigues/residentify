@@ -27,9 +27,9 @@ export default async function ValidateTokenPage({ params }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Error"
+                title="Error"
                 description="ID de organización inválido."
                 type="error"
                 showIcon
@@ -52,9 +52,9 @@ export default async function ValidateTokenPage({ params }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Error"
+                title="Error"
                 description="Token inválido."
                 type="error"
                 showIcon
@@ -92,9 +92,9 @@ export default async function ValidateTokenPage({ params }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Acceso Denegado"
+                title="Acceso Denegado"
                 description="No tienes permisos para validar códigos QR. Debes ser personal de seguridad de la organización."
                 type="error"
                 showIcon

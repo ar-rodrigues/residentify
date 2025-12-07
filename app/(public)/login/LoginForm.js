@@ -85,7 +85,7 @@ export default function LoginForm() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Space
-          direction="vertical"
+          orientation="vertical"
           size="large"
           className="w-full text-center mb-8"
         >
@@ -104,7 +104,7 @@ export default function LoginForm() {
         {showSuccess ? (
           <Card>
             <Space
-              direction="vertical"
+              orientation="vertical"
               size="large"
               className="w-full text-center"
             >
@@ -117,7 +117,7 @@ export default function LoginForm() {
                 Por favor, revisa tu bandeja de entrada y haz clic en el enlace
                 para activar tu cuenta.
               </Paragraph>
-              <Space direction="vertical" className="w-full" size="small">
+              <Space orientation="vertical" className="w-full" size="small">
                 <Button
                   type="primary"
                   onClick={() => router.push("/")}
@@ -145,7 +145,7 @@ export default function LoginForm() {
             {/* Error Alert */}
             {errorMessage && (
               <Alert
-                message={errorMessage}
+                title={errorMessage}
                 type="error"
                 showIcon
                 closable
@@ -157,7 +157,7 @@ export default function LoginForm() {
             {/* Success Alert for Password Reset */}
             {searchParams.get("message") === "password_reset_success" && (
               <Alert
-                message="Contraseña restablecida exitosamente"
+                title="Contraseña restablecida exitosamente"
                 description="Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña."
                 type="success"
                 showIcon

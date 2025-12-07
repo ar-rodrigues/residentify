@@ -184,7 +184,7 @@ export default function QRCodeLinkCard({ qrCode, onClose }) {
       }
       className="w-full"
     >
-      <Space direction="vertical" size="large" className="w-full">
+      <Space orientation="vertical" size="large" className="w-full">
         {/* QR Code Display */}
         <div className="flex justify-center p-4 bg-white rounded-lg border-2 border-dashed border-gray-300">
           <QRCodeSVG
@@ -220,7 +220,7 @@ export default function QRCodeLinkCard({ qrCode, onClose }) {
           <Title level={5} className="mb-4">
             Detalles del Enlace
           </Title>
-          <Space direction="vertical" size="middle" className="w-full">
+          <Space orientation="vertical" size="middle" className="w-full">
             <div className="flex items-center justify-between">
               <Text strong>Estado:</Text>
               {getStatusBadge(qrCode.status, qrCode.is_used, qrCode.expires_at)}
@@ -256,7 +256,7 @@ export default function QRCodeLinkCard({ qrCode, onClose }) {
 
         {/* Actions */}
         <div className="border-t pt-4">
-          <Space className="w-full" size="middle" direction="vertical">
+          <Space className="w-full" size="middle" orientation="vertical">
             <Button
               type="primary"
               icon={copied ? <RiCheckLine /> : <RiFileCopyLine />}

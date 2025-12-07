@@ -60,9 +60,9 @@ export default function QRValidationPage({ organizationId, token }) {
   if (error) {
     return (
       <Card>
-        <Space direction="vertical" size="large" className="w-full">
+        <Space orientation="vertical" size="large" className="w-full">
           <Alert
-            message="Error"
+            title="Error"
             description={error}
             type="error"
             showIcon
@@ -80,7 +80,7 @@ export default function QRValidationPage({ organizationId, token }) {
   if (validated || (qrCode && qrCode.is_used)) {
     return (
       <Card>
-        <Space direction="vertical" size="large" className="w-full text-center">
+        <Space orientation="vertical" size="large" className="w-full text-center">
           <RiCheckLine className="text-6xl text-green-500 mx-auto" />
           <Title level={3}>Código QR Validado Exitosamente</Title>
           <Text type="secondary">
@@ -98,7 +98,7 @@ export default function QRValidationPage({ organizationId, token }) {
 
   return (
     <Card>
-      <Space direction="vertical" size="large" className="w-full">
+      <Space orientation="vertical" size="large" className="w-full">
         {qrCode && (
           <div className="border-b pb-4">
             <Space>

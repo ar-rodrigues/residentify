@@ -56,14 +56,16 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const { validateUUID } = await import("@/utils/validation/uuid");
+    const uuidValidation = validateUUID(id, "organización");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 

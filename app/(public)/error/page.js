@@ -16,7 +16,7 @@ export default function ErrorPage() {
         subTitle="Lo sentimos, ha ocurrido un error inesperado. Por favor, intenta nuevamente."
         extra={
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="middle"
             className="w-full"
             style={{ maxWidth: "400px" }}

@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
-import { Card, Space, Alert } from "antd";
-import Button from "@/components/ui/Button";
+import { Result, Space } from "antd";
+import OrganizationNotFound from "./_components/OrganizationNotFound";
 import OrganizationHeader from "./_components/widgets/shared/OrganizationHeader";
 import OrganizationIdStorage from "./_components/widgets/shared/OrganizationIdStorage";
 import TypeRouter from "./_components/type-router";
@@ -22,28 +21,14 @@ export default async function OrganizationDetailPage({ params }) {
     redirect("/login");
   }
 
-  // Validate organization ID
-  if (!id || typeof id !== "string") {
+  // Validate organization ID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || typeof id !== "string" || !uuidRegex.test(id)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="max-w-md w-full">
-          <Card>
-            <Space direction="vertical" size="large" className="w-full">
-              <Alert
-                message="Error"
-                description="ID de organización inválido."
-                type="error"
-                showIcon
-              />
-              <Link href="/organizations" className="block w-full">
-                <Button type="primary" className="w-full">
-                  Volver a Organizaciones
-                </Button>
-              </Link>
-            </Space>
-          </Card>
-        </div>
-      </div>
+      <OrganizationNotFound
+        title="Organización No Encontrada"
+        message="Lo sentimos, la organización que buscas no existe o no tienes acceso a ella."
+      />
     );
   }
 
@@ -114,27 +99,10 @@ export default async function OrganizationDetailPage({ params }) {
   // Error state
   if (errorMessage || !organization) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="max-w-md w-full">
-          <Card>
-            <Space direction="vertical" size="large" className="w-full">
-              <Alert
-                message="Error"
-                description={
-                  errorMessage || "No se pudo cargar la organización."
-                }
-                type="error"
-                showIcon
-              />
-              <Link href="/organizations" className="block w-full">
-                <Button type="primary" className="w-full">
-                  Volver a Organizaciones
-                </Button>
-              </Link>
-            </Space>
-          </Card>
-        </div>
-      </div>
+      <OrganizationNotFound
+        title="Organización No Encontrada"
+        message={errorMessage || "Lo sentimos, la organización que buscas no existe o no tienes acceso a ella."}
+      />
     );
   }
 

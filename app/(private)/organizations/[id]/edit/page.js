@@ -61,7 +61,7 @@ export default function EditOrganizationPage() {
   if (fetching || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Space direction="vertical" align="center" size="large">
+        <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph>Cargando organización...</Paragraph>
         </Space>
@@ -74,9 +74,9 @@ export default function EditOrganizationPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Error"
+                title="Error"
                 description={
                   errorMessage || "No se pudo cargar la organización."
                 }
@@ -102,9 +102,9 @@ export default function EditOrganizationPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
-            <Space direction="vertical" size="large" className="w-full">
+            <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                message="Acceso Denegado"
+                title="Acceso Denegado"
                 description="Solo los administradores pueden editar organizaciones."
                 type="error"
                 showIcon
@@ -127,7 +127,7 @@ export default function EditOrganizationPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <Card className="shadow-lg">
-          <Space direction="vertical" size="large" className="w-full">
+          <Space orientation="vertical" size="large" className="w-full">
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <RiBuildingLine className="text-4xl text-blue-600" />
@@ -142,7 +142,7 @@ export default function EditOrganizationPage() {
 
             {errorMessage && (
               <Alert
-                message="Error"
+                title="Error"
                 description={errorMessage}
                 type="error"
                 showIcon
@@ -153,7 +153,7 @@ export default function EditOrganizationPage() {
 
             {successMessage && (
               <Alert
-                message="Éxito"
+                title="Éxito"
                 description={successMessage}
                 type="success"
                 showIcon
@@ -195,7 +195,7 @@ export default function EditOrganizationPage() {
               </Form.Item>
 
               <Form.Item>
-                <Space className="w-full" direction="vertical" size="middle">
+                <Space className="w-full" orientation="vertical" size="middle">
                   <Button
                     type="primary"
                     htmlType="submit"

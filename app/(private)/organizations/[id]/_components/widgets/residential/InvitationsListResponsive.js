@@ -164,7 +164,7 @@ export default function InvitationsListResponsive({ organizationId }) {
       content:
         "Esta acción no se puede deshacer. El enlace dejará de funcionar inmediatamente.",
       okText: "Eliminar",
-      okType: "danger",
+      okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
         const result = await deleteGeneralInviteLink(organizationId, linkId);
@@ -299,7 +299,7 @@ export default function InvitationsListResponsive({ organizationId }) {
     return (
       <Card>
         <div className="flex justify-center py-8">
-          <Space direction="vertical" align="center">
+          <Space orientation="vertical" align="center">
             <Spin size="large" />
             <Text type="secondary">Cargando invitaciones...</Text>
           </Space>
@@ -312,7 +312,7 @@ export default function InvitationsListResponsive({ organizationId }) {
     return (
       <Card>
         <Alert
-          message="Error"
+          title="Error"
           description={error.message || "Error al cargar las invitaciones."}
           type="error"
           showIcon
@@ -334,14 +334,14 @@ export default function InvitationsListResponsive({ organizationId }) {
   // Mobile: Card layout
   if (isMobile) {
     return (
-      <Space direction="vertical" size="large" className="w-full">
+      <Space orientation="vertical" size="large" className="w-full">
         {/* Active General Invite Links Section */}
         {activeLinks.length > 0 && (
           <Card
             title="Enlaces de Invitación Activos"
             className="border-blue-200 bg-blue-50/50"
           >
-            <Space direction="vertical" size="small" className="w-full">
+            <Space orientation="vertical" size="small" className="w-full">
               {activeLinks.map((link) => (
                 <Card
                   key={link.id}
@@ -408,7 +408,7 @@ export default function InvitationsListResponsive({ organizationId }) {
             title="Pendientes de Aprobación"
             className="border-orange-200 bg-orange-50/50"
           >
-            <Space direction="vertical" size="middle" className="w-full">
+            <Space orientation="vertical" size="middle" className="w-full">
               {pendingApprovalInvitations.map((invitation) => (
                 <Card
                   key={invitation.id}
@@ -416,7 +416,7 @@ export default function InvitationsListResponsive({ organizationId }) {
                   className="shadow-sm"
                   styles={{ body: { padding: "16px" } }}
                 >
-                  <Space direction="vertical" size="small" className="w-full">
+                  <Space orientation="vertical" size="small" className="w-full">
                     <div className="flex items-center justify-between">
                       <Space>
                         <RiMailLine className="text-gray-500 text-lg" />
@@ -454,7 +454,7 @@ export default function InvitationsListResponsive({ organizationId }) {
 
                     <Divider className="my-2" />
 
-                    <Space className="w-full" direction="vertical" size="small">
+                    <Space className="w-full" orientation="vertical" size="small">
                       <Button
                         type="primary"
                         icon={<RiCheckLine />}
@@ -506,7 +506,7 @@ export default function InvitationsListResponsive({ organizationId }) {
                 : "No hay invitaciones pendientes o pendientes de aprobación."}
             </Paragraph>
           ) : (
-            <Space direction="vertical" size="middle" className="w-full">
+            <Space orientation="vertical" size="middle" className="w-full">
               {filteredInvitations.map((invitation) => (
               <Card
                 key={invitation.id}
@@ -514,7 +514,7 @@ export default function InvitationsListResponsive({ organizationId }) {
                 className="shadow-sm"
                 styles={{ body: { padding: "16px" } }}
               >
-                <Space direction="vertical" size="small" className="w-full">
+                <Space orientation="vertical" size="small" className="w-full">
                   <div className="flex items-center justify-between">
                     <Space>
                       <RiMailLine className="text-gray-500 text-lg" />
@@ -592,7 +592,7 @@ export default function InvitationsListResponsive({ organizationId }) {
                   {invitation.status === "pending_approval" && (
                     <>
                       <Divider className="my-2" />
-                      <Space className="w-full" direction="vertical" size="small">
+                      <Space className="w-full" orientation="vertical" size="small">
                         <Button
                           type="primary"
                           icon={<RiCheckLine />}
@@ -628,7 +628,7 @@ export default function InvitationsListResponsive({ organizationId }) {
 
   // Desktop: Table layout
   return (
-    <Space direction="vertical" size="large" className="w-full">
+    <Space orientation="vertical" size="large" className="w-full">
       {/* Active General Invite Links Section */}
       {activeLinks.length > 0 && (
         <Card

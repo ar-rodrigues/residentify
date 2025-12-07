@@ -502,7 +502,7 @@ export default function ActiveLinkCard({
         {/* Arrival Notification - Show when QR code is validated */}
         {qrCode?.is_used === true && qrCode?.validated_at && (
           <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg">
-            <Space direction="vertical" size="small" className="w-full">
+            <Space orientation="vertical" size="small" className="w-full">
               <div className="flex items-center gap-2">
                 <RiCheckboxCircleLine className="text-green-500 text-xl flex-shrink-0" />
                 <Text strong className="text-green-700 text-sm">

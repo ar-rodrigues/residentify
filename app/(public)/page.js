@@ -30,7 +30,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Space direction="vertical" align="center" size="large">
+        <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph className="text-gray-600">Cargando...</Paragraph>
         </Space>
@@ -67,7 +67,7 @@ export default function HomePage() {
       <Layout.Content className="p-8">
         <div className="max-w-6xl mx-auto">
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="large"
             className="w-full mb-16 text-center"
           >
@@ -101,7 +101,7 @@ export default function HomePage() {
                   border: "2px solid #dbeafe",
                 }}
               >
-                <Space direction="vertical" size="large" className="w-full">
+                <Space orientation="vertical" size="large" className="w-full">
                   <RiRocketLine className="text-5xl text-blue-600 mx-auto" />
                   <Title level={4} className="!mb-0">
                     Control de Acceso
@@ -124,7 +124,7 @@ export default function HomePage() {
                   border: "2px solid #dcfce7",
                 }}
               >
-                <Space direction="vertical" size="large" className="w-full">
+                <Space orientation="vertical" size="large" className="w-full">
                   <RiCodeLine className="text-5xl text-green-600 mx-auto" />
                   <Title level={4} className="!mb-0">
                     Gestión de Visitantes
@@ -147,7 +147,7 @@ export default function HomePage() {
                   border: "2px solid #f3e8ff",
                 }}
               >
-                <Space direction="vertical" size="large" className="w-full">
+                <Space orientation="vertical" size="large" className="w-full">
                   <RiSettingsLine className="text-5xl text-purple-600 mx-auto" />
                   <Title level={4} className="!mb-0">
                     Seguridad Avanzada
@@ -162,7 +162,7 @@ export default function HomePage() {
           </Row>
 
           <Card className="text-center bg-gray-50">
-            <Space direction="vertical" size="middle" className="w-full">
+            <Space orientation="vertical" size="middle" className="w-full">
               <Title level={2}>
                 ¿Listo para mejorar la seguridad de tu edificio?
               </Title>

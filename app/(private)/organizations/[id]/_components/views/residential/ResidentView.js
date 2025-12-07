@@ -171,7 +171,7 @@ export default function ResidentView({ organizationId }) {
   return (
     <div className="w-full">
       <Card className="w-full">
-        <Space direction="vertical" size="large" className="w-full">
+        <Space orientation="vertical" size="large" className="w-full">
           <div>
             <Title level={4} className="mb-2 break-words">
               Invitaciones

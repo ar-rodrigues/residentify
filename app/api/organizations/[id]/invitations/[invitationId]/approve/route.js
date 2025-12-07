@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { validateUUID } from "@/utils/validation/uuid";
 import { sendApprovalEmail } from "@/utils/mailer/mailer";
 import { getBaseUrlFromHeaders } from "@/utils/config/app";
 
@@ -28,25 +29,27 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Validate organization ID
-    if (!id || typeof id !== "string") {
+    // Validate organization ID (UUID format)
+    const orgValidation = validateUUID(id, "organización");
+    if (orgValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de organización inválido.",
+          error: orgValidation.error,
+          message: orgValidation.message,
         },
-        { status: 400 }
+        { status: orgValidation.status }
       );
     }
 
-    // Validate invitation ID
-    if (!invitationId || typeof invitationId !== "string") {
+    // Validate invitation ID (UUID format)
+    const invValidation = validateUUID(invitationId, "invitación");
+    if (invValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de invitación inválido.",
+          error: invValidation.error,
+          message: invValidation.message,
         },
-        { status: 400 }
+        { status: invValidation.status }
       );
     }
 

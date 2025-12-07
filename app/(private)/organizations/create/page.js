@@ -43,7 +43,7 @@ export default function CreateOrganizationPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <Card className="shadow-lg">
-          <Space direction="vertical" size="large" className="w-full">
+          <Space orientation="vertical" size="large" className="w-full">
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <RiBuildingLine className="text-4xl text-blue-600" />
@@ -58,7 +58,7 @@ export default function CreateOrganizationPage() {
 
             {errorMessage && (
               <Alert
-                message="Error"
+                title="Error"
                 description={errorMessage}
                 type="error"
                 showIcon
@@ -69,7 +69,7 @@ export default function CreateOrganizationPage() {
 
             {successMessage && (
               <Alert
-                message="Éxito"
+                title="Éxito"
                 description={successMessage}
                 type="success"
                 showIcon
@@ -131,9 +131,9 @@ export default function CreateOrganizationPage() {
                       "No hay tipos disponibles"
                     )
                   }
-                >
-                  {types.map((type) => (
-                    <Select.Option key={type.id} value={type.id}>
+                  options={types.map((type) => ({
+                    value: type.id,
+                    label: (
                       <div>
                         <div className="font-medium">{type.name}</div>
                         {type.description && (
@@ -142,9 +142,9 @@ export default function CreateOrganizationPage() {
                           </div>
                         )}
                       </div>
-                    </Select.Option>
-                  ))}
-                </Select>
+                    ),
+                  }))}
+                />
               </Form.Item>
 
               <Form.Item>

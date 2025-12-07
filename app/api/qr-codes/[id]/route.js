@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * GET /api/qr-codes/[id]
@@ -26,14 +27,15 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Validate QR code ID
-    if (!id || typeof id !== "string") {
+    // Validate QR code ID (UUID format)
+    const uuidValidation = validateUUID(id, "código QR");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de código QR inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 
@@ -45,7 +47,13 @@ export async function GET(request, { params }) {
       .single();
 
     if (fetchError) {
-      console.error("Error fetching QR code:", fetchError);
+      // Log error with better serialization
+      console.error("Error fetching QR code:", {
+        code: fetchError.code,
+        message: fetchError.message,
+        details: fetchError.details,
+        hint: fetchError.hint,
+      });
 
       if (fetchError.code === "PGRST116") {
         return NextResponse.json(
@@ -54,6 +62,16 @@ export async function GET(request, { params }) {
             message: "Código QR no encontrado o no tienes acceso a él.",
           },
           { status: 404 }
+        );
+      }
+
+      if (fetchError.code === "22P02") {
+        return NextResponse.json(
+          {
+            error: true,
+            message: "ID de código QR inválido. El formato del ID no es válido.",
+          },
+          { status: 400 }
         );
       }
 
@@ -121,14 +139,15 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Validate QR code ID
-    if (!id || typeof id !== "string") {
+    // Validate QR code ID (UUID format)
+    const uuidValidation = validateUUID(id, "código QR");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de código QR inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 
@@ -279,14 +298,15 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Validate QR code ID
-    if (!id || typeof id !== "string") {
+    // Validate QR code ID (UUID format)
+    const uuidValidation = validateUUID(id, "código QR");
+    if (uuidValidation) {
       return NextResponse.json(
         {
-          error: true,
-          message: "ID de código QR inválido.",
+          error: uuidValidation.error,
+          message: uuidValidation.message,
         },
-        { status: 400 }
+        { status: uuidValidation.status }
       );
     }
 

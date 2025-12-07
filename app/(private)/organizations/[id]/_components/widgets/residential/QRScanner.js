@@ -701,7 +701,7 @@ export default function QRScanner({ onScan, loading = false }) {
     <div className="w-full">
       <Card className="w-full">
         <Space
-          direction="vertical"
+          orientation="vertical"
           size="large"
           className="w-full"
           style={{ width: "100%" }}
@@ -907,7 +907,7 @@ export default function QRScanner({ onScan, loading = false }) {
           {/* Error Display - Only show if not using fallback */}
           {error && !(scanMode === "camera" && !cameraSupported) && (
             <Alert
-              message="Error"
+              title="Error"
               description={error}
               type="error"
               showIcon

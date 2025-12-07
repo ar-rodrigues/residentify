@@ -25,7 +25,7 @@ export default function Error({ error, reset }) {
         }
         extra={
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="middle"
             className="w-full"
             style={{ maxWidth: "400px" }}

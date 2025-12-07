@@ -314,7 +314,7 @@ export default function CameraCapture({ onCapture, onCancel }) {
     <div className="w-full h-full" style={{ height: "100%" }}>
       {error && (
         <Alert
-          message="Error"
+          title="Error"
           description={error}
           type="error"
           showIcon

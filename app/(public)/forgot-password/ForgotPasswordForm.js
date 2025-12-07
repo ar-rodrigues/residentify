@@ -52,7 +52,7 @@ export default function ForgotPasswordForm() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Space
-          direction="vertical"
+          orientation="vertical"
           size="large"
           className="w-full text-center mb-8"
         >
@@ -71,7 +71,7 @@ export default function ForgotPasswordForm() {
         {showSuccess ? (
           <Card>
             <Space
-              direction="vertical"
+              orientation="vertical"
               size="large"
               className="w-full text-center"
             >
@@ -84,7 +84,7 @@ export default function ForgotPasswordForm() {
                 electrónico. Por favor, revisa tu bandeja de entrada y haz clic
                 en el enlace para restablecer tu contraseña.
               </Paragraph>
-              <Space direction="vertical" className="w-full" size="small">
+              <Space orientation="vertical" className="w-full" size="small">
                 <Button
                   type="primary"
                   onClick={() => router.push("/login")}
@@ -112,7 +112,7 @@ export default function ForgotPasswordForm() {
             {/* Error Alert */}
             {errorMessage && (
               <Alert
-                message={errorMessage}
+                title={errorMessage}
                 type="error"
                 showIcon
                 closable

@@ -120,7 +120,7 @@ export default function InvitationsList({ organizationId }) {
     return (
       <Card>
         <div className="flex justify-center py-8">
-          <Space direction="vertical" align="center">
+          <Space orientation="vertical" align="center">
             <Spin size="large" />
             <Text type="secondary">Cargando invitaciones...</Text>
           </Space>
@@ -133,7 +133,7 @@ export default function InvitationsList({ organizationId }) {
     return (
       <Card>
         <Alert
-          message="Error"
+          title="Error"
           description={error.message || "Error al cargar las invitaciones."}
           type="error"
           showIcon

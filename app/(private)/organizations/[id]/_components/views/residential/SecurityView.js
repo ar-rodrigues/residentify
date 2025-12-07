@@ -191,7 +191,7 @@ export default function SecurityView({ organizationId }) {
       children: (
         <div className="w-full">
           <Space
-            direction="vertical"
+            orientation="vertical"
             size="middle"
             className="w-full sm:space-y-4"
           >
@@ -245,7 +245,7 @@ export default function SecurityView({ organizationId }) {
                       transition={{ duration: 1.2, ease: "easeInOut" }}
                     >
                       <Space
-                        direction={
+                        orientation={
                           successMessageSmall ? "horizontal" : "vertical"
                         }
                         size={successMessageSmall ? "small" : "large"}
@@ -321,7 +321,7 @@ export default function SecurityView({ organizationId }) {
                 >
                   <Card className="border-red-500 py-4">
                     <Space
-                      direction="vertical"
+                      orientation="vertical"
                       size="small"
                       className="w-full items-center"
                     >
@@ -397,7 +397,7 @@ export default function SecurityView({ organizationId }) {
                 >
                   <Card className="border-red-500">
                     <Space
-                      direction="vertical"
+                      orientation="vertical"
                       size="large"
                       className="w-full items-center"
                     >
@@ -446,7 +446,7 @@ export default function SecurityView({ organizationId }) {
                 >
                   <Card className="border-orange-500">
                     <Space
-                      direction="vertical"
+                      orientation="vertical"
                       size="large"
                       className="w-full items-center"
                     >
@@ -498,7 +498,11 @@ export default function SecurityView({ organizationId }) {
                   }}
                 >
                   <Card className="border-green-500">
-                    <Space direction="vertical" size="large" className="w-full">
+                    <Space
+                      orientation="vertical"
+                      size="large"
+                      className="w-full"
+                    >
                       <div className="flex items-center gap-3">
                         <RiCheckboxCircleLine className="text-4xl text-green-500" />
                         <div>

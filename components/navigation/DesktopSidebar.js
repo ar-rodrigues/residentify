@@ -9,7 +9,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
-import { Menu, Space, Typography, Button, List, Spin } from "antd";
+import { Menu, Space, Typography, Button, Spin } from "antd";
 import { Sider } from "@/components/ui/Layout";
 import { getPrivateMenu } from "@/utils/config/app";
 
@@ -151,12 +151,11 @@ export default function DesktopSidebar({
                     No tienes organizaciones
                   </Typography.Text>
                 ) : (
-                  <List
-                    size="small"
-                    dataSource={organizations}
-                    renderItem={(org) => (
-                      <List.Item
-                        className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
+                  <div className="space-y-1">
+                    {organizations.map((org) => (
+                      <div
+                        key={org.id}
+                        className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 transition-colors"
                         onClick={() => router.push(`/organizations/${org.id}`)}
                       >
                         <Typography.Text
@@ -171,9 +170,9 @@ export default function DesktopSidebar({
                         >
                           {org.name}
                         </Typography.Text>
-                      </List.Item>
-                    )}
-                  />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </>
             )}

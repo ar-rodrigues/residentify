@@ -298,7 +298,7 @@ export default function SignupPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Space
-          direction="vertical"
+          orientation="vertical"
           size="large"
           className="w-full text-center mb-8"
         >
@@ -317,7 +317,7 @@ export default function SignupPage() {
           {/* Error Alert */}
           {errorMessage && (
             <Alert
-              message={errorMessage}
+              title={errorMessage}
               type="error"
               showIcon
               closable
