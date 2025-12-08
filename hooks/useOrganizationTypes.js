@@ -60,3 +60,4 @@ export function useOrganizationTypes() {
     refetch: fetchTypes,
   };
 }
+
