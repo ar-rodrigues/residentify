@@ -11,7 +11,7 @@ export const getInvitationEmailTemplate = async (
     "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
 
   // Load translations based on locale
-  const messages = await import(`../../messages/${locale}.json`);
+  const messages = await import(`../../../messages/${locale}.json`);
   const t = (key) => {
     const keys = key.split(".");
     let value = messages.default;
