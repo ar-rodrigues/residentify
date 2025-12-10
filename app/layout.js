@@ -1,19 +1,13 @@
 import "./globals.css";
 import "antd/dist/reset.css";
-import AntdProvider from "@/components/providers/AntdProvider";
 
+// Root layout - locale-specific layout is in app/[locale]/layout.js
+// This is required by Next.js but the actual rendering happens in [locale]/layout.js
 export const metadata = {
   title: "Residentify",
-  description:
-    "Un proyecto completo y listo para usar con Next.js 15, Tailwind CSS 4 y autenticación",
+  description: "Sistema de control de acceso para edificios residenciales",
 };
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="es" suppressHydrationWarning>
-      <body>
-        <AntdProvider>{children}</AntdProvider>
-      </body>
-    </html>
-  );
+  return children;
 }

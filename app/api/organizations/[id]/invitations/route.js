@@ -243,6 +243,8 @@ export async function POST(request, { params }) {
     const invitationLink = `${baseUrl}/invitations/${token}`;
 
     // Send invitation email (non-blocking - don't fail if email fails)
+    // TODO: Get locale from user preferences or Accept-Language header
+    const locale = "es"; // Default to Spanish, can be enhanced to detect from user preferences
     try {
       await sendInvitationEmail(
         email.trim(),
@@ -251,7 +253,8 @@ export async function POST(request, { params }) {
         organization.name,
         orgRole.name,
         inviterName,
-        invitationLink
+        invitationLink,
+        locale
       );
       console.log("Invitation email sent successfully to:", email);
     } catch (emailError) {

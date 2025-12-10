@@ -2,11 +2,19 @@
 
 import { ConfigProvider, App } from "antd";
 import esES from "antd/locale/es_ES";
+import ptBR from "antd/locale/pt_BR";
 
-export default function AntdProvider({ children }) {
+const localeMap = {
+  es: esES,
+  pt: ptBR,
+};
+
+export default function AntdProvider({ children, locale = "es" }) {
+  const antdLocale = localeMap[locale] || esES;
+
   return (
     <ConfigProvider
-      locale={esES}
+      locale={antdLocale}
       theme={{
         token: {
           colorPrimary: "#2563eb", // blue-600

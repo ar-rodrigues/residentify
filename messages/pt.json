@@ -1,0 +1,903 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "errorTitle": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "confirm": "Confirmar",
+    "close": "Fechar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "actions": "Ações",
+    "retry": "Tentar novamente",
+    "noData": "Não há dados disponíveis",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "at": "às",
+    "redirecting": "Redirecionando..."
+  },
+  "auth": {
+    "login": {
+      "title": "Entrar",
+      "subtitle": "Sistema de controle de acesso para edifícios residenciais. Gerencie visitantes com códigos QR seguros.",
+      "email": "Email",
+      "password": "Senha",
+      "forgotPassword": "Esqueceu sua senha?",
+      "noAccount": "Não tem uma conta?",
+      "createAccount": "Criar conta",
+      "button": "Entrar",
+      "success": {
+        "title": "Conta Criada com Sucesso!",
+        "message": "Enviamos um link de confirmação para seu email. Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.",
+        "backToHome": "Voltar ao Início",
+        "backToLogin": "Voltar ao Login"
+      },
+      "passwordResetSuccess": {
+        "title": "Senha redefinida com sucesso",
+        "message": "Sua senha foi redefinida. Agora você pode entrar com sua nova senha."
+      },
+      "errors": {
+        "emailRequired": "Por favor, insira seu email",
+        "emailInvalid": "Por favor, insira um email válido",
+        "passwordRequired": "Por favor, insira sua senha",
+        "passwordMinLength": "A senha deve ter pelo menos 6 caracteres",
+        "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+      }
+    },
+    "signup": {
+      "title": "Criar Conta",
+      "subtitle": "Preencha o formulário para criar sua conta",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "dateOfBirth": "Data de Nascimento",
+      "email": "Email",
+      "password": "Senha",
+      "confirmPassword": "Confirmar Senha",
+      "button": "Criar Conta",
+      "hasAccount": "Já tem uma conta?",
+      "login": "Entre",
+      "terms": "Ao criar uma conta, você aceita nossos termos e condições",
+      "errors": {
+        "firstNameRequired": "Por favor, insira seu nome",
+        "firstNameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "lastNameRequired": "Por favor, insira seu sobrenome",
+        "lastNameMinLength": "O sobrenome deve ter pelo menos 2 caracteres",
+        "dateOfBirthRequired": "Por favor, insira sua data de nascimento",
+        "emailRequired": "Por favor, insira seu email",
+        "emailInvalid": "Por favor, insira um email válido",
+        "passwordRequired": "Por favor, insira sua senha",
+        "passwordMinLength": "A senha deve ter pelo menos 6 caracteres",
+        "confirmPasswordRequired": "Por favor, confirme sua senha",
+        "passwordsMismatch": "As senhas não coincidem",
+        "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+      }
+    },
+    "forgotPassword": {
+      "title": "Recuperar Senha",
+      "subtitle": "Recupere sua senha inserindo seu endereço de email",
+      "email": "Email",
+      "button": "Enviar Link de Redefinição",
+      "rememberPassword": "Lembrou sua senha?",
+      "backToLogin": "Voltar ao Login",
+      "success": {
+        "title": "Link Enviado!",
+        "message": "Um link de redefinição foi enviado para seu email. Por favor, verifique sua caixa de entrada e clique no link para redefinir sua senha.",
+        "backToLogin": "Voltar ao Login",
+        "sendAnother": "Enviar Outro Link"
+      },
+      "errors": {
+        "emailRequired": "Por favor, insira seu endereço de email",
+        "emailInvalid": "Por favor, insira um email válido",
+        "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+      }
+    },
+    "resetPassword": {
+      "title": "Definir Nova Senha",
+      "subtitle": "Insira sua nova senha. Certifique-se de que seja segura e fácil de lembrar.",
+      "password": "Nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "button": "Redefinir Senha",
+      "backToLogin": "Voltar ao Login",
+      "success": {
+        "title": "Senha Redefinida!",
+        "message": "Sua senha foi redefinida com sucesso. Agora você pode entrar com sua nova senha.",
+        "redirecting": "Você será redirecionado para o login em alguns segundos..."
+      },
+      "errors": {
+        "passwordRequired": "Por favor, insira sua nova senha",
+        "passwordMinLength": "A senha deve ter pelo menos 6 caracteres",
+        "confirmPasswordRequired": "Por favor, confirme sua senha",
+        "passwordsMismatch": "As senhas não coincidem",
+        "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+      }
+    }
+  },
+  "home": {
+    "title": "Residentify",
+    "subtitle": "Sistema de controle de acesso para edifícios residenciais. Gerencie residentes, equipe de segurança e visitantes com códigos QR.",
+    "goToDashboard": "Ir para o Painel",
+    "login": "Entrar",
+    "getStarted": "Começar Agora",
+    "features": {
+      "accessControl": {
+        "title": "Controle de Acesso",
+        "description": "Gerencie o acesso de visitantes com códigos QR seguros e validação em tempo real"
+      },
+      "visitorManagement": {
+        "title": "Gestão de Visitantes",
+        "description": "Os residentes podem gerar códigos QR para seus visitantes de forma rápida e fácil"
+      },
+      "security": {
+        "title": "Segurança Avançada",
+        "description": "Registro completo de acessos, funções por organização e validação segura de códigos QR"
+      }
+    },
+    "cta": {
+      "title": "Pronto para melhorar a segurança do seu edifício?",
+      "description": "O Residentify oferece uma solução completa de controle de acesso para gerenciar visitantes de forma segura e eficiente",
+      "button": "Criar Conta Grátis"
+    },
+    "footer": "© 2024 Residentify. Todos os direitos reservados."
+  },
+  "organizations": {
+    "title": "Minhas Organizações",
+    "subtitle": "Selecione uma organização para gerenciá-la",
+    "create": "Criar Organização",
+    "loading": "Carregando organizações...",
+    "header": {
+      "createNew": "Criar Nova Organização",
+      "change": "Alterar",
+      "changeOrganization": "Alterar Organização"
+    },
+    "empty": {
+      "title": "Você não tem organizações",
+      "description": "Crie sua primeira organização para começar a gerenciar acessos e membros",
+      "button": "Criar Organização"
+    },
+    "error": {
+      "message": "Erro ao carregar as organizações. Por favor, tente novamente.",
+      "retry": "Tentar novamente"
+    },
+    "card": {
+      "created": "Criada:",
+      "viewDetails": "Ver detalhes",
+      "pendingApproval": "Solicitação pendente de aprovação"
+    },
+    "create": {
+      "title": "Criar Organização",
+      "subtitle": "Crie uma nova organização para gerenciar acessos e membros",
+      "name": "Nome da organização",
+      "type": "Tipo de Organização",
+      "typePlaceholder": "Selecione o tipo de organização",
+      "button": "Criar Organização",
+      "errors": {
+        "nameRequired": "Por favor, insira o nome da organização",
+        "nameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "nameMaxLength": "O nome não pode ter mais de 100 caracteres",
+        "nameWhitespace": "O nome não pode estar vazio",
+        "typeRequired": "Por favor, selecione um tipo de organização",
+        "noTypesAvailable": "Não há tipos disponíveis"
+      }
+    },
+    "notFound": {
+      "title": "Organização Não Encontrada",
+      "message": "Desculpe, a organização que você está procurando não existe ou você não tem acesso a ela."
+    },
+    "invite": {
+      "title": "Convidar Usuário",
+      "subtitle": "Convide um novo usuário para se juntar à organização",
+      "subtitleFallback": "Convide um novo usuário para se juntar à organização",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "email": "Email",
+      "emailPlaceholder": "email@exemplo.com",
+      "role": "Função",
+      "rolePlaceholder": "Selecione uma função",
+      "rolePlaceholderFallback": "Selecione uma função",
+      "description": "Descrição (Opcional)",
+      "descriptionPlaceholder": "Descrição do usuário (opcional)",
+      "button": "Enviar Convite",
+      "roles": {
+        "admin": "Administrador",
+        "resident": "Residente",
+        "security": "Equipe de Segurança"
+      },
+      "errors": {
+        "firstNameRequired": "Por favor, insira o nome",
+        "firstNameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "firstNameMaxLength": "O nome não pode ter mais de 100 caracteres",
+        "lastNameRequired": "Por favor, insira o sobrenome",
+        "lastNameMinLength": "O sobrenome deve ter pelo menos 2 caracteres",
+        "lastNameMaxLength": "O sobrenome não pode ter mais de 100 caracteres",
+        "emailRequired": "Por favor, insira o email",
+        "emailInvalid": "Por favor, insira um email válido",
+        "roleRequired": "Por favor, selecione uma função",
+        "accessDenied": "Você não tem permissão para convidar usuários. Apenas administradores podem convidar usuários.",
+        "accessDeniedTitle": "Acesso Negado",
+        "loadRolesError": "Erro ao carregar as funções da organização.",
+        "descriptionMaxLength": "A descrição não pode ter mais de 500 caracteres"
+      }
+    },
+    "typeRouter": {
+      "infoTitle": "Informação",
+      "errors": {
+        "cannotDetermineTypeOrRole": "Não foi possível determinar o tipo de organização ou sua função.",
+        "cannotDetermineType": "Não foi possível determinar o tipo de organização.",
+        "noRoleAssigned": "Você não tem uma função atribuída nesta organização.",
+        "unknownType": "Tipo de organização não reconhecido: {type}",
+        "unknownResidentialRole": "Função não reconhecida para organizações residenciais: {role}"
+      }
+    },
+    "members": {
+      "title": "Membros",
+      "loading": "Carregando membros...",
+      "error": "Erro ao carregar os membros.",
+      "empty": "Não há membros nesta organização.",
+      "columns": {
+        "name": "Nome",
+        "role": "Função",
+        "joinedAt": "Data de Entrada",
+        "invitedBy": "Convidado por",
+        "actions": "Ações"
+      },
+      "actions": {
+        "delete": "Excluir",
+        "changeRole": "Alterar função",
+        "deleteMember": "Excluir membro"
+      },
+      "labels": {
+        "joined": "Entrada:",
+        "invitedBy": "Convidado por:",
+        "fromGeneralLink": "Convidado por link geral"
+      },
+      "modals": {
+        "deleteTitle": "Excluir membro?",
+        "deleteContent": "Tem certeza de que deseja excluir {name} da organização?",
+        "deleteOk": "Excluir",
+        "deleteCancel": "Cancelar"
+      },
+      "errors": {
+        "updateRoleError": "Erro inesperado ao atualizar a função.",
+        "deleteError": "Erro inesperado ao excluir o membro."
+      },
+      "pagination": {
+        "total": "Total: {total} membros"
+      },
+      "roles": {
+        "admin": "Administrador",
+        "resident": "Residente",
+        "security": "Pessoal de Segurança"
+      }
+    },
+    "invitations": {
+      "title": "Convites",
+      "loading": "Carregando convites...",
+      "error": "Erro ao carregar os convites.",
+      "empty": "Não há convites para esta organização.",
+      "emptyPending": "Não há convites pendentes ou aguardando aprovação.",
+      "columns": {
+        "email": "Email",
+        "name": "Nome",
+        "role": "Função",
+        "status": "Status",
+        "expires": "Expira",
+        "invitedBy": "Convidado por",
+        "createdAt": "Data de Criação",
+        "actions": "Ações"
+      },
+      "status": {
+        "pending": "Pendente",
+        "pendingApproval": "Aguardando Aprovação",
+        "accepted": "Aceito",
+        "cancelled": "Cancelado",
+        "rejected": "Rejeitado",
+        "expired": "Expirado"
+      },
+      "actions": {
+        "approve": "Aprovar",
+        "reject": "Rejeitar"
+      },
+      "labels": {
+        "role": "Função:",
+        "expires": "Expira:",
+        "invitedBy": "Convidado por:",
+        "createdAt": "Data de Criação:"
+      },
+      "filters": {
+        "showAll": "Mostrar todos",
+        "onlyPending": "Apenas pendentes",
+        "showAllLabel": "Mostrar todos",
+        "onlyPendingLabel": "Apenas pendentes"
+      },
+      "pagination": {
+        "total": "Total: {total} convites"
+      },
+      "generalLinks": {
+        "title": "Links de Convite Ativos",
+        "requiresApproval": "Requer Aprovação",
+        "uses": "Usos:",
+        "daysLeft": "{days} {days, plural, one {dia} other {dias}} restantes",
+        "copy": "Copiar",
+        "copied": "Copiado",
+        "delete": "Excluir",
+        "deleteTitle": "Excluir link de convite?",
+        "deleteContent": "Esta ação não pode ser desfeita. O link deixará de funcionar imediatamente.",
+        "deleteOk": "Excluir",
+        "deleteCancel": "Cancelar",
+        "copySuccess": "Link copiado para a área de transferência",
+        "copyError": "Erro ao copiar o link"
+      },
+      "pendingApproval": {
+        "title": "Aguardando Aprovação"
+      }
+    },
+    "addMember": {
+      "ariaLabel": "Adicionar membro",
+      "modalTitle": "Adicionar Membro",
+      "createLinkTitle": "Criar Link de Convite",
+      "inviteUser": "Convidar Usuário",
+      "createLink": "Criar Link de Convite"
+    },
+    "edit": {
+      "title": "Editar Organização",
+      "subtitle": "Atualize as informações da sua organização",
+      "loading": "Carregando organização...",
+      "nameLabel": "Nome",
+      "namePlaceholder": "Nome da organização",
+      "saveButton": "Salvar Alterações",
+      "cancelButton": "Cancelar",
+      "backToOrganizations": "Voltar para Organizações",
+      "backToOrganization": "Voltar para a Organização",
+      "errors": {
+        "loadError": "Não foi possível carregar a organização.",
+        "accessDenied": "Apenas administradores podem editar organizações.",
+        "accessDeniedTitle": "Acesso Negado",
+        "nameRequired": "Por favor, insira o nome da organização",
+        "nameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "nameMaxLength": "O nome não pode ter mais de 100 caracteres",
+        "nameWhitespace": "O nome não pode estar vazio"
+      }
+    },
+    "generalInviteLinks": {
+      "title": "Links de Convite Gerais",
+      "createTitle": "Criar Novo Link de Convite",
+      "loading": "Carregando links de convite...",
+      "error": "Erro ao carregar os links de convite.",
+      "empty": "Não há links de convite criados. Crie um novo acima.",
+      "form": {
+        "role": "Função",
+        "rolePlaceholder": "Selecione uma função",
+        "roleRequired": "Por favor, selecione uma função",
+        "requiresApproval": "Requer Aprovação",
+        "expiresAt": "Data de Expiração (Opcional)",
+        "expiresAtPlaceholder": "Selecione uma data (opcional)",
+        "createButton": "Criar Link",
+        "yes": "Sim",
+        "no": "Não"
+      },
+      "labels": {
+        "requiresApproval": "Requer Aprovação:",
+        "expires": "Expira:",
+        "uses": "Usos:",
+        "created": "Criado:",
+        "expired": "Expirado"
+      },
+      "actions": {
+        "copy": "Copiar",
+        "copyLink": "Copiar Link",
+        "copied": "Copiado",
+        "delete": "Excluir"
+      },
+      "errors": {
+        "loadRolesError": "Erro ao carregar as funções da organização.",
+        "copyError": "Erro ao copiar o link"
+      }
+    },
+    "accessHistory": {
+      "title": "Histórico de Acesso",
+      "loading": "Carregando histórico...",
+      "error": "Erro inesperado ao obter o histórico de acesso.",
+      "empty": "Não há registros de acesso ainda",
+      "labels": {
+        "visitor": "Visitante:",
+        "scannedBy": "Escaneado por:",
+        "identifier": "Identificador:",
+        "notes": "Notas:"
+      },
+      "entryTypes": {
+        "entry": "Entrada",
+        "exit": "Saída"
+      },
+      "count": {
+        "single": "{count} registro",
+        "plural": "{count} registros"
+      }
+    },
+    "pendingCodes": {
+      "title": "Códigos QR Pendentes",
+      "loading": "Carregando códigos QR pendentes...",
+      "error": "Erro ao obter os códigos QR pendentes.",
+      "errorUnexpected": "Erro inesperado ao obter os códigos QR pendentes.",
+      "empty": "Não há códigos QR pendentes de validação",
+      "labels": {
+        "createdBy": "Criado por:",
+        "created": "Criado:",
+        "expires": "Expira:",
+        "noIdentifier": "Sem identificador",
+        "unknown": "Desconhecido"
+      },
+      "count": {
+        "single": "{count} código",
+        "plural": "{count} códigos"
+      }
+    }
+  },
+  "navigation": {
+    "organizations": "Organizações",
+    "profile": "Meu Perfil",
+    "create": "Criar",
+    "createOrganization": "Criar Organização",
+    "noOrganizations": "Você não tem organizações",
+    "logout": "Sair"
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "subtitle": "Gerencie suas informações pessoais e configurações da conta",
+    "loading": "Carregando perfil...",
+    "tabs": {
+      "profile": "Informações do Perfil",
+      "password": "Alterar Senha",
+      "email": "Alterar Email"
+    },
+    "info": {
+      "title": "Meu Perfil",
+      "subtitle": "Informações da sua conta",
+      "email": "Email",
+      "userId": "ID do Usuário",
+      "memberSince": "Membro desde",
+      "lastAccess": "Último acesso"
+    },
+    "password": {
+      "title": "Alterar Senha",
+      "subtitle": "Digite sua senha atual e escolha uma nova senha segura",
+      "currentPassword": "Senha Atual",
+      "currentPasswordPlaceholder": "Senha atual",
+      "currentPasswordRequired": "Por favor, insira sua senha atual",
+      "newPassword": "Nova Senha",
+      "newPasswordPlaceholder": "Nova senha",
+      "newPasswordRequired": "Por favor, insira sua nova senha",
+      "newPasswordMinLength": "A senha deve ter pelo menos 6 caracteres",
+      "confirmPassword": "Confirmar Nova Senha",
+      "confirmPasswordPlaceholder": "Confirmar nova senha",
+      "confirmPasswordRequired": "Por favor, confirme sua nova senha",
+      "passwordsMismatch": "As senhas não coincidem",
+      "button": "Alterar Senha",
+      "success": {
+        "title": "Senha atualizada com sucesso!",
+        "description": "Sua senha foi alterada corretamente."
+      },
+      "errors": {
+        "currentPasswordRequired": "Por favor, insira sua senha atual.",
+        "newPasswordRequired": "Por favor, insira sua nova senha.",
+        "confirmPasswordRequired": "Por favor, confirme sua nova senha.",
+        "passwordMinLength": "A nova senha deve ter pelo menos 6 caracteres.",
+        "passwordsMismatch": "As senhas não coincidem.",
+        "noActiveSession": "Não há uma sessão ativa. Por favor, faça login novamente.",
+        "cannotGetEmail": "Não foi possível obter seu email. Por favor, entre em contato com o suporte.",
+        "passwordSameAsCurrent": "A nova senha deve ser diferente da atual.",
+        "currentPasswordIncorrect": "A senha atual não está correta. Por favor, verifique e tente novamente.",
+        "userNotFound": "Sua conta não foi encontrada. Por favor, entre em contato com o suporte.",
+        "tooManyAttempts": "Muitas tentativas. Por favor, aguarde alguns minutos antes de tentar novamente.",
+        "genericError": "Ocorreu um erro ao alterar a senha. Por favor, tente novamente."
+      },
+      "successMessage": "Senha atualizada com sucesso."
+    },
+    "email": {
+      "title": "Alterar Email",
+      "subtitle": "Digite sua senha atual e seu novo email. Você receberá um email de confirmação.",
+      "currentPassword": "Senha Atual",
+      "currentPasswordPlaceholder": "Senha atual",
+      "currentPasswordRequired": "Por favor, insira sua senha atual",
+      "newEmail": "Novo Email",
+      "newEmailPlaceholder": "Novo email",
+      "newEmailRequired": "Por favor, insira seu novo email",
+      "newEmailInvalid": "Por favor, insira um email válido",
+      "confirmEmail": "Confirmar Novo Email",
+      "confirmEmailPlaceholder": "Confirmar novo email",
+      "confirmEmailRequired": "Por favor, confirme seu novo email",
+      "confirmEmailInvalid": "Por favor, insira um email válido",
+      "emailsMismatch": "Os emails não coincidem",
+      "button": "Alterar Email",
+      "info": {
+        "title": "Importante",
+        "description": "Um email de confirmação será enviado para seu novo email. Você deve verificar o email para concluir a alteração."
+      },
+      "success": {
+        "title": "Email de confirmação enviado!",
+        "description": "Um email de confirmação foi enviado para seu novo email. Por favor, verifique seu email para concluir a alteração."
+      },
+      "errors": {
+        "currentPasswordRequired": "Por favor, insira sua senha atual.",
+        "newEmailRequired": "Por favor, insira seu novo email.",
+        "confirmEmailRequired": "Por favor, confirme seu novo email.",
+        "invalidEmail": "Por favor, insira um email válido.",
+        "emailsMismatch": "Os emails não coincidem.",
+        "noActiveSession": "Não há uma sessão ativa. Por favor, faça login novamente.",
+        "cannotGetEmail": "Não foi possível obter seu email. Por favor, entre em contato com o suporte.",
+        "emailSameAsCurrent": "O novo email deve ser diferente do atual.",
+        "currentPasswordIncorrect": "A senha atual não está correta. Por favor, verifique e tente novamente.",
+        "emailAlreadyRegistered": "Este email já está registrado. Por favor, use outro email.",
+        "userNotFound": "Sua conta não foi encontrada. Por favor, entre em contato com o suporte.",
+        "tooManyAttempts": "Muitas tentativas. Por favor, aguarde alguns minutos antes de tentar novamente.",
+        "rateLimit": "Por segurança, você só pode solicitar uma alteração de email a cada 60 segundos. Por favor, aguarde um momento.",
+        "genericError": "Ocorreu um erro ao alterar o email. Por favor, tente novamente."
+      },
+      "successMessage": "Um email de confirmação foi enviado para seu novo email. Por favor, verifique seu email para concluir a alteração."
+    },
+    "errors": {
+      "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+    }
+  },
+  "qrCodes": {
+    "validation": {
+      "title": "Validar e Registrar Acesso",
+      "visitorName": "Nome do Visitante",
+      "visitorNamePlaceholder": "Nome completo do visitante",
+      "visitorId": "Número do Documento",
+      "visitorIdHelp": "Opcional: Forneça o número do documento ou envie uma foto do documento",
+      "visitorIdPlaceholder": "Número do documento (opcional)",
+      "documentPhoto": "Foto do Documento",
+      "documentPhotoHelp": "Opcional: Envie uma foto do documento de identidade do visitante",
+      "notes": "Notas",
+      "notesPlaceholder": "Notas adicionais sobre o acesso (opcional)",
+      "previewAlt": "Visualização",
+      "cancel": "Cancelar",
+      "submit": "Validar e Registrar Acesso",
+      "mode": "Modo",
+      "camera": "Câmera",
+      "file": "Arquivo",
+      "takePhoto": "Tirar foto",
+      "uploadPhoto": "Enviar foto",
+      "takeDocumentPhoto": "Tirar Foto do Documento",
+      "errors": {
+        "visitorNameRequired": "O nome do visitante é obrigatório",
+        "visitorNameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "visitorIdMinLength": "O número do documento deve ter pelo menos 3 caracteres",
+        "documentOrIdRequired": "Você deve fornecer o número do documento ou uma foto do documento",
+        "notesMaxLength": "As notas não podem ter mais de 500 caracteres"
+      }
+    },
+    "scanner": {
+      "title": "Escanear Código QR",
+      "instructions": "Aponte a câmera para o código QR",
+      "loading": "Carregando scanner...",
+      "error": "Erro ao carregar o scanner",
+      "usingPhoneCamera": "Usando câmera do telefone como alternativa",
+      "startError": "Erro ao iniciar o scanner. Você pode usar a câmera do seu telefone ou o modo manual.",
+      "startErrorTitle": "Erro ao iniciar o scanner",
+      "tokenRequired": "Por favor, insira um token",
+      "processingImage": "Processando imagem...",
+      "noQRDetected": "Não foi possível detectar um código QR na imagem. Por favor, tente com outra imagem ou use o modo manual.",
+      "noQRDetectedTitle": "Código QR não detectado",
+      "processingError": "Erro ao processar a imagem. Por favor, tente novamente.",
+      "processingErrorTitle": "Erro ao processar a imagem",
+      "loadError": "Erro ao carregar a imagem. Por favor, tente com outra imagem.",
+      "scanMode": "Modo de Varredura",
+      "camera": "Câmera",
+      "manual": "Manual",
+      "startScan": "Iniciar Varredura",
+      "stopScan": "Parar Varredura",
+      "manualPlaceholder": "Insira o token do código QR",
+      "search": "Buscar",
+      "capturedImage": "Imagem Capturada",
+      "previewAlt": "Visualização",
+      "cameraNotAvailable": "A câmera do navegador não está disponível. Você pode usar a câmera do seu telefone para tirar uma foto do código QR.",
+      "openCamera": "Abrir Câmera",
+      "tryWithCamera": "Tentar com Câmera"
+    },
+    "chat": {
+      "qrCodeCreated": "Código QR criado",
+      "qrCodeFor": "Código QR para",
+      "expires": "Expira:",
+      "created": "Criado:",
+      "entered": "entrou",
+      "exited": "saiu",
+      "scannedBy": "Escaneado por",
+      "visitor": "Visitante",
+      "entryRegistered": "Entrada registrada",
+      "exitRegistered": "Saída registrada",
+      "notification": "Notificação",
+      "event": "Evento"
+    },
+    "chatTimeline": {
+      "emptyStates": {
+        "noActivity": "Ainda não há atividade",
+        "noQRCodesCreated": "Você não criou códigos QR",
+        "noAccessRecords": "Não há registros de acesso",
+        "noNotifications": "Não há notificações"
+      }
+    },
+    "validationPage": {
+      "loading": "Carregando...",
+      "error": "Erro",
+      "backToOrganization": "Voltar para a Organização",
+      "errors": {
+        "invalidOrganizationId": "ID de organização inválido.",
+        "invalidToken": "Token inválido.",
+        "accessDeniedTitle": "Acesso Negado",
+        "accessDeniedDescription": "Você não tem permissão para validar códigos QR. Você deve ser membro da equipe de segurança da organização."
+      },
+      "success": {
+        "title": "Código QR Validado com Sucesso",
+        "message": "O acesso foi registrado e o código QR foi marcado como usado."
+      },
+      "found": {
+        "title": "Código QR Encontrado",
+        "token": "Token:"
+      }
+    },
+    "card": {
+      "title": "Link de Validação",
+      "visitorInfo": "Informações do Visitante",
+      "visitorName": "Nome",
+      "visitorId": "ID",
+      "details": "Detalhes do Link",
+      "status": "Status:",
+      "validatedAt": "Validado em",
+      "expiresAt": "Expira em",
+      "notSpecified": "Não especificado",
+      "copyLink": "Copiar Link",
+      "copied": "Copiado",
+      "downloadQR": "Baixar QR",
+      "shareQR": "Compartilhar QR",
+      "statuses": {
+        "used": "Usado",
+        "expired": "Expirado",
+        "active": "Ativo"
+      },
+      "errors": {
+        "notAvailableDownload": "O código QR não está disponível para download",
+        "notAvailableShare": "O código QR não está disponível para compartilhar",
+        "downloadError": "Erro ao baixar o código QR",
+        "copyError": "Não foi possível copiar o link",
+        "shareError": "Erro ao compartilhar o código QR",
+        "linkNotReady": "O link ainda não está pronto"
+      },
+      "success": {
+        "downloaded": "Código QR baixado com sucesso",
+        "copied": "Link copiado para a área de transferência",
+        "shared": "Código QR compartilhado com sucesso"
+      },
+      "share": {
+        "title": "Código QR de Validação",
+        "text": "Compartilhe este código QR com o visitante"
+      }
+    },
+    "linkCard": {
+      "title": "Link Gerado",
+      "validationLink": "Link de Validação",
+      "copy": "Copiar"
+    },
+    "activeLinkCard": {
+      "deleteTitle": "Excluir link",
+      "deleteDescription": "Tem certeza de que deseja excluir este link? Esta ação não pode ser desfeita.",
+      "deleteButton": "Excluir",
+      "cancelButton": "Cancelar",
+      "identifierPlaceholder": "Identificador",
+      "editTooltip": "Clique para editar",
+      "processingError": "Erro ao processar o código QR",
+      "shareButton": "Compartilhar",
+      "copiedButton": "Copiado"
+    },
+    "historyLinkCard": {
+      "visitorArrived": "{name} chegou",
+      "visitorArrivedGeneric": "Visitante chegou",
+      "validated": "Validado:",
+      "expired": "Expirado:",
+      "statuses": {
+        "used": "Usado",
+        "expired": "Expirado",
+        "inactive": "Inativo"
+      }
+    },
+    "camera": {
+      "confirmPhoto": "Confirmar foto",
+      "cancel": "Cancelar",
+      "startingCamera": "Iniciando câmera...",
+      "switchCamera": "Trocar câmera",
+      "photoAlt": "Foto capturada",
+      "retakePhoto": "Tirar novamente",
+      "errorTitle": "Erro",
+      "errors": {
+        "cameraNotAvailable": "A câmera não está disponível neste navegador. Por favor, use um navegador moderno.",
+        "secureConnectionRequired": "É necessária uma conexão segura (HTTPS) para acessar a câmera.",
+        "accessError": "Erro ao acessar a câmera.",
+        "permissionDenied": "Permissão negada para acessar a câmera. Por favor, permita o acesso à câmera nas configurações do navegador.",
+        "noCameraFound": "Nenhuma câmera encontrada neste dispositivo.",
+        "cameraInUse": "A câmera está sendo usada por outro aplicativo. Por favor, feche outros aplicativos que possam estar usando a câmera.",
+        "constraintsError": "A câmera não atende aos requisitos. Tentando com configuração alternativa...",
+        "accessFailed": "Não foi possível acessar a câmera com nenhuma configuração."
+      }
+    }
+  },
+  "security": {
+    "view": {
+      "tabs": {
+        "validate": "Validar",
+        "pending": "Pendentes",
+        "history": "Histórico"
+      },
+      "scanQR": "Escanear Código QR",
+      "validationError": "Erro na Validação",
+      "refresh": "Atualizar",
+      "tokenExtractionError": "Não foi possível extrair o token do código QR escaneado.",
+      "processingError": "Erro ao processar o código QR escaneado.",
+      "validationSuccess": "Código QR validado com sucesso.",
+      "validateTitle": "Validar Código QR",
+      "validateSubtitle": "Escaneie ou insira o token do código QR para validar o acesso do visitante",
+      "qrDetected": "Código QR Detectado",
+      "qrScannedSuccessfully": "O código QR foi escaneado corretamente",
+      "visitorInfo": "Informações do Visitante",
+      "scanAnother": "Escanear outro código",
+      "codeAlreadyUsed": "Código já utilizado",
+      "codeAlreadyUsedMessage": "Este código QR já foi validado e utilizado anteriormente.",
+      "validationSuccessTitle": "Validação Bem-sucedida",
+      "conclude": "Concluir"
+    }
+  },
+  "resident": {
+    "view": {
+      "title": "Convites",
+      "subtitle": "Gere convites únicos para que a equipe de segurança valide o acesso de visitantes",
+      "activeInvites": "Convites Ativos",
+      "history": "Histórico",
+      "noActiveInvites": "Você não tem convites ativos",
+      "visitorArrived": "¡{name} chegou!",
+      "visitorArrivedGeneric": "Seu visitante chegou",
+      "invitationGenerated": "Convite gerado com sucesso",
+      "invitationError": "Erro ao gerar o convite",
+      "identifierUpdated": "Identificador atualizado com sucesso",
+      "identifierUpdateError": "Erro ao atualizar o identificador",
+      "generateInviteAriaLabel": "Gerar convite"
+    }
+  },
+  "admin": {
+    "view": {
+      "tabs": {
+        "members": "Membros",
+        "invitations": "Convites"
+      }
+    }
+  },
+  "errors": {
+    "notFound": {
+      "title": "Página Não Encontrada",
+      "message": "Desculpe, a página que você está procurando não existe."
+    },
+    "organizationNotFound": {
+      "title": "Organização Não Encontrada",
+      "message": "Desculpe, a organização que você está procurando não existe ou você não tem acesso a ela.",
+      "backToOrganizations": "Voltar para Organizações"
+    },
+    "unexpected": "Ocorreu um erro inesperado. Por favor, tente novamente.",
+    "loadError": "Erro ao carregar. Por favor, tente novamente."
+  },
+  "apiErrors": {
+    "login": {
+      "invalidCredentials": "Credenciais inválidas. Por favor, verifique seu email e senha.",
+      "emailNotConfirmed": "Por favor, confirme seu email antes de entrar. Verifique sua caixa de entrada.",
+      "tooManyRequests": "Muitas tentativas. Por favor, aguarde alguns minutos antes de tentar novamente.",
+      "userNotFound": "Nenhuma conta encontrada com este email.",
+      "invalidEmail": "O email fornecido não é válido.",
+      "unexpectedError": "Ocorreu um erro ao entrar. Por favor, tente novamente."
+    },
+    "signup": {
+      "userAlreadyRegistered": "Este email já está registrado. Por favor, entre em vez disso.",
+      "passwordMinLength": "A senha deve ter pelo menos 6 caracteres.",
+      "invalidEmail": "O email fornecido não é válido.",
+      "emailRateLimit": "Muitas tentativas. Por favor, aguarde alguns minutos antes de tentar novamente.",
+      "signupDisabled": "O registro está temporariamente desabilitado. Por favor, entre em contato com o administrador.",
+      "unexpectedError": "Ocorreu um erro ao criar a conta. Por favor, tente novamente."
+    },
+    "resetPassword": {
+      "invalidToken": "O token de redefinição não é válido.",
+      "tokenExpired": "O token de redefinição expirou. Por favor, solicite um novo.",
+      "passwordMinLength": "A senha deve ter pelo menos 6 caracteres.",
+      "invalidEmail": "O email fornecido não é válido.",
+      "unexpectedError": "Ocorreu um erro ao redefinir a senha. Por favor, tente novamente."
+    }
+  },
+  "validation": {
+    "required": "Este campo é obrigatório",
+    "email": "Por favor, insira um email válido",
+    "minLength": "Deve ter pelo menos {min} caracteres",
+    "maxLength": "Não pode ter mais de {max} caracteres"
+  },
+  "dates": {
+    "format": "DD/MM/YYYY",
+    "timeFormat": "HH:mm",
+    "todayAt": "Hoje às",
+    "yesterdayAt": "Ontem às",
+    "at": "às",
+    "justNow": "Há um momento",
+    "minuteAgo": "Há 1 minuto",
+    "minutesAgo": "Há {count} minutos",
+    "hourAgo": "Há 1 hora",
+    "hoursAgo": "Há {count} horas",
+    "yesterday": "Ontem",
+    "daysAgo": "Há {count} dias"
+  },
+  "emails": {
+    "invitation": {
+      "title": "Você foi convidado!",
+      "greeting": "Olá",
+      "invitedYou": "convidou você para se juntar à organização",
+      "withRole": "com a função de",
+      "detailsTitle": "Detalhes do Convite",
+      "organization": "Organização",
+      "role": "Função",
+      "invitedBy": "Convidado por",
+      "acceptButton": "Aceitar Convite",
+      "acceptInstructions": "Ao clicar no botão, você será redirecionado para uma página onde poderá completar seu registro e se juntar à organização.",
+      "linkFallback": "Se o botão não funcionar, você pode copiar e colar este link no seu navegador:",
+      "note": "Nota",
+      "expirationNote": "Este convite expirará em 7 dias. Se você não aceitar o convite antes dessa data, precisará solicitar um novo convite.",
+      "ignoreNote": "Se você não esperava este convite, pode ignorar este email.",
+      "companyName": "Sua Organização",
+      "allRightsReserved": "Todos os direitos reservados"
+    },
+    "welcome": {
+      "title": "Bem-vindo(a)!",
+      "greeting": "Olá",
+      "welcomeMessage": "Sua conta foi criada com sucesso.",
+      "credentialsTitle": "Suas Credenciais",
+      "email": "Email",
+      "password": "Senha",
+      "loginButton": "Entrar",
+      "loginInstructions": "Clique no botão para entrar na sua conta.",
+      "changePasswordNote": "Por favor, altere sua senha após entrar pela primeira vez.",
+      "companyName": "Sua Organização",
+      "allRightsReserved": "Todos os direitos reservados"
+    },
+    "approval": {
+      "title": "Solicitação Aprovada",
+      "greeting": "Olá",
+      "approvalMessage": "Sua solicitação para se juntar à organização foi aprovada.",
+      "welcomeTo": "Bem-vindo a",
+      "accessMessage": "Você já pode acessar todas as funcionalidades da organização. Entre na plataforma para começar.",
+      "organizationName": "Organização",
+      "loginButton": "Entrar",
+      "loginInstructions": "Se o botão não funcionar, você pode copiar e colar este link no seu navegador:",
+      "companyName": "Sua Organização",
+      "allRightsReserved": "Todos os direitos reservados"
+    }
+  },
+  "private": {
+    "loading": "Carregando...",
+    "title": "Bem-vindo ao seu projeto!",
+    "subtitle": "Esta é uma página protegida que demonstra a funcionalidade de autenticação",
+    "userInfo": {
+      "title": "Informações do Usuário",
+      "email": "Email:",
+      "memberSince": "Membro desde:",
+      "notAvailable": "N/A"
+    },
+    "quickActions": {
+      "title": "Ações Rápidas",
+      "createProject": "Criar Novo Projeto",
+      "viewSource": "Ver Código Fonte",
+      "settings": "Configurações"
+    },
+    "footer": "Esta página demonstra que a autenticação está funcionando corretamente"
+  }
+}
+

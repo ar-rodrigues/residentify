@@ -7,11 +7,12 @@ import {
   RiAddLine,
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { Menu, Space, Typography, Button, Spin } from "antd";
 import { Sider } from "@/components/ui/Layout";
-import { getPrivateMenu } from "@/utils/config/app";
+import { useTranslatedMenu } from "@/hooks/useTranslatedMenu";
 
 // Icon mapping for menu items
 const iconMap = {
@@ -25,14 +26,15 @@ export default function DesktopSidebar({
   onMouseEnter,
   onMouseLeave,
 }) {
+  const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const { organizations, fetching } = useOrganizations();
+  const translatedMenu = useTranslatedMenu();
 
   // Transform config menu items to Ant Design menu format
   const menuItems = useMemo(() => {
-    const privateMenu = getPrivateMenu();
-    return privateMenu.map((item) => {
+    return translatedMenu.map((item) => {
       const IconComponent = iconMap[item.iconName];
       return {
         key: item.key,
@@ -40,7 +42,7 @@ export default function DesktopSidebar({
         label: item.label,
       };
     });
-  }, []);
+  }, [translatedMenu]);
 
   return (
     <Sider
@@ -72,10 +74,13 @@ export default function DesktopSidebar({
       className="ant-layout-sider"
     >
       <div className="flex flex-col h-full">
-        <div 
+        <div
           className="p-4 border-b"
           style={{
             borderColor: "rgba(0, 0, 0, 0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: collapsed ? "center" : "flex-start",
           }}
         >
           <Space size="small">
@@ -111,51 +116,43 @@ export default function DesktopSidebar({
         </div>
 
         {/* Organizations Section */}
-        <div 
+        <div
           className="border-t flex-shrink-0"
           style={{
             borderColor: "rgba(0, 0, 0, 0.1)",
           }}
         >
           <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <Space size="small">
-                <RiBuildingLine className="text-lg text-blue-600" />
-                {!collapsed && (
-                  <Typography.Text strong className="text-sm">
-                    Organizaciones
-                  </Typography.Text>
-                )}
-              </Space>
-            </div>
-
             {!collapsed && (
               <>
-                <Button
-                  type="primary"
-                  icon={<RiAddLine />}
-                  size="small"
-                  block
-                  onClick={() => router.push("/organizations/create")}
-                  className="mb-3"
-                >
-                  Crear
-                </Button>
-
+                {/* Organization List */}
                 {fetching ? (
-                  <div className="flex justify-center py-4">
+                  <div className="flex justify-center py-4 mb-3">
                     <Spin size="small" />
                   </div>
                 ) : organizations.length === 0 ? (
-                  <Typography.Text type="secondary" className="text-xs">
-                    No tienes organizaciones
+                  <Typography.Text
+                    type="secondary"
+                    className="text-xs block mb-3"
+                  >
+                    {t("navigation.noOrganizations")}
                   </Typography.Text>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="space-y-1 mb-3">
                     {organizations.map((org) => (
                       <div
                         key={org.id}
-                        className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 transition-colors"
+                        className="cursor-pointer rounded-md px-3 py-2 transition-all border border-transparent hover:border-blue-200 hover:bg-blue-50"
+                        style={{
+                          backgroundColor:
+                            pathname === `/organizations/${org.id}`
+                              ? "#e6f7ff"
+                              : undefined,
+                          borderColor:
+                            pathname === `/organizations/${org.id}`
+                              ? "#91d5ff"
+                              : undefined,
+                        }}
                         onClick={() => router.push(`/organizations/${org.id}`)}
                       >
                         <Typography.Text
@@ -165,7 +162,11 @@ export default function DesktopSidebar({
                             color:
                               pathname === `/organizations/${org.id}`
                                 ? "#1890ff"
-                                : undefined,
+                                : "#595959",
+                            fontWeight:
+                              pathname === `/organizations/${org.id}`
+                                ? 500
+                                : 400,
                           }}
                         >
                           {org.name}
@@ -174,6 +175,32 @@ export default function DesktopSidebar({
                     ))}
                   </div>
                 )}
+
+                {/* Organizations Label with Create Button */}
+                <div className="flex items-center justify-between">
+                  <Space size="small">
+                    <RiBuildingLine className="text-lg text-blue-600" />
+                    <Typography.Text strong className="text-sm">
+                      {t("navigation.organizations")}
+                    </Typography.Text>
+                  </Space>
+                  <Button
+                    type="primary"
+                    icon={<RiAddLine />}
+                    size="small"
+                    shape="circle"
+                    onClick={() => router.push("/organizations/create")}
+                    title={t("navigation.createOrganization")}
+                    style={{
+                      minWidth: "32px",
+                      width: "32px",
+                      height: "32px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  />
+                </div>
               </>
             )}
 
@@ -184,7 +211,7 @@ export default function DesktopSidebar({
                   icon={<RiAddLine />}
                   size="small"
                   onClick={() => router.push("/organizations/create")}
-                  title="Crear Organización"
+                  title={t("navigation.createOrganization")}
                 />
               </div>
             )}
@@ -194,4 +221,3 @@ export default function DesktopSidebar({
     </Sider>
   );
 }
-

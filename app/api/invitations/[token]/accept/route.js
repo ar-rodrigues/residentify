@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getErrorMessages } from "@/utils/i18n/errorMessages";
 
 /**
  * POST /api/invitations/[token]/accept
@@ -9,6 +10,11 @@ export async function POST(request, { params }) {
   try {
     const supabase = await createClient();
     const { token } = await params;
+    
+    // Get locale from Accept-Language header or default to "es"
+    const acceptLanguage = request.headers.get("accept-language") || "";
+    const locale = acceptLanguage.startsWith("pt") ? "pt" : "es";
+    const { getSignupErrorMessage } = await getErrorMessages(locale);
 
     // Validate token
     if (!token || typeof token !== "string") {
@@ -328,31 +334,4 @@ export async function POST(request, { params }) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Converts Supabase signup error messages to user-friendly Spanish messages
- */
-function getSignupErrorMessage(errorMessage) {
-  const errorMap = {
-    "User already registered":
-      "Este email ya está registrado. Por favor, inicia sesión en su lugar.",
-    "Password should be at least 6 characters":
-      "La contraseña debe tener al menos 6 caracteres.",
-    "Invalid email": "El email proporcionado no es válido.",
-    "Email rate limit exceeded":
-      "Demasiados intentos. Por favor, espera unos minutos antes de intentar nuevamente.",
-    "Signup is disabled":
-      "El registro está deshabilitado temporalmente. Por favor, contacta al administrador.",
-  };
-
-  // Try to find a matching error message
-  for (const [key, value] of Object.entries(errorMap)) {
-    if (errorMessage.includes(key)) {
-      return value;
-    }
-  }
-
-  // Default to a generic error message
-  return "Ocurrió un error al crear la cuenta. Por favor, intenta nuevamente.";
 }

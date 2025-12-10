@@ -6,7 +6,7 @@ import {
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { getPrivateMenu } from "@/utils/config/app";
+import { useTranslatedMenu } from "@/hooks/useTranslatedMenu";
 
 // Icon mapping for menu items
 const iconMap = {
@@ -17,11 +17,11 @@ const iconMap = {
 export default function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const translatedMenu = useTranslatedMenu();
 
-  // Get menu items from config
+  // Get menu items from config with translations
   const menuItems = useMemo(() => {
-    const privateMenu = getPrivateMenu();
-    return privateMenu.map((item) => {
+    return translatedMenu.map((item) => {
       const IconComponent = iconMap[item.iconName];
       return {
         key: item.key,
@@ -29,7 +29,7 @@ export default function MobileBottomNav() {
         label: item.label,
       };
     });
-  }, []);
+  }, [translatedMenu]);
 
   const handleItemClick = (key) => {
     router.push(key);

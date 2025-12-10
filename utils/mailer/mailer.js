@@ -55,14 +55,25 @@ export async function sendEmail(email, name, password, subject, body) {
   }
 }
 
-export async function sendWelcomeEmail(email, name, password, baseUrl) {
+export async function sendWelcomeEmail(email, name, password, baseUrl, locale = "es") {
   if (!baseUrl) {
     throw new Error("baseUrl is required for sending welcome email");
   }
 
   try {
-    const subject = "Bienvenid@";
-    const body = getWelcomeEmailTemplate(name, email, password, baseUrl);
+    // Load translations for subject
+    const messages = await import(`../messages/${locale}.json`);
+    const t = (key) => {
+      const keys = key.split(".");
+      let value = messages.default;
+      for (const k of keys) {
+        value = value?.[k];
+      }
+      return value || key;
+    };
+    
+    const subject = t("emails.welcome.title");
+    const body = await getWelcomeEmailTemplate(name, email, password, baseUrl, locale);
 
     console.log("Welcome email template generated successfully");
     return await sendEmail(email, name, password, subject, body);
@@ -83,21 +94,36 @@ export async function sendInvitationEmail(
   organizationName,
   roleName,
   inviterName,
-  invitationLink
+  invitationLink,
+  locale = "es"
 ) {
   if (!invitationLink) {
     throw new Error("invitationLink is required for sending invitation email");
   }
 
   try {
-    const subject = `Invitación a ${organizationName}`;
-    const body = getInvitationEmailTemplate(
+    // Load translations for subject
+    const messages = await import(`../messages/${locale}.json`);
+    const t = (key) => {
+      const keys = key.split(".");
+      let value = messages.default;
+      for (const k of keys) {
+        value = value?.[k];
+      }
+      return value || key;
+    };
+    
+    const subject = locale === "pt" 
+      ? `Convite para ${organizationName}`
+      : `Invitación a ${organizationName}`;
+    const body = await getInvitationEmailTemplate(
       firstName,
       lastName,
       organizationName,
       roleName,
       inviterName,
-      invitationLink
+      invitationLink,
+      locale
     );
 
     console.log("Invitation email template generated successfully");
@@ -123,19 +149,32 @@ export async function sendApprovalEmail(
   firstName,
   lastName,
   organizationName,
-  baseUrl
+  baseUrl,
+  locale = "es"
 ) {
   if (!baseUrl) {
     throw new Error("baseUrl is required for sending approval email");
   }
 
   try {
-    const subject = `Solicitud aprobada - ${organizationName}`;
-    const body = getApprovalEmailTemplate(
+    // Load translations for subject
+    const messages = await import(`../messages/${locale}.json`);
+    const t = (key) => {
+      const keys = key.split(".");
+      let value = messages.default;
+      for (const k of keys) {
+        value = value?.[k];
+      }
+      return value || key;
+    };
+    
+    const subject = `${t("emails.approval.title")} - ${organizationName}`;
+    const body = await getApprovalEmailTemplate(
       firstName,
       lastName,
       organizationName,
-      baseUrl
+      baseUrl,
+      locale
     );
 
     console.log("Approval email template generated successfully");
