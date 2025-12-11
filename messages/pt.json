@@ -151,7 +151,6 @@
   "organizations": {
     "title": "Minhas Organizações",
     "subtitle": "Selecione uma organização para gerenciá-la",
-    "create": "Criar Organização",
     "loading": "Carregando organizações...",
     "header": {
       "createNew": "Criar Nova Organização",
@@ -734,7 +733,8 @@
       "tabs": {
         "validate": "Validar",
         "pending": "Pendentes",
-        "history": "Histórico"
+        "history": "Histórico",
+        "chat": "Chat"
       },
       "scanQR": "Escanear Código QR",
       "validationError": "Erro na Validação",
@@ -767,16 +767,43 @@
       "invitationError": "Erro ao gerar o convite",
       "identifierUpdated": "Identificador atualizado com sucesso",
       "identifierUpdateError": "Erro ao atualizar o identificador",
-      "generateInviteAriaLabel": "Gerar convite"
+      "generateInviteAriaLabel": "Gerar convite",
+      "tabs": {
+        "invites": "Convites",
+        "chat": "Chat"
+      }
     }
   },
   "admin": {
     "view": {
       "tabs": {
         "members": "Membros",
-        "invitations": "Convites"
+        "invitations": "Convites",
+        "chatPermissions": "Permissões de Chat",
+        "chat": "Chat"
       }
     }
+  },
+  "chat": {
+    "permissions": {
+      "title": "Permissões de Chat",
+      "description": "Configure quais funções podem enviar mensagens para outras funções. Ative o interruptor para permitir a comunicação.",
+      "senderRole": "Função Remetente",
+      "enabled": "Permissão habilitada",
+      "disabled": "Permissão desabilitada",
+      "updateError": "Erro ao atualizar a permissão",
+      "noRoles": "Não há funções disponíveis para esta organização"
+    },
+    "searchConversations": "Buscar conversas...",
+    "newConversation": "Novo",
+    "noConversations": "Não há conversas. Clique em \"Novo\" para começar.",
+    "noConversationsFound": "Nenhuma conversa encontrada",
+    "noMessages": "Não há mensagens",
+    "noMembersAvailable": "Não há membros disponíveis",
+    "sendFirstMessage": "Envie a primeira mensagem.",
+    "typeMessage": "Digite uma mensagem...",
+    "send": "Enviar",
+    "selectConversation": "Selecione uma conversa ou inicie uma nova"
   },
   "errors": {
     "notFound": {

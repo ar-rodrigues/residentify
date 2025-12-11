@@ -151,7 +151,6 @@
   "organizations": {
     "title": "Mis Organizaciones",
     "subtitle": "Selecciona una organización para gestionarla",
-    "create": "Crear Organización",
     "loading": "Cargando organizaciones...",
     "header": {
       "createNew": "Crear Nueva Organización",
@@ -734,7 +733,8 @@
       "tabs": {
         "validate": "Validar",
         "pending": "Pendientes",
-        "history": "Historial"
+        "history": "Historial",
+        "chat": "Chat"
       },
       "scanQR": "Escanear Código QR",
       "validationError": "Error en la Validación",
@@ -767,16 +767,43 @@
       "invitationError": "Error al generar la invitación",
       "identifierUpdated": "Identificador actualizado exitosamente",
       "identifierUpdateError": "Error al actualizar el identificador",
-      "generateInviteAriaLabel": "Generar invitación"
+      "generateInviteAriaLabel": "Generar invitación",
+      "tabs": {
+        "invites": "Invitaciones",
+        "chat": "Chat"
+      }
     }
   },
   "admin": {
     "view": {
       "tabs": {
         "members": "Miembros",
-        "invitations": "Invitaciones"
+        "invitations": "Invitaciones",
+        "chatPermissions": "Permisos de Chat",
+        "chat": "Chat"
       }
     }
+  },
+  "chat": {
+    "permissions": {
+      "title": "Permisos de Chat",
+      "description": "Configura qué roles pueden enviar mensajes a otros roles. Activa el interruptor para permitir la comunicación.",
+      "senderRole": "Rol Remitente",
+      "enabled": "Permiso habilitado",
+      "disabled": "Permiso deshabilitado",
+      "updateError": "Error al actualizar el permiso",
+      "noRoles": "No hay roles disponibles para esta organización"
+    },
+    "searchConversations": "Buscar conversaciones...",
+    "newConversation": "Nuevo",
+    "noConversations": "No hay conversaciones. Haz clic en \"Nuevo\" para empezar.",
+    "noConversationsFound": "No se encontraron conversaciones",
+    "noMessages": "No hay mensajes",
+    "noMembersAvailable": "No hay miembros disponibles",
+    "sendFirstMessage": "Envía el primer mensaje.",
+    "typeMessage": "Escribe un mensaje...",
+    "send": "Enviar",
+    "selectConversation": "Selecciona una conversación o inicia una nueva"
   },
   "errors": {
     "notFound": {
@@ -900,4 +927,3 @@
     "footer": "Esta página demuestra que la autenticación está funcionando correctamente"
   }
 }
-

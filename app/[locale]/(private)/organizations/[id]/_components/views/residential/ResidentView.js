@@ -11,6 +11,7 @@ import {
   Spin,
   Divider,
   App,
+  Tabs,
 } from "antd";
 import { RiQrCodeLine, RiHistoryLine } from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
@@ -19,6 +20,7 @@ import { createClient } from "@/utils/supabase/client";
 import ActiveLinkCard from "../../widgets/residential/ActiveLinkCard";
 import HistoryLinkCard from "../../widgets/residential/HistoryLinkCard";
 import GenerateInviteFAB from "../../widgets/residential/GenerateInviteFAB";
+import ChatWidget from "@/components/organizations/ChatWidget";
 
 const { Title, Text } = Typography;
 
@@ -170,106 +172,125 @@ export default function ResidentView({ organizationId }) {
     return { activeLinks: active, historyLinks: history };
   }, [qrCodesData]);
 
-  return (
-    <div className="w-full">
-      <Card className="w-full">
-        <Space orientation="vertical" size="large" className="w-full">
-          <div>
-            <Title level={4} className="mb-2 break-words">
-              {t("resident.view.title")}
-            </Title>
-            <Text type="secondary" className="break-words block">
-              {t("resident.view.subtitle")}
-            </Text>
-          </div>
-
-          {/* Active Invites Section */}
-          <div>
-            <div className="flex items-center gap-2 flex-wrap mb-4">
-              <RiQrCodeLine className="text-xl text-blue-500 flex-shrink-0" />
-              <Title level={5} className="mb-0 break-words">
-                {t("resident.view.activeInvites")}
+  const tabItems = [
+    {
+      key: "invites",
+      label: t("resident.view.tabs.invites"),
+      children: (
+        <Card className="w-full">
+          <Space orientation="vertical" size="large" className="w-full">
+            <div>
+              <Title level={4} className="mb-2 break-words">
+                {t("resident.view.title")}
               </Title>
-              {activeLinks.length > 0 && (
-                <Badge
-                  count={activeLinks.length}
-                  showZero={false}
-                  className="flex-shrink-0"
-                />
-              )}
+              <Text type="secondary" className="break-words block">
+                {t("resident.view.subtitle")}
+              </Text>
             </div>
 
-            {qrLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <Spin size="large" />
-              </div>
-            ) : activeLinks.length === 0 ? (
-              <Empty
-                description={t("resident.view.noActiveInvites")}
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeLinks.map((qrCode) => (
-                  <ActiveLinkCard
-                    key={qrCode.id}
-                    qrCode={qrCode}
-                    organizationId={organizationId}
-                    onDelete={handleDeleteQRCode}
-                    deleting={qrLoading}
-                    onUpdateIdentifier={async (id, identifier) => {
-                      const result = await updateQRCode(id, { identifier });
-                      if (!result.error) {
-                        await loadQRCodes();
-                        message.success(
-                          t("resident.view.identifierUpdated")
-                        );
-                      } else {
-                        message.error(
-                          result.message ||
-                            t("resident.view.identifierUpdateError")
-                        );
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* History Section */}
-          {historyLinks.length > 0 && (
-            <>
-              <Divider />
-              <div>
-                <div className="flex items-center gap-2 mb-4 flex-wrap">
-                  <RiHistoryLine className="text-xl text-gray-500 flex-shrink-0" />
-                  <Title level={5} className="mb-0 break-words">
-                    {t("resident.view.history")}
-                  </Title>
+            {/* Active Invites Section */}
+            <div>
+              <div className="flex items-center gap-2 flex-wrap mb-4">
+                <RiQrCodeLine className="text-xl text-blue-500 flex-shrink-0" />
+                <Title level={5} className="mb-0 break-words">
+                  {t("resident.view.activeInvites")}
+                </Title>
+                {activeLinks.length > 0 && (
                   <Badge
-                    count={historyLinks.length}
+                    count={activeLinks.length}
                     showZero={false}
                     className="flex-shrink-0"
                   />
-                </div>
+                )}
+              </div>
 
-                <div className="space-y-3">
-                  {historyLinks.map((qrCode) => (
-                    <HistoryLinkCard
+              {qrLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Spin size="large" />
+                </div>
+              ) : activeLinks.length === 0 ? (
+                <Empty
+                  description={t("resident.view.noActiveInvites")}
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {activeLinks.map((qrCode) => (
+                    <ActiveLinkCard
                       key={qrCode.id}
                       qrCode={qrCode}
                       organizationId={organizationId}
                       onDelete={handleDeleteQRCode}
                       deleting={qrLoading}
+                      onUpdateIdentifier={async (id, identifier) => {
+                        const result = await updateQRCode(id, { identifier });
+                        if (!result.error) {
+                          await loadQRCodes();
+                          message.success(
+                            t("resident.view.identifierUpdated")
+                          );
+                        } else {
+                          message.error(
+                            result.message ||
+                              t("resident.view.identifierUpdateError")
+                          );
+                        }
+                      }}
                     />
                   ))}
                 </div>
-              </div>
-            </>
-          )}
-        </Space>
-      </Card>
+              )}
+            </div>
+
+            {/* History Section */}
+            {historyLinks.length > 0 && (
+              <>
+                <Divider />
+                <div>
+                  <div className="flex items-center gap-2 mb-4 flex-wrap">
+                    <RiHistoryLine className="text-xl text-gray-500 flex-shrink-0" />
+                    <Title level={5} className="mb-0 break-words">
+                      {t("resident.view.history")}
+                    </Title>
+                    <Badge
+                      count={historyLinks.length}
+                      showZero={false}
+                      className="flex-shrink-0"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    {historyLinks.map((qrCode) => (
+                      <HistoryLinkCard
+                        key={qrCode.id}
+                        qrCode={qrCode}
+                        organizationId={organizationId}
+                        onDelete={handleDeleteQRCode}
+                        deleting={qrLoading}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </Space>
+        </Card>
+      ),
+    },
+    {
+      key: "chat",
+      label: t("resident.view.tabs.chat"),
+      children: (
+        <div className="h-[600px]">
+          <ChatWidget organizationId={organizationId} />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="w-full">
+      <Tabs defaultActiveKey="invites" items={tabItems} />
       <GenerateInviteFAB
         organizationId={organizationId}
         onClick={handleGenerateInvite}

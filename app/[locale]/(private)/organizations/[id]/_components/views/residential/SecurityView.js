@@ -17,6 +17,7 @@ import QRValidationForm from "../../widgets/residential/QRValidationForm";
 import QRScanner from "../../widgets/residential/QRScanner";
 import PendingCodesList from "../../widgets/residential/PendingCodesList";
 import AccessHistoryList from "../../widgets/residential/AccessHistoryList";
+import ChatWidget from "@/components/organizations/ChatWidget";
 import { useQRCodes } from "@/hooks/useQRCodes";
 import Button from "@/components/ui/Button";
 
@@ -554,6 +555,15 @@ export default function SecurityView({ organizationId }) {
           organizationId={organizationId}
           onRefresh={refreshKey}
         />
+      ),
+    },
+    {
+      key: "chat",
+      label: t("security.view.tabs.chat"),
+      children: (
+        <div className="h-[600px]">
+          <ChatWidget organizationId={organizationId} />
+        </div>
       ),
     },
   ];

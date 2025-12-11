@@ -3,6 +3,7 @@
 import { ConfigProvider, App } from "antd";
 import esES from "antd/locale/es_ES";
 import ptBR from "antd/locale/pt_BR";
+import { useState, useEffect } from "react";
 
 const localeMap = {
   es: esES,
@@ -11,6 +12,13 @@ const localeMap = {
 
 export default function AntdProvider({ children, locale = "es" }) {
   const antdLocale = localeMap[locale] || esES;
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch: Ant Design's App component generates
+  // dynamic CSS variable class names that differ between server and client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <ConfigProvider
@@ -39,9 +47,13 @@ export default function AntdProvider({ children, locale = "es" }) {
         },
       }}
     >
-      <App>
-        {children}
-      </App>
+      {mounted ? (
+        <App>
+          {children}
+        </App>
+      ) : (
+        <div suppressHydrationWarning>{children}</div>
+      )}
     </ConfigProvider>
   );
 }
