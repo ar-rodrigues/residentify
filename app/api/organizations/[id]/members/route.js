@@ -487,6 +487,15 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    // Check if the removed organization was the user's main organization
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("main_organization_id")
+      .eq("id", memberVerify.user_id)
+      .single();
+
+    const wasMainOrganization = profile && profile.main_organization_id === id;
+
     // Delete member
     const { error: deleteError } = await supabase
       .from("organization_members")
@@ -502,6 +511,17 @@ export async function DELETE(request, { params }) {
         },
         { status: 500 }
       );
+    }
+
+    // If the removed organization was the user's main, recalculate main organization
+    if (wasMainOrganization) {
+      const { recalculateMainOrganization } = await import("@/utils/api/profiles");
+      const recalcResult = await recalculateMainOrganization(memberVerify.user_id);
+      
+      if (recalcResult.error) {
+        // Log the error but don't fail the member removal
+        console.error("Error recalculating main organization:", recalcResult.message);
+      }
     }
 
     return NextResponse.json(

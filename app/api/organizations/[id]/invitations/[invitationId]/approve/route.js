@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 import { sendApprovalEmail } from "@/utils/mailer/mailer";
 import { getBaseUrlFromHeaders } from "@/utils/config/app";
+import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
  * POST /api/organizations/[id]/invitations/[invitationId]/approve
@@ -178,6 +179,18 @@ export async function POST(request, { params }) {
           console.error("Error adding user to organization:", memberError);
           // Don't fail the approval - invitation status is already updated
           // The error might be due to RLS, but admin should have permission
+        } else {
+          // User was successfully added to organization
+          // Set the organization as the user's main organization
+          const updateResult = await updateMainOrganization(
+            fullInvitation.user_id,
+            id
+          );
+
+          if (updateResult.error) {
+            // Log the error but don't fail the approval
+            console.error("Error setting main organization:", updateResult.message);
+          }
         }
       }
     } else {

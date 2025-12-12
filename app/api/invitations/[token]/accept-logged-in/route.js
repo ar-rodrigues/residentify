@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
  * POST /api/invitations/[token]/accept-logged-in
@@ -164,6 +165,19 @@ export async function POST(request, { params }) {
     }
 
     const member = memberData[0];
+
+    // Set the organization as the user's main organization
+    // This only happens when invitation status is "accepted" (not pending_approval)
+    const updateResult = await updateMainOrganization(
+      user.id,
+      member.organization_id
+    );
+
+    if (updateResult.error) {
+      // Log the error but don't fail the invitation acceptance
+      // The user was added successfully, main org update is secondary
+      console.error("Error setting main organization:", updateResult.message);
+    }
 
     return NextResponse.json(
       {

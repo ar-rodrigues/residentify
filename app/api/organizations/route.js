@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
  * POST /api/organizations
@@ -167,6 +168,18 @@ export async function POST(request) {
     }
 
     const result = data[0];
+
+    // Set the newly created organization as the user's main organization
+    const updateResult = await updateMainOrganization(
+      user.id,
+      result.organization_id
+    );
+
+    if (updateResult.error) {
+      // Log the error but don't fail the organization creation
+      // The organization was created successfully, main org update is secondary
+      console.error("Error setting main organization:", updateResult.message);
+    }
 
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getErrorMessages } from "@/utils/i18n/errorMessages";
+import { updateMainOrganization } from "@/utils/api/profiles";
 import crypto from "crypto";
 
 /**
@@ -446,6 +447,18 @@ export async function POST(request, { params }) {
       } else if (memberData && memberData.length > 0) {
         // Successfully added to organization - update invitation status in response
         invitation.status = "accepted";
+        
+        // Set the organization as the user's main organization
+        // Only set when approval is not required (user is automatically added)
+        const updateResult = await updateMainOrganization(
+          userId,
+          link.organization_id
+        );
+
+        if (updateResult.error) {
+          // Log the error but don't fail the request
+          console.error("Error setting main organization:", updateResult.message);
+        }
       }
     }
 

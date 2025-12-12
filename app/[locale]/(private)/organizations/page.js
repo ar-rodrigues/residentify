@@ -17,13 +17,13 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 
 const { Title, Paragraph, Text } = Typography;
 
-const LAST_USED_ORG_KEY = "lastUsedOrganizationId";
-
 export default function OrganizationsPage() {
   const t = useTranslations();
   const router = useRouter();
   const { organizations, fetching, error, refetch } = useOrganizations();
   const [checkingRedirect, setCheckingRedirect] = useState(true);
+  const [mainOrganizationId, setMainOrganizationId] = useState(null);
+  const [mainOrgFetchCompleted, setMainOrgFetchCompleted] = useState(false);
   const isMobile = useIsMobile();
 
   // Refetch organizations when page becomes visible (e.g., after redirect from invitation acceptance)
@@ -45,39 +45,86 @@ export default function OrganizationsPage() {
     refetch();
   }, [refetch]);
 
+  // Fetch main organization ID
   useEffect(() => {
-    // Only check redirect after organizations are loaded
-    if (!fetching && organizations) {
-      const lastUsedId = localStorage.getItem(LAST_USED_ORG_KEY);
-
-      // If there's a last used organization and user is still a member, redirect
-      // But don't redirect if it's pending approval
-      if (lastUsedId && organizations.length > 0) {
-        const org = organizations.find((org) => org.id === lastUsedId);
-        if (org && !org.isPendingApproval) {
-          router.push(`/organizations/${lastUsedId}`);
-          return;
+    const fetchMainOrganization = async () => {
+      try {
+        const response = await fetch("/api/profiles/main-organization");
+        const result = await response.json();
+        
+        if (!result.error && result.data) {
+          setMainOrganizationId(result.data);
         } else {
-          // Last used org is no longer valid or pending, remove it
-          localStorage.removeItem(LAST_USED_ORG_KEY);
+          // User doesn't have a main organization (valid state)
+          setMainOrganizationId(null);
+        }
+      } catch (err) {
+        console.error("Error fetching main organization:", err);
+        // On error, treat as no main organization
+        setMainOrganizationId(null);
+      } finally {
+        setMainOrgFetchCompleted(true);
+      }
+    };
+
+    fetchMainOrganization();
+  }, []);
+
+  useEffect(() => {
+    // Only check redirect after organizations are loaded and main org fetch is completed
+    if (!fetching && organizations && mainOrgFetchCompleted) {
+      // If user has a main organization and is still a member, redirect to it
+      if (mainOrganizationId && organizations.length > 0) {
+        const org = organizations.find((org) => org.id === mainOrganizationId);
+        if (org && !org.isPendingApproval) {
+          router.push(`/organizations/${mainOrganizationId}`);
+          return;
         }
       }
 
-      // If user has only one organization and it's not pending approval, redirect to it
+      // If user has exactly one organization and it's not pending approval, set as main and redirect
       if (organizations.length === 1 && !organizations[0].isPendingApproval) {
         const singleOrgId = organizations[0].id;
-        localStorage.setItem(LAST_USED_ORG_KEY, singleOrgId);
+        
+        // Set as main organization
+        fetch("/api/profiles/main-organization", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ organization_id: singleOrgId }),
+        }).catch((err) => {
+          console.error("Error setting main organization:", err);
+        });
+
         router.push(`/organizations/${singleOrgId}`);
         return;
       }
 
       setCheckingRedirect(false);
     }
-  }, [fetching, organizations, router]);
+  }, [fetching, organizations, mainOrganizationId, mainOrgFetchCompleted, router]);
 
-  const handleOrganizationClick = (orgId) => {
-    // Store the selected organization as last used
-    localStorage.setItem(LAST_USED_ORG_KEY, orgId);
+  const handleOrganizationClick = async (orgId) => {
+    // Update main organization before redirecting
+    try {
+      const response = await fetch("/api/profiles/main-organization", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ organization_id: orgId }),
+      });
+
+      if (!response.ok) {
+        console.error("Error updating main organization");
+        // Continue anyway - not critical
+      }
+    } catch (err) {
+      console.error("Error updating main organization:", err);
+      // Continue anyway - not critical
+    }
+
     router.push(`/organizations/${orgId}`);
   };
 

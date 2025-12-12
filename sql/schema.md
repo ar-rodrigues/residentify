@@ -107,6 +107,7 @@
 | profiles                   | last_name              | text                     | NO          | null                                           | false          | null                  | null                   |
 | profiles                   | date_of_birth          | date                     | NO          | null                                           | false          | null                  | null                   |
 | profiles                   | role_id                | uuid                     | NO          | null                                           | false          | roles                 | id                     |
+| profiles                   | main_organization_id   | uuid                     | YES         | null                                           | false          | organizations         | id                     |
 | profiles                   | created_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
 | profiles                   | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
 | qr_codes                   | id                     | uuid                     | NO          | uuid_generate_v4()                             | true           | null                  | null                   |

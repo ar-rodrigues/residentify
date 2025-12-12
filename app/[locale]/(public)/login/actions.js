@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 
 import { createClient } from "@/utils/supabase/server";
 import { getErrorMessages } from "@/utils/i18n/errorMessages";
+import { getMainOrganization } from "@/utils/api/profiles";
 
 export async function login(formData) {
   const supabase = await createClient();
@@ -32,6 +33,22 @@ export async function login(formData) {
       error: true,
       message: getLoginErrorMessage(error.message),
     };
+  }
+
+  // Get user's main organization
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const mainOrgResult = await getMainOrganization(user.id);
+    
+    // If user has a valid main organization, redirect to it
+    if (!mainOrgResult.error && mainOrgResult.data) {
+      revalidatePath("/", "layout");
+      redirect(`/organizations/${mainOrgResult.data}`);
+      return;
+    }
   }
 
   revalidatePath("/", "layout");
