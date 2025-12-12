@@ -11,7 +11,6 @@ import { useTranslations, useLocale } from "next-intl";
 import { useUser } from "@/hooks/useUser";
 import { Avatar, Space, Dropdown } from "antd";
 import { Layout, Header, Content } from "@/components/ui/Layout";
-import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -183,8 +182,7 @@ export default function PrivateLayout({ children }) {
   }, [locale, handleLanguageChange]);
 
   // Profile menu items for dropdown
-  // On mobile: include language option that expands inline
-  // On desktop: keep it simple
+  // Include language option that expands inline (both mobile and desktop)
   const profileMenuItems = useMemo(
     () => [
       {
@@ -196,48 +194,44 @@ export default function PrivateLayout({ children }) {
       {
         type: "divider",
       },
-      ...(isMobile
-        ? [
-            {
-              key: "language",
-              label: (
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <span>Idioma</span>
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "#8b8b8b",
-                      fontWeight: "normal",
-                    }}
-                  >
-                    (
-                    {languages.find((lang) => lang.value === locale)
-                      ?.abbreviation || ""}
-                    )
-                  </span>
-                </div>
-              ),
-              icon: <RiGlobalLine />,
-              onClick: (e) => {
-                if (e?.domEvent) {
-                  e.domEvent.stopPropagation();
-                  e.domEvent.preventDefault();
-                }
-                handleLanguageToggle();
-                // Force dropdown to stay open after state update
-                setTimeout(() => {
-                  setDropdownOpen(true);
-                }, 0);
-              },
-            },
-            ...(languageExpanded ? languageOptionItems : []),
-            {
-              type: "divider",
-            },
-          ]
-        : []),
+      {
+        key: "language",
+        label: (
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            <span>Idioma</span>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#8b8b8b",
+                fontWeight: "normal",
+              }}
+            >
+              (
+              {languages.find((lang) => lang.value === locale)
+                ?.abbreviation || ""}
+              )
+            </span>
+          </div>
+        ),
+        icon: <RiGlobalLine />,
+        onClick: (e) => {
+          if (e?.domEvent) {
+            e.domEvent.stopPropagation();
+            e.domEvent.preventDefault();
+          }
+          handleLanguageToggle();
+          // Force dropdown to stay open after state update
+          setTimeout(() => {
+            setDropdownOpen(true);
+          }, 0);
+        },
+      },
+      ...(languageExpanded ? languageOptionItems : []),
+      {
+        type: "divider",
+      },
       {
         key: "logout",
         label: t("navigation.logout"),
@@ -249,7 +243,6 @@ export default function PrivateLayout({ children }) {
     [
       t,
       router,
-      isMobile,
       locale,
       languageExpanded,
       languageOptionItems,
@@ -350,8 +343,6 @@ export default function PrivateLayout({ children }) {
                   size="default"
                 />
               </Dropdown>
-              {/* Language switcher - only show on desktop */}
-              {!isMobile && <LanguageSwitcher />}
             </Space>
           </Header>
           <Content className="p-2 bg-gray-50 overflow-x-hidden">
