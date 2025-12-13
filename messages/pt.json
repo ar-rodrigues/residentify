@@ -236,6 +236,12 @@
         "unknownResidentialRole": "Função não reconhecida para organizações residenciais: {role}"
       }
     },
+    "types": {
+      "residential": {
+        "name": "Residencial",
+        "description": "Organização residencial para gestão de edifícios e condomínios"
+      }
+    },
     "members": {
       "title": "Membros",
       "loading": "Carregando membros...",
@@ -927,4 +933,3 @@
     "footer": "Esta página demonstra que a autenticação está funcionando corretamente"
   }
 }
-

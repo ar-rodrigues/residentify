@@ -236,6 +236,12 @@
         "unknownResidentialRole": "Rol no reconocido para organizaciones residenciales: {role}"
       }
     },
+    "types": {
+      "residential": {
+        "name": "Residencial",
+        "description": "Organización residencial para gestión de edificios y condominios"
+      }
+    },
     "members": {
       "title": "Miembros",
       "loading": "Cargando miembros...",

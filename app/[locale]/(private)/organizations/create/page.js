@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { RiBuildingLine } from "react-icons/ri";
@@ -14,12 +14,32 @@ const { Title, Paragraph } = Typography;
 
 export default function CreateOrganizationPage() {
   const t = useTranslations();
+  const tOrgs = useTranslations("organizations");
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [createForm] = Form.useForm();
   const router = useRouter();
   const { createOrganization, loading } = useOrganizations();
   const { types, loading: typesLoading } = useOrganizationTypes();
+
+  // Helper function to safely get translations with fallback
+  // Uses namespace-scoped translator to avoid missing message warnings
+  const safeTranslate = useCallback(
+    (key, fallback) => {
+      try {
+        // Use namespace-scoped translator: organizations.types.residential.name -> types.residential.name
+        // Remove 'organizations.' prefix since we're using useTranslations('organizations')
+        const scopedKey = key.replace(/^organizations\./, "");
+        const translation = tOrgs(scopedKey);
+        // If translation returns the key itself, it means translation doesn't exist
+        return translation !== scopedKey ? translation : fallback;
+      } catch (e) {
+        // If translation key doesn't exist (next-intl throws in dev mode), return fallback
+        return fallback;
+      }
+    },
+    [tOrgs]
+  );
 
   const handleCreate = async (values) => {
     setErrorMessage(null);
@@ -133,19 +153,35 @@ export default function CreateOrganizationPage() {
                       t("organizations.create.errors.noTypesAvailable")
                     )
                   }
-                  options={types.map((type) => ({
-                    value: type.id,
-                    label: (
-                      <div>
-                        <div className="font-medium">{type.name}</div>
-                        {type.description && (
-                          <div className="text-xs text-gray-500">
-                            {type.description}
+                  options={useMemo(() => {
+                    return types.map((type) => {
+                      // Normalize type name to lowercase to match translation keys
+                      const normalizedTypeName = type.name.toLowerCase();
+                      const nameKey = `organizations.types.${normalizedTypeName}.name`;
+                      const descriptionKey = `organizations.types.${normalizedTypeName}.description`;
+
+                      // Get translations, fallback to database values if translation doesn't exist
+                      const displayName = safeTranslate(nameKey, type.name);
+                      const displayDescription = safeTranslate(
+                        descriptionKey,
+                        type.description || ""
+                      );
+
+                      return {
+                        value: type.id,
+                        label: (
+                          <div>
+                            <div className="font-medium">{displayName}</div>
+                            {displayDescription && (
+                              <div className="text-xs text-gray-500">
+                                {displayDescription}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ),
-                  }))}
+                        ),
+                      };
+                    });
+                  }, [types, safeTranslate])}
                 />
               </Form.Item>
 
