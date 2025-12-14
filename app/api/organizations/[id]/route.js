@@ -281,8 +281,9 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Prevent deletion if members exist
-    if (memberCount > 0) {
+    // Allow deletion if user is the only member (they can delete their own organization)
+    // Prevent deletion if there are multiple members
+    if (memberCount > 1) {
       return NextResponse.json(
         {
           error: true,
@@ -291,6 +292,29 @@ export async function DELETE(request, { params }) {
         },
         { status: 400 }
       );
+    }
+
+    // If there's exactly 1 member, verify it's the current user
+    // (they can delete their own organization)
+    if (memberCount === 1) {
+      const { data: members, error: membersError } = await supabase
+        .from("organization_members")
+        .select("user_id")
+        .eq("organization_id", id)
+        .single();
+
+      if (membersError || !members || members.user_id !== user.id) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "No se puede eliminar una organización que tiene otros miembros. Elimina todos los miembros primero.",
+          },
+          { status: 400 }
+        );
+      }
+      // User is the only member - proceed with organization deletion
+      // The database trigger will allow it, and members will be cascade deleted
     }
 
     // Delete related data before deleting the organization
@@ -347,7 +371,10 @@ export async function DELETE(request, { params }) {
       .eq("organization_id", id);
 
     if (deleteChatPermissionsError) {
-      console.error("Error deleting chat permissions:", deleteChatPermissionsError);
+      console.error(
+        "Error deleting chat permissions:",
+        deleteChatPermissionsError
+      );
       // Continue with deletion, log the error
     }
 
