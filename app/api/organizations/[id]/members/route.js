@@ -312,10 +312,19 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Verify the member belongs to this organization
+    // Verify the member belongs to this organization and get their current role
     const { data: memberVerify, error: memberVerifyError } = await supabase
       .from("organization_members")
-      .select("id, organization_id")
+      .select(
+        `
+        id,
+        organization_id,
+        organization_role_id,
+        organization_roles!inner(
+          name
+        )
+      `
+      )
       .eq("id", member_id)
       .eq("organization_id", id)
       .single();
@@ -328,6 +337,43 @@ export async function PUT(request, { params }) {
         },
         { status: 404 }
       );
+    }
+
+    // Check if member is currently an admin and new role is not admin
+    const isCurrentlyAdmin = memberVerify.organization_roles?.name === "admin";
+    const newRoleIsAdmin = roleCheck.name === "admin";
+
+    if (isCurrentlyAdmin && !newRoleIsAdmin) {
+      // Check if there are other admins in the organization
+      const { data: adminCount, error: adminCountError } = await supabase.rpc(
+        "count_admins_in_organization",
+        {
+          p_organization_id: id,
+        }
+      );
+
+      if (adminCountError) {
+        console.error("Error counting admins:", adminCountError);
+        return NextResponse.json(
+          {
+            error: true,
+            message: "Error al verificar administradores.",
+          },
+          { status: 500 }
+        );
+      }
+
+      // If there's only 1 admin (this member), prevent the role change
+      if (adminCount === 1) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "No puedes cambiar tu rol de administrador. Debe haber al menos un administrador en la organización.",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Update member role
@@ -458,10 +504,20 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Verify the member belongs to this organization
+    // Verify the member belongs to this organization and get their role
     const { data: memberVerify, error: memberVerifyError } = await supabase
       .from("organization_members")
-      .select("id, user_id, organization_id")
+      .select(
+        `
+        id,
+        user_id,
+        organization_id,
+        organization_role_id,
+        organization_roles!inner(
+          name
+        )
+      `
+      )
       .eq("id", member_id)
       .eq("organization_id", id)
       .single();
@@ -485,6 +541,42 @@ export async function DELETE(request, { params }) {
         },
         { status: 400 }
       );
+    }
+
+    // Check if member is an admin
+    const isAdmin = memberVerify.organization_roles?.name === "admin";
+
+    if (isAdmin) {
+      // Check if there are other admins in the organization
+      const { data: adminCount, error: adminCountError } = await supabase.rpc(
+        "count_admins_in_organization",
+        {
+          p_organization_id: id,
+        }
+      );
+
+      if (adminCountError) {
+        console.error("Error counting admins:", adminCountError);
+        return NextResponse.json(
+          {
+            error: true,
+            message: "Error al verificar administradores.",
+          },
+          { status: 500 }
+        );
+      }
+
+      // If there's only 1 admin (this member), prevent deletion
+      if (adminCount === 1) {
+        return NextResponse.json(
+          {
+            error: true,
+            message:
+              "No puedes eliminar este administrador. Debe haber al menos un administrador en la organización.",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if the removed organization was the user's main organization

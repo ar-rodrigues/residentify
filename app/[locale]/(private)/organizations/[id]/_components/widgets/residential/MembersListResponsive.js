@@ -44,6 +44,7 @@ export default function MembersListResponsive({ organizationId }) {
   const [roles, setRoles] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
+  const [selectValues, setSelectValues] = useState({}); // Track select values by member ID
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -52,6 +53,17 @@ export default function MembersListResponsive({ organizationId }) {
       fetchRoles();
     }
   }, [organizationId, getMembers]);
+
+  // Initialize select values when members change
+  useEffect(() => {
+    if (members && members.length > 0) {
+      const newSelectValues = {};
+      members.forEach((member) => {
+        newSelectValues[member.id] = member.role.id;
+      });
+      setSelectValues(newSelectValues);
+    }
+  }, [members]);
 
   const fetchRoles = async () => {
     try {
@@ -68,7 +80,7 @@ export default function MembersListResponsive({ organizationId }) {
     }
   };
 
-  const handleRoleChange = async (memberId, newRoleId) => {
+  const handleRoleChange = async (memberId, newRoleId, currentRoleId) => {
     try {
       setUpdatingMemberId(memberId);
       const result = await updateMemberRole(
@@ -77,12 +89,21 @@ export default function MembersListResponsive({ organizationId }) {
         newRoleId
       );
       if (result.error) {
-        message.error(result.message);
+        // Show warning message without blocking the UI
+        message.warning(result.message);
+        // Reset the Select to the original role value
+        setSelectValues((prev) => ({ ...prev, [memberId]: currentRoleId }));
+        return false; // Indicate failure
       } else {
+        // Show success message briefly
         message.success(result.message);
+        return true; // Indicate success
       }
     } catch (err) {
-      message.error(t("organizations.members.errors.updateRoleError"));
+      message.warning(t("organizations.members.errors.updateRoleError"));
+      // Reset the Select to the original role value
+      setSelectValues((prev) => ({ ...prev, [memberId]: currentRoleId }));
+      return false; // Indicate failure
     } finally {
       setUpdatingMemberId(null);
     }
@@ -180,8 +201,12 @@ export default function MembersListResponsive({ organizationId }) {
       render: (_, record) => (
         <Space size="small" wrap={false}>
           <Select
-            value={record.role.id}
-            onChange={(value) => handleRoleChange(record.id, value)}
+            value={selectValues[record.id] ?? record.role.id}
+            onChange={async (value) => {
+              // Optimistically update the UI
+              setSelectValues((prev) => ({ ...prev, [record.id]: value }));
+              await handleRoleChange(record.id, value, record.role.id);
+            }}
             loading={updatingMemberId === record.id}
             disabled={updatingMemberId !== null}
             style={{ width: 160 }}
@@ -252,9 +277,11 @@ export default function MembersListResponsive({ organizationId }) {
         disabled:
           updatingMemberId !== null ||
           (updatingMemberId === member.id && loadingRoles),
-        onClick: () => {
+        onClick: async () => {
           if (role.id !== member.role.id) {
-            handleRoleChange(member.id, role.id);
+            // Optimistically update the UI
+            setSelectValues((prev) => ({ ...prev, [member.id]: role.id }));
+            await handleRoleChange(member.id, role.id, member.role.id);
           }
         },
       }));

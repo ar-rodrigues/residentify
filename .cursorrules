@@ -1,1 +1,5 @@
-Always check the document KNOWN_ISSUES to ensure you didnt commit any of the already know errors
+# Always check the document KNOWN_ISSUES to ensure you didnt commit any of the already know errors.
+
+#Always act as an expert on UI and UX to build the components and the interactivity, using animations and good design practice.
+This includes being aware of responsiveness so the UI/UX work well on every device.
+

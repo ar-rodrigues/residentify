@@ -73,8 +73,8 @@ export function useOrganizationMembers() {
   const updateMemberRole = useCallback(
     async (organizationId, memberId, newRoleId) => {
       try {
-        setLoading(true);
-        setError(null);
+        // Don't set global loading/error states for role updates
+        // These should be handled locally in the component
 
         if (!organizationId || typeof organizationId !== "string") {
           throw new Error("ID de organización inválido.");
@@ -112,7 +112,7 @@ export function useOrganizationMembers() {
           throw new Error(result.message || "Error al actualizar el rol.");
         }
 
-        // Refetch members after update
+        // Only refetch members on success
         if (currentOrganizationId === organizationId) {
           await getMembers(organizationId);
         }
@@ -125,13 +125,11 @@ export function useOrganizationMembers() {
       } catch (err) {
         const errorMessage =
           err.message || "Error inesperado al actualizar el rol.";
-        setError(err);
+        // Don't set global error state - let component handle it
         return {
           error: true,
           message: errorMessage,
         };
-      } finally {
-        setLoading(false);
       }
     },
     [currentOrganizationId, getMembers]
@@ -140,8 +138,8 @@ export function useOrganizationMembers() {
   const removeMember = useCallback(
     async (organizationId, memberId) => {
       try {
-        setLoading(true);
-        setError(null);
+        // Don't set global loading/error states for member removal
+        // These should be handled locally in the component
 
         if (!organizationId || typeof organizationId !== "string") {
           throw new Error("ID de organización inválido.");
@@ -171,7 +169,7 @@ export function useOrganizationMembers() {
           throw new Error(result.message || "Error al eliminar el miembro.");
         }
 
-        // Refetch members after removal
+        // Only refetch members on success
         if (currentOrganizationId === organizationId) {
           await getMembers(organizationId);
         }
@@ -183,13 +181,11 @@ export function useOrganizationMembers() {
       } catch (err) {
         const errorMessage =
           err.message || "Error inesperado al eliminar el miembro.";
-        setError(err);
+        // Don't set global error state - let component handle it
         return {
           error: true,
           message: errorMessage,
         };
-      } finally {
-        setLoading(false);
       }
     },
     [currentOrganizationId, getMembers]

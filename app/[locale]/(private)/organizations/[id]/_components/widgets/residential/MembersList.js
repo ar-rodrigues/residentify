@@ -12,6 +12,7 @@ import {
   Modal,
   Typography,
   Badge,
+  message,
 } from "antd";
 import { RiUserLine, RiDeleteBinLine, RiEditLine } from "react-icons/ri";
 import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
@@ -34,6 +35,7 @@ export default function MembersList({ organizationId }) {
   const [roles, setRoles] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
+  const [selectValues, setSelectValues] = useState({}); // Track select values by member ID
 
   useEffect(() => {
     if (organizationId) {
@@ -41,6 +43,17 @@ export default function MembersList({ organizationId }) {
       fetchRoles();
     }
   }, [organizationId, getMembers]);
+
+  // Initialize select values when members change
+  useEffect(() => {
+    if (members && members.length > 0) {
+      const newSelectValues = {};
+      members.forEach((member) => {
+        newSelectValues[member.id] = member.role.id;
+      });
+      setSelectValues(newSelectValues);
+    }
+  }, [members]);
 
   const fetchRoles = async () => {
     try {
@@ -57,7 +70,7 @@ export default function MembersList({ organizationId }) {
     }
   };
 
-  const handleRoleChange = async (memberId, newRoleId) => {
+  const handleRoleChange = async (memberId, newRoleId, currentRoleId) => {
     try {
       setUpdatingMemberId(memberId);
       const result = await updateMemberRole(
@@ -66,24 +79,20 @@ export default function MembersList({ organizationId }) {
         newRoleId
       );
       if (result.error) {
-        Modal.error({
-          title: t("common.errorTitle"),
-          content: result.message,
-        });
+        // Show warning message without blocking the UI
+        message.warning(result.message);
+        return false; // Indicate failure to reset Select
       } else {
-        Modal.success({
-          title: t("common.success"),
-          content: result.message,
-        });
+        // Show success message briefly
+        message.success(result.message);
       }
     } catch (err) {
-      Modal.error({
-        title: t("common.error"),
-        content: t("organizations.members.errors.updateRoleError"),
-      });
+      message.warning(t("organizations.members.errors.updateRoleError"));
+      return false; // Indicate failure to reset Select
     } finally {
       setUpdatingMemberId(null);
     }
+    return true; // Indicate success
   };
 
   const handleRemoveMember = (member) => {
@@ -168,8 +177,16 @@ export default function MembersList({ organizationId }) {
       render: (_, record) => (
         <Space>
           <Select
-            value={record.role.id}
-            onChange={(value) => handleRoleChange(record.id, value)}
+            value={selectValues[record.id] ?? record.role.id}
+            onChange={async (value) => {
+              // Optimistically update the UI
+              setSelectValues((prev) => ({ ...prev, [record.id]: value }));
+              const success = await handleRoleChange(record.id, value, record.role.id);
+              // If failed, reset to original value
+              if (!success) {
+                setSelectValues((prev) => ({ ...prev, [record.id]: record.role.id }));
+              }
+            }}
             loading={updatingMemberId === record.id}
             disabled={updatingMemberId !== null}
             style={{ width: 180 }}
