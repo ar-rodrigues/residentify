@@ -17,6 +17,7 @@ export default function CreateOrganizationPage() {
   const tOrgs = useTranslations("organizations");
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [createForm] = Form.useForm();
   const router = useRouter();
   const { createOrganization, loading } = useOrganizations();
@@ -44,20 +45,34 @@ export default function CreateOrganizationPage() {
   const handleCreate = async (values) => {
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsSubmitting(true);
 
-    const result = await createOrganization(
-      values.name,
-      values.organization_type_id
-    );
+    try {
+      const result = await createOrganization(
+        values.name,
+        values.organization_type_id
+      );
 
-    if (result.error) {
-      setErrorMessage(result.message);
-    } else {
-      setSuccessMessage(result.message);
-      // Redirect to organization detail page or dashboard after 2 seconds
-      setTimeout(() => {
-        router.push(`/organizations/${result.data.id}`);
-      }, 2000);
+      if (result.error) {
+        setErrorMessage(result.message);
+        setIsSubmitting(false);
+      } else {
+        setSuccessMessage(result.message);
+        // Disable form after success
+        createForm.setFieldsValue({
+          name: values.name,
+          organization_type_id: values.organization_type_id,
+        });
+        // Redirect to organization detail page or dashboard after 2 seconds
+        setTimeout(() => {
+          router.push(`/organizations/${result.data.id}`);
+        }, 2000);
+      }
+    } catch (error) {
+      setErrorMessage(
+        error.message || "Error inesperado al crear la organización."
+      );
+      setIsSubmitting(false);
     }
   };
 
@@ -189,7 +204,8 @@ export default function CreateOrganizationPage() {
                 <Button
                   type="primary"
                   htmlType="submit"
-                  loading={loading}
+                  loading={loading || isSubmitting}
+                  disabled={isSubmitting || !!successMessage}
                   className="w-full"
                   size="large"
                 >

@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
 import { Card, Typography, Space, Empty, Spin, App } from "antd";
-import { RiQrCodeLine, RiUserLine, RiTimeLine, RiCalendarLine } from "react-icons/ri";
+import {
+  RiQrCodeLine,
+  RiUserLine,
+  RiTimeLine,
+  RiCalendarLine,
+} from "react-icons/ri";
 import { useQRCodes } from "@/hooks/useQRCodes";
-import { useFormattedDate } from "@/hooks/useFormattedDate";
 
 const { Text, Title } = Typography;
 
 export default function PendingCodesList({ organizationId, onRefresh }) {
-  const t = useTranslations();
-  const { formatDate } = useFormattedDate();
   const { message } = App.useApp();
   const [pendingCodes, setPendingCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,17 +40,21 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || t("organizations.pendingCodes.error"));
+        throw new Error(
+          result.message || "Error al obtener los códigos QR pendientes."
+        );
       }
 
       if (result.error) {
-        throw new Error(result.message || t("organizations.pendingCodes.error"));
+        throw new Error(
+          result.message || "Error al obtener los códigos QR pendientes."
+        );
       }
 
       setPendingCodes(result.data || []);
     } catch (err) {
       const errorMessage =
-        err.message || t("organizations.pendingCodes.errorUnexpected");
+        err.message || "Error inesperado al obtener los códigos QR pendientes.";
       setError(errorMessage);
       message.error(errorMessage);
       setPendingCodes([]);
@@ -69,9 +74,15 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
     }
   }, [onRefresh, fetchPendingCodes]);
 
-  const formatDateString = (dateString) => {
+  const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return formatDate(dateString);
+    return new Date(dateString).toLocaleString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (loading && pendingCodes.length === 0) {
@@ -85,10 +96,7 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
   if (error && pendingCodes.length === 0) {
     return (
       <Card>
-        <Empty
-          description={error}
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Empty description={error} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       </Card>
     );
   }
@@ -97,7 +105,7 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
     return (
       <Card>
         <Empty
-          description={t("organizations.pendingCodes.empty")}
+          description="No hay códigos QR pendientes de validación"
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       </Card>
@@ -110,10 +118,11 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
         <Space orientation="vertical" size="middle" className="w-full">
           <div className="flex justify-between items-center">
             <Title level={5} className="mb-0">
-              {t("organizations.pendingCodes.title")}
+              Códigos QR Pendientes
             </Title>
             <Text type="secondary">
-              {t(pendingCodes.length === 1 ? "organizations.pendingCodes.count.single" : "organizations.pendingCodes.count.plural", { count: pendingCodes.length })}
+              {pendingCodes.length}{" "}
+              {pendingCodes.length === 1 ? "código" : "códigos"}
             </Text>
           </div>
 
@@ -124,7 +133,7 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
                   <div className="flex items-center gap-2">
                     <RiQrCodeLine className="text-blue-500" />
                     <Text strong className="text-lg">
-                      {code.identifier || t("organizations.pendingCodes.labels.noIdentifier")}
+                      {code.identifier || "Sin identificador"}
                     </Text>
                   </div>
 
@@ -132,22 +141,24 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
                     <div className="flex items-center gap-1">
                       <RiUserLine className="text-gray-500" />
                       <Text type="secondary">
-                        {t("organizations.pendingCodes.labels.createdBy")}{" "}
-                        <Text strong>{code.created_by_name || t("organizations.pendingCodes.labels.unknown")}</Text>
+                        Creado por:{" "}
+                        <Text strong>
+                          {code.created_by_name || "Desconocido"}
+                        </Text>
                       </Text>
                     </div>
 
                     <div className="flex items-center gap-1">
                       <RiTimeLine className="text-gray-500" />
                       <Text type="secondary">
-                        {t("organizations.pendingCodes.labels.created")} {formatDateString(code.created_at)}
+                        Creado: {formatDate(code.created_at)}
                       </Text>
                     </div>
 
                     <div className="flex items-center gap-1">
                       <RiCalendarLine className="text-gray-500" />
                       <Text type="secondary">
-                        {t("organizations.pendingCodes.labels.expires")} {formatDateString(code.expires_at)}
+                        Expira: {formatDate(code.expires_at)}
                       </Text>
                     </div>
                   </div>
@@ -160,7 +171,3 @@ export default function PendingCodesList({ organizationId, onRefresh }) {
     </div>
   );
 }
-
-
-
-

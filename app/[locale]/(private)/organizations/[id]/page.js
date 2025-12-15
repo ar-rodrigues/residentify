@@ -1,11 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
-import { Result, Space } from "antd";
 import OrganizationNotFound from "./_components/OrganizationNotFound";
-import OrganizationHeader from "./_components/widgets/shared/OrganizationHeader";
-import OrganizationIdStorage from "./_components/widgets/shared/OrganizationIdStorage";
-import TypeRouter from "./_components/type-router";
+import { getDefaultRoute } from "@/utils/menu/organizationMenu";
 
 export default async function OrganizationDetailPage({ params }) {
   const supabase = await createClient();
@@ -22,11 +19,10 @@ export default async function OrganizationDetailPage({ params }) {
   }
 
   // Validate organization ID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!id || typeof id !== "string" || !uuidRegex.test(id)) {
-    return (
-      <OrganizationNotFound />
-    );
+    return <OrganizationNotFound />;
   }
 
   // Fetch organization data using the API utility function
@@ -95,26 +91,22 @@ export default async function OrganizationDetailPage({ params }) {
 
   // Error state
   if (errorMessage || !organization) {
-    return (
-      <OrganizationNotFound
-        message={errorMessage}
-      />
-    );
+    return <OrganizationNotFound message={errorMessage} />;
   }
 
+  // Redirect to default route based on role
+  const defaultRoute = getDefaultRoute(
+    organization.organization_type,
+    organization.userRole,
+    id
+  );
+
+  if (defaultRoute) {
+    redirect(defaultRoute);
+  }
+
+  // Fallback: if no default route, show not found
   return (
-    <div className="bg-gray-50 overflow-x-hidden">
-      <OrganizationIdStorage organizationId={id} />
-      <div className="w-full">
-        <OrganizationHeader organization={organization} organizationId={id} />
-        <div className="w-full">
-          <TypeRouter
-            organizationType={organization.organization_type}
-            userRole={organization.userRole}
-            organizationId={id}
-          />
-        </div>
-      </div>
-    </div>
+    <OrganizationNotFound message="No se pudo determinar la ruta por defecto para tu rol." />
   );
 }

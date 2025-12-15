@@ -1,3 +1,45 @@
+import messagesEs from "../../../messages/es.json";
+import messagesPt from "../../../messages/pt.json";
+
+const SUPPORTED_LOCALES = ["es", "pt"];
+const DEFAULT_LOCALE = "es";
+
+/**
+ * Safely load messages for a given locale
+ * @param {string} locale - The locale code
+ * @returns {Object} The messages object
+ */
+function loadMessages(locale = DEFAULT_LOCALE) {
+  const normalizedLocale =
+    locale && typeof locale === "string" && SUPPORTED_LOCALES.includes(locale)
+      ? locale
+      : DEFAULT_LOCALE;
+
+  switch (normalizedLocale) {
+    case "pt":
+      return messagesPt;
+    case "es":
+    default:
+      return messagesEs;
+  }
+}
+
+/**
+ * Create a translation function from messages
+ * @param {Object} messages - The messages object
+ * @returns {Function} Translation function
+ */
+function createTranslator(messages) {
+  return (key) => {
+    const keys = key.split(".");
+    let value = messages;
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    return value || key;
+  };
+}
+
 export const getApprovalEmailTemplate = async (
   firstName,
   lastName,
@@ -8,16 +50,9 @@ export const getApprovalEmailTemplate = async (
   const genericLogo =
     "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg";
 
-  // Load translations based on locale
-  const messages = await import(`../../../messages/${locale}.json`);
-  const t = (key) => {
-    const keys = key.split(".");
-    let value = messages.default;
-    for (const k of keys) {
-      value = value?.[k];
-    }
-    return value || key;
-  };
+  // Load translations based on locale using safe loader
+  const messages = loadMessages(locale);
+  const t = createTranslator(messages);
 
   return `
     <!DOCTYPE html>

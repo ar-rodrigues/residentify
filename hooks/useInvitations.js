@@ -426,6 +426,56 @@ export function useInvitations() {
     }
   }, []);
 
+  const deleteInvitation = useCallback(async (organizationId, invitationId) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!organizationId || typeof organizationId !== "string") {
+        throw new Error("ID de organización inválido.");
+      }
+
+      if (!invitationId || typeof invitationId !== "string") {
+        throw new Error("ID de invitación inválido.");
+      }
+
+      const response = await fetch(
+        `/api/organizations/${organizationId}/invitations/${invitationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Error al eliminar la invitación.");
+      }
+
+      if (result.error) {
+        throw new Error(result.message || "Error al eliminar la invitación.");
+      }
+
+      return {
+        error: false,
+        message: result.message || "Invitación eliminada exitosamente.",
+      };
+    } catch (err) {
+      const errorMessage =
+        err.message || "Error inesperado al eliminar la invitación.";
+      setError(err);
+      return {
+        error: true,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
@@ -437,5 +487,6 @@ export function useInvitations() {
     getInvitations,
     approveInvitation,
     rejectInvitation,
+    deleteInvitation,
   };
 }

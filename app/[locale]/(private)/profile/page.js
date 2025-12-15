@@ -10,6 +10,7 @@ import {
   RiKeyLine,
 } from "react-icons/ri";
 import { useUser } from "@/hooks/useUser";
+import { useOrganizations } from "@/hooks/useOrganizations";
 import { changePassword, changeEmail } from "./actions";
 import {
   Form,
@@ -22,6 +23,8 @@ import {
   Descriptions,
   Spin,
 } from "antd";
+import { RiArrowLeftLine } from "react-icons/ri";
+import { useRouter } from "next/navigation";
 import { formatDateDDMMYYYY } from "@/utils/date";
 import Password from "@/components/ui/Password";
 import Input from "@/components/ui/Input";
@@ -31,9 +34,11 @@ const { Title, Paragraph, Text } = Typography;
 
 export default function ProfilePage() {
   const t = useTranslations();
+  const router = useRouter();
   const { data: user, loading: userLoading } = useUser({
     redirectToLogin: true,
   });
+  const { organizations, fetching: fetchingOrgs } = useOrganizations();
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -44,6 +49,9 @@ export default function ProfilePage() {
   const [passwordForm] = Form.useForm();
   const [emailForm] = Form.useForm();
   const [isPending, startTransition] = useTransition();
+
+  // Check if user has no organizations
+  const hasNoOrganizations = !fetchingOrgs && organizations.length === 0;
 
   const handlePasswordChange = useCallback(
     async (values) => {
@@ -529,11 +537,22 @@ export default function ProfilePage() {
   return (
     <div>
       <Space orientation="vertical" size="large" className="w-full">
-        <div>
-          <Title level={2}>{t("profile.title")}</Title>
-          <Paragraph className="text-gray-600">
-            {t("profile.subtitle")}
-          </Paragraph>
+        <div className="flex items-center justify-between">
+          <div>
+            <Title level={2}>{t("profile.title")}</Title>
+            <Paragraph className="text-gray-600">
+              {t("profile.subtitle")}
+            </Paragraph>
+          </div>
+          {hasNoOrganizations && (
+            <Button
+              icon={<RiArrowLeftLine />}
+              onClick={() => router.push("/organizations")}
+              size="large"
+            >
+              {t("common.back")}
+            </Button>
+          )}
         </div>
 
         <Tabs

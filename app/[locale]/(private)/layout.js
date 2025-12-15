@@ -12,11 +12,13 @@ import { useUser } from "@/hooks/useUser";
 import { Avatar, Space, Dropdown } from "antd";
 import { Layout, Header, Content } from "@/components/ui/Layout";
 import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvider";
+import { OrganizationProvider } from "@/components/providers/OrganizationProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { useOrganizations } from "@/hooks/useOrganizations";
 
 const languages = [
   { value: "es", label: "Español", abbreviation: "ES" },
@@ -31,11 +33,16 @@ export default function PrivateLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
+  const { organizations, fetching: fetchingOrgs } = useOrganizations();
   const [collapsed, setCollapsed] = useState(false);
   const [languageExpanded, setLanguageExpanded] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const collapseTimeoutRef = useRef(null);
+  const expandTimeoutRef = useRef(null);
   const isTogglingLanguageRef = useRef(false);
+
+  // Check if user has organizations
+  const hasOrganizations = !fetchingOrgs && organizations.length > 0;
 
   // Initialize: auto-collapse after 3 seconds on mount (desktop only)
   useEffect(() => {
@@ -53,6 +60,9 @@ export default function PrivateLayout({ children }) {
       if (collapseTimeoutRef.current) {
         clearTimeout(collapseTimeoutRef.current);
       }
+      if (expandTimeoutRef.current) {
+        clearTimeout(expandTimeoutRef.current);
+      }
     };
   }, [isMobile]);
 
@@ -64,8 +74,17 @@ export default function PrivateLayout({ children }) {
       clearTimeout(collapseTimeoutRef.current);
       collapseTimeoutRef.current = null;
     }
-    // Expand sidebar on hover
-    setCollapsed(false);
+
+    // Clear any existing expand timeout
+    if (expandTimeoutRef.current) {
+      clearTimeout(expandTimeoutRef.current);
+    }
+
+    // Wait 0.2 seconds before expanding to avoid accidental hovers
+    expandTimeoutRef.current = setTimeout(() => {
+      setCollapsed(false);
+      expandTimeoutRef.current = null;
+    }, 200);
   };
 
   const handleMouseLeave = () => {
@@ -197,9 +216,7 @@ export default function PrivateLayout({ children }) {
       {
         key: "language",
         label: (
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span>Idioma</span>
             <span
               style={{
@@ -209,8 +226,8 @@ export default function PrivateLayout({ children }) {
               }}
             >
               (
-              {languages.find((lang) => lang.value === locale)
-                ?.abbreviation || ""}
+              {languages.find((lang) => lang.value === locale)?.abbreviation ||
+                ""}
               )
             </span>
           </div>
@@ -257,101 +274,110 @@ export default function PrivateLayout({ children }) {
 
   return (
     <FeatureFlagsProvider>
-      <Layout
-        className="min-h-screen overflow-x-hidden"
-        style={{ maxWidth: "100vw" }}
-      >
-        <AppNavigation
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        />
+      <OrganizationProvider>
         <Layout
-          style={{
-            marginLeft: isMobile ? 0 : collapsed ? 80 : 256,
-            transition: "margin-left 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
-            paddingBottom: isMobile ? "64px" : 0,
-            width: isMobile
-              ? "100%"
-              : `calc(100vw - ${collapsed ? 80 : 256}px)`,
-            maxWidth: isMobile
-              ? "100%"
-              : `calc(100vw - ${collapsed ? 80 : 256}px)`,
-            overflowX: "hidden",
-          }}
+          className="min-h-screen overflow-x-hidden"
+          style={{ maxWidth: "100vw" }}
         >
-          <Header
-            className="shadow-sm border-b border-gray-700 flex items-center justify-end"
+          {hasOrganizations && (
+            <AppNavigation
+              collapsed={collapsed}
+              onCollapse={setCollapsed}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            />
+          )}
+          <Layout
             style={{
-              backgroundColor: "#1e1b4b",
-              color: "#ffffff",
-              paddingLeft: isMobile ? "16px" : "24px",
-              paddingRight: isMobile ? "16px" : "24px",
+              marginLeft:
+                hasOrganizations && !isMobile ? (collapsed ? 80 : 256) : 0,
+              transition:
+                "margin-left 2s cubic-bezier(0.16, 1, 0.3, 1), width 2s cubic-bezier(0.16, 1, 0.3, 1), max-width 2s cubic-bezier(0.16, 1, 0.3, 1)",
+              willChange: "margin-left, width, max-width",
+              paddingBottom: hasOrganizations && isMobile ? "64px" : 0,
+              width:
+                hasOrganizations && !isMobile
+                  ? `calc(100vw - ${collapsed ? 80 : 256}px)`
+                  : "100%",
+              maxWidth:
+                hasOrganizations && !isMobile
+                  ? `calc(100vw - ${collapsed ? 80 : 256}px)`
+                  : "100%",
+              overflowX: "hidden",
             }}
           >
-            <Space size="middle">
-              {/* Profile icon dropdown */}
-              <Dropdown
-                open={dropdownOpen}
-                menu={{
-                  items: profileMenuItems,
-                  onClick: (info) => {
-                    // For language item, the onClick is handled in the item definition
-                    // For other items, close the dropdown
-                    if (
-                      info.key !== "language" &&
-                      !info.key.startsWith("lang-")
-                    ) {
-                      setDropdownOpen(false);
-                    }
-                  },
-                }}
-                placement="bottomRight"
-                trigger={["click"]}
-                onOpenChange={(open) => {
-                  // Prevent dropdown from closing if we're toggling language
-                  if (!open && isTogglingLanguageRef.current) {
-                    setDropdownOpen(true);
-                    return;
-                  }
-                  setDropdownOpen(open);
-                  if (!open) {
-                    setLanguageExpanded(false);
-                  }
-                }}
-                popupRender={(menu) => (
-                  <div
-                    style={{
-                      minWidth: "200px",
-                      maxWidth: "200px",
-                      overflow: "visible",
-                    }}
-                  >
-                    {menu}
-                  </div>
-                )}
-              >
-                <Avatar
-                  icon={<RiUserLine />}
-                  style={{
-                    backgroundColor: "#2563eb",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
+            <Header
+              className="shadow-sm border-b border-gray-700 flex items-center justify-end"
+              style={{
+                backgroundColor: "#1e1b4b",
+                color: "#ffffff",
+                paddingLeft: isMobile ? "16px" : "24px",
+                paddingRight: isMobile ? "16px" : "24px",
+              }}
+            >
+              <Space size="middle">
+                {/* Profile icon dropdown */}
+                <Dropdown
+                  open={dropdownOpen}
+                  menu={{
+                    items: profileMenuItems,
+                    onClick: (info) => {
+                      // For language item, the onClick is handled in the item definition
+                      // For other items, close the dropdown
+                      if (
+                        info.key !== "language" &&
+                        !info.key.startsWith("lang-")
+                      ) {
+                        setDropdownOpen(false);
+                      }
+                    },
                   }}
-                  className="hover:opacity-80 hover:scale-110 active:scale-95"
-                  size="default"
-                />
-              </Dropdown>
-            </Space>
-          </Header>
-          <Content className="p-2 bg-gray-50 overflow-x-hidden">
-            <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden">
-              {children}
-            </div>
-          </Content>
+                  placement="bottomRight"
+                  trigger={["click"]}
+                  onOpenChange={(open) => {
+                    // Prevent dropdown from closing if we're toggling language
+                    if (!open && isTogglingLanguageRef.current) {
+                      setDropdownOpen(true);
+                      return;
+                    }
+                    setDropdownOpen(open);
+                    if (!open) {
+                      setLanguageExpanded(false);
+                    }
+                  }}
+                  popupRender={(menu) => (
+                    <div
+                      style={{
+                        minWidth: "200px",
+                        maxWidth: "200px",
+                        overflow: "visible",
+                      }}
+                    >
+                      {menu}
+                    </div>
+                  )}
+                >
+                  <Avatar
+                    icon={<RiUserLine />}
+                    style={{
+                      backgroundColor: "#2563eb",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    className="hover:opacity-80 hover:scale-110 active:scale-95"
+                    size="default"
+                  />
+                </Dropdown>
+              </Space>
+            </Header>
+            <Content className="p-2 bg-gray-50 overflow-x-hidden">
+              <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden">
+                {children}
+              </div>
+            </Content>
+          </Layout>
         </Layout>
-      </Layout>
+      </OrganizationProvider>
     </FeatureFlagsProvider>
   );
 }

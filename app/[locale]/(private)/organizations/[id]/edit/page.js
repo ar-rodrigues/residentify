@@ -16,9 +16,15 @@ export default function EditOrganizationPage() {
   const params = useParams();
   const router = useRouter();
   const { id } = params;
-  const { getOrganization, updateOrganization, data: organization, loading } = useOrganizations();
+  const {
+    getOrganization,
+    updateOrganization,
+    data: organization,
+    loading,
+  } = useOrganizations();
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editForm] = Form.useForm();
   const [fetching, setFetching] = useState(true);
 
@@ -29,8 +35,8 @@ export default function EditOrganizationPage() {
         setFetching(false);
         if (result.error) {
           setErrorMessage(result.message);
-        } else if (result.data) {
-          // Set form initial values
+        } else if (result.data && result.data.isAdmin) {
+          // Set form initial values only if user is admin
           editForm.setFieldsValue({
             name: result.data.name,
           });
@@ -42,17 +48,30 @@ export default function EditOrganizationPage() {
   const handleUpdate = async (values) => {
     setErrorMessage(null);
     setSuccessMessage(null);
+    setIsSubmitting(true);
 
-    const result = await updateOrganization(id, values.name);
+    try {
+      const result = await updateOrganization(id, values.name);
 
-    if (result.error) {
-      setErrorMessage(result.message);
-    } else {
-      setSuccessMessage(result.message);
-      // Redirect to organization detail page after 2 seconds
-      setTimeout(() => {
-        router.push(`/organizations/${id}`);
-      }, 2000);
+      if (result.error) {
+        setErrorMessage(result.message);
+        setIsSubmitting(false);
+      } else {
+        setSuccessMessage(result.message);
+        // Disable form after success
+        editForm.setFieldsValue({
+          name: values.name,
+        });
+        // Redirect to organization detail page after 2 seconds
+        setTimeout(() => {
+          router.push(`/organizations/${id}`);
+        }, 2000);
+      }
+    } catch (error) {
+      setErrorMessage(
+        error.message || "Error inesperado al actualizar la organización."
+      );
+      setIsSubmitting(false);
     }
   };
 
@@ -201,7 +220,8 @@ export default function EditOrganizationPage() {
                   <Button
                     type="primary"
                     htmlType="submit"
-                    loading={loading}
+                    loading={loading || isSubmitting}
+                    disabled={isSubmitting || !!successMessage}
                     className="w-full"
                     size="large"
                   >
@@ -210,6 +230,7 @@ export default function EditOrganizationPage() {
                   <Button
                     htmlType="button"
                     onClick={handleCancel}
+                    disabled={isSubmitting || !!successMessage}
                     className="w-full"
                     size="large"
                     icon={<RiArrowLeftLine />}
@@ -225,11 +246,3 @@ export default function EditOrganizationPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-

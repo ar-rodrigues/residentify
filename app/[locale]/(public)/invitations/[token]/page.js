@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   RiUserAddLine,
@@ -24,6 +25,7 @@ import DatePicker from "@/components/ui/DatePicker";
 const { Title, Paragraph, Text } = Typography;
 
 export default function InvitationAcceptPage() {
+  const t = useTranslations();
   const params = useParams();
   const router = useRouter();
   const { token } = params;
@@ -227,14 +229,11 @@ export default function InvitationAcceptPage() {
     }
   };
 
-  // Map role names to Spanish
+  // Map role names using translations
   const getRoleDisplayName = (roleName) => {
-    const roleMap = {
-      admin: "Administrador",
-      resident: "Residente",
-      security: "Personal de Seguridad",
-    };
-    return roleMap[roleName] || roleName;
+    return t(`organizations.invite.roles.${roleName}`, {
+      defaultValue: roleName,
+    });
   };
 
   if (loadingInvitation || checkingEmail || mode === "checking") {
@@ -282,7 +281,7 @@ export default function InvitationAcceptPage() {
             </div>
             <div className="text-center mt-6">
               <Title level={4} className="!mb-0 !text-gray-800 !font-semibold">
-                Cargando invitación
+                {t("emails.invitation.acceptPage.loading")}
               </Title>
             </div>
           </div>
@@ -298,10 +297,9 @@ export default function InvitationAcceptPage() {
           <Card>
             <Space orientation="vertical" size="large" className="w-full">
               <Alert
-                title="Invitación no encontrada"
+                title={t("emails.invitation.acceptPage.notFound")}
                 description={
-                  errorMessage ||
-                  "La invitación no existe o ha expirado. Por favor, solicita una nueva invitación."
+                  errorMessage || t("emails.invitation.acceptPage.expired")
                 }
                 type="error"
                 showIcon
@@ -325,17 +323,17 @@ export default function InvitationAcceptPage() {
                   <RiUserAddLine className="text-4xl text-green-600" />
                 </div>
                 <Title level={2} className="mb-2">
-                  ¡Invitación Aceptada!
+                  {t("emails.invitation.acceptPage.accepted")}
                 </Title>
               </div>
               <Alert
-                title="Éxito"
+                title={t("emails.invitation.acceptPage.success")}
                 description={successMessage}
                 type="success"
                 showIcon
               />
               <Paragraph className="text-center text-gray-600">
-                Serás redirigido en breve...
+                {t("emails.invitation.acceptPage.redirecting")}
               </Paragraph>
             </Space>
           </Card>
@@ -357,10 +355,11 @@ export default function InvitationAcceptPage() {
                   <RiUserAddLine className="text-4xl text-blue-600" />
                 </div>
                 <Title level={2} className="mb-2">
-                  Aceptar Invitación
+                  {t("emails.invitation.acceptPage.acceptTitle")}
                 </Title>
                 <Paragraph className="text-gray-600">
-                  Estás autenticado como {currentUser?.email}
+                  {t("emails.invitation.acceptPage.authenticatedAs")}{" "}
+                  {currentUser?.email}
                 </Paragraph>
               </div>
 
@@ -371,7 +370,7 @@ export default function InvitationAcceptPage() {
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Organización
+                        {t("emails.invitation.organization")}
                       </Text>
                       <Text>{invitation?.organization?.name}</Text>
                     </div>
@@ -380,7 +379,7 @@ export default function InvitationAcceptPage() {
                     <RiUserLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Rol
+                        {t("emails.invitation.role")}
                       </Text>
                       <Text>
                         {invitation?.role
@@ -394,7 +393,7 @@ export default function InvitationAcceptPage() {
                       <RiUserLine className="text-xl text-blue-600 mt-1" />
                       <div>
                         <Text strong className="block mb-1">
-                          Invitado por
+                          {t("emails.invitation.invitedBy")}
                         </Text>
                         <Text>{invitation.inviter_name}</Text>
                       </div>
@@ -405,7 +404,7 @@ export default function InvitationAcceptPage() {
 
               {errorMessage && (
                 <Alert
-                  title="Error"
+                  title={t("emails.invitation.acceptPage.error")}
                   description={errorMessage}
                   type="error"
                   showIcon
@@ -416,7 +415,7 @@ export default function InvitationAcceptPage() {
 
               {successMessage && (
                 <Alert
-                  title="Éxito"
+                  title={t("emails.invitation.acceptPage.success")}
                   description={successMessage}
                   type="success"
                   showIcon
@@ -432,7 +431,7 @@ export default function InvitationAcceptPage() {
                 size="large"
                 icon={<RiUserAddLine />}
               >
-                Aceptar Invitación
+                {t("emails.invitation.acceptPage.acceptTitle")}
               </Button>
             </div>
 
@@ -443,11 +442,10 @@ export default function InvitationAcceptPage() {
                   <RiLoginBoxLine className="text-4xl text-blue-600" />
                 </div>
                 <Title level={2} className="mb-2">
-                  Iniciar Sesión para Aceptar
+                  {t("emails.invitation.acceptPage.loginToAccept")}
                 </Title>
                 <Paragraph className="text-gray-600">
-                  Ya tienes una cuenta. Inicia sesión para aceptar la
-                  invitación.
+                  {t("emails.invitation.acceptPage.loginMessage")}
                 </Paragraph>
               </div>
 
@@ -458,7 +456,7 @@ export default function InvitationAcceptPage() {
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Organización
+                        {t("emails.invitation.organization")}
                       </Text>
                       <Text>{invitation?.organization?.name}</Text>
                     </div>
@@ -467,7 +465,7 @@ export default function InvitationAcceptPage() {
                     <RiUserLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Rol
+                        {t("emails.invitation.role")}
                       </Text>
                       <Text>
                         {invitation?.role
@@ -542,7 +540,7 @@ export default function InvitationAcceptPage() {
                       size="large"
                       icon={<RiLoginBoxLine />}
                     >
-                      Iniciar Sesión y Aceptar
+                      {t("emails.invitation.acceptPage.loginAndAccept")}
                     </Button>
                     <div className="text-center">
                       <Link
@@ -551,7 +549,7 @@ export default function InvitationAcceptPage() {
                         )}`}
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
-                        ¿Olvidaste tu contraseña?
+                        {t("emails.invitation.acceptPage.forgotPassword")}
                       </Link>
                     </div>
                   </Space>
@@ -566,10 +564,10 @@ export default function InvitationAcceptPage() {
                   <RiUserAddLine className="text-4xl text-blue-600" />
                 </div>
                 <Title level={2} className="mb-2">
-                  Aceptar Invitación
+                  {t("emails.invitation.acceptPage.acceptTitle")}
                 </Title>
                 <Paragraph className="text-gray-600">
-                  Completa tu registro para unirte a la organización
+                  {t("emails.invitation.acceptPage.completeRegistration")}
                 </Paragraph>
               </div>
 
@@ -580,7 +578,7 @@ export default function InvitationAcceptPage() {
                     <RiBuildingLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Organización
+                        {t("emails.invitation.organization")}
                       </Text>
                       <Text>{invitation?.organization?.name}</Text>
                     </div>
@@ -589,7 +587,7 @@ export default function InvitationAcceptPage() {
                     <RiUserLine className="text-xl text-blue-600 mt-1" />
                     <div>
                       <Text strong className="block mb-1">
-                        Rol
+                        {t("emails.invitation.role")}
                       </Text>
                       <Text>
                         {invitation?.role
@@ -603,7 +601,7 @@ export default function InvitationAcceptPage() {
                       <RiUserLine className="text-xl text-blue-600 mt-1" />
                       <div>
                         <Text strong className="block mb-1">
-                          Invitado por
+                          {t("emails.invitation.invitedBy")}
                         </Text>
                         <Text>{invitation.inviter_name}</Text>
                       </div>
@@ -614,7 +612,7 @@ export default function InvitationAcceptPage() {
 
               {errorMessage && (
                 <Alert
-                  title="Error"
+                  title={t("emails.invitation.acceptPage.error")}
                   description={errorMessage}
                   type="error"
                   showIcon
@@ -625,7 +623,7 @@ export default function InvitationAcceptPage() {
 
               {successMessage && (
                 <Alert
-                  title="Éxito"
+                  title={t("emails.invitation.acceptPage.success")}
                   description={successMessage}
                   type="success"
                   showIcon
@@ -767,7 +765,7 @@ export default function InvitationAcceptPage() {
                     size="large"
                     icon={<RiUserAddLine />}
                   >
-                    Aceptar Invitación y Registrarse
+                    {t("emails.invitation.acceptPage.acceptAndRegister")}
                   </Button>
                 </Form.Item>
               </Form>

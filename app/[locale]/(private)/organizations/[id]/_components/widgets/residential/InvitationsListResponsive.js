@@ -13,7 +13,6 @@ import {
   Tag,
   Divider,
   Switch,
-  Modal,
 } from "antd";
 import {
   RiMailLine,
@@ -34,17 +33,17 @@ import Button from "@/components/ui/Button";
 import { App } from "antd";
 
 const { Text, Paragraph } = Typography;
-const { confirm } = Modal;
 
 export default function InvitationsListResponsive({ organizationId }) {
   const t = useTranslations();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const {
     loading,
     error,
     getInvitations,
     approveInvitation,
     rejectInvitation,
+    deleteInvitation,
   } = useInvitations();
   const {
     loading: linksLoading,
@@ -113,28 +112,81 @@ export default function InvitationsListResponsive({ organizationId }) {
     setProcessingId(null);
   };
 
+  const handleDelete = (invitationId) => {
+    modal.confirm({
+      title: t("organizations.invitations.deleteTitle"),
+      content: t("organizations.invitations.deleteContent"),
+      okText: t("organizations.invitations.deleteOk"),
+      okButtonProps: { danger: true },
+      cancelText: t("organizations.invitations.deleteCancel"),
+      onOk: async () => {
+        setProcessingId(invitationId);
+        const result = await deleteInvitation(organizationId, invitationId);
+        if (result.error) {
+          message.error(result.message);
+        } else {
+          message.success(result.message);
+          loadInvitations();
+        }
+        setProcessingId(null);
+      },
+    });
+  };
+
   const getStatusBadge = (status, isExpired) => {
     if (isExpired) {
-      return <Badge status="error" text={t("organizations.invitations.status.expired")} />;
+      return (
+        <Badge
+          status="error"
+          text={t("organizations.invitations.status.expired")}
+        />
+      );
     }
     switch (status) {
       case "pending":
-        return <Badge status="processing" text={t("organizations.invitations.status.pending")} />;
+        return (
+          <Badge
+            status="processing"
+            text={t("organizations.invitations.status.pending")}
+          />
+        );
       case "pending_approval":
-        return <Badge status="warning" text={t("organizations.invitations.status.pendingApproval")} />;
+        return (
+          <Badge
+            status="warning"
+            text={t("organizations.invitations.status.pendingApproval")}
+          />
+        );
       case "accepted":
-        return <Badge status="success" text={t("organizations.invitations.status.accepted")} />;
+        return (
+          <Badge
+            status="success"
+            text={t("organizations.invitations.status.accepted")}
+          />
+        );
       case "cancelled":
-        return <Badge status="default" text={t("organizations.invitations.status.cancelled")} />;
+        return (
+          <Badge
+            status="default"
+            text={t("organizations.invitations.status.cancelled")}
+          />
+        );
       case "rejected":
-        return <Badge status="error" text={t("organizations.invitations.status.rejected")} />;
+        return (
+          <Badge
+            status="error"
+            text={t("organizations.invitations.status.rejected")}
+          />
+        );
       default:
         return <Badge status="default" text={status} />;
     }
   };
 
   const getRoleDisplayName = (roleName) => {
-    return t(`organizations.members.roles.${roleName}`, { defaultValue: roleName });
+    return t(`organizations.members.roles.${roleName}`, {
+      defaultValue: roleName,
+    });
   };
 
   const getRoleColor = (roleName) => {
@@ -156,7 +208,7 @@ export default function InvitationsListResponsive({ organizationId }) {
   };
 
   const handleDeleteLink = (linkId) => {
-    confirm({
+    modal.confirm({
       title: t("organizations.invitations.generalLinks.deleteTitle"),
       content: t("organizations.invitations.generalLinks.deleteContent"),
       okText: t("organizations.invitations.generalLinks.deleteOk"),
@@ -179,9 +231,9 @@ export default function InvitationsListResponsive({ organizationId }) {
     const now = new Date();
     const expires = new Date(expiresAt);
     const diff = expires - now;
-    
+
     if (diff <= 0) return null;
-    
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     return days;
   };
@@ -230,8 +282,7 @@ export default function InvitationsListResponsive({ organizationId }) {
     {
       title: t("organizations.invitations.columns.status"),
       key: "status",
-      render: (_, record) =>
-        getStatusBadge(record.status, record.is_expired),
+      render: (_, record) => getStatusBadge(record.status, record.is_expired),
     },
     {
       title: t("organizations.invitations.columns.expires"),
@@ -262,31 +313,50 @@ export default function InvitationsListResponsive({ organizationId }) {
       title: t("organizations.invitations.columns.actions"),
       key: "actions",
       render: (_, record) => {
+        const actions = [];
+
         if (record.status === "pending_approval") {
-          return (
-            <Space>
-              <Button
-                type="primary"
-                size="small"
-                icon={<RiCheckLine />}
-                onClick={() => handleApprove(record.id)}
-                loading={processingId === record.id}
-              >
-                {t("organizations.invitations.actions.approve")}
-              </Button>
-              <Button
-                danger
-                size="small"
-                icon={<RiCloseLine />}
-                onClick={() => handleReject(record.id)}
-                loading={processingId === record.id}
-              >
-                {t("organizations.invitations.actions.reject")}
-              </Button>
-            </Space>
+          actions.push(
+            <Button
+              key="approve"
+              type="primary"
+              size="small"
+              icon={<RiCheckLine />}
+              onClick={() => handleApprove(record.id)}
+              loading={processingId === record.id}
+            >
+              {t("organizations.invitations.actions.approve")}
+            </Button>,
+            <Button
+              key="reject"
+              danger
+              size="small"
+              icon={<RiCloseLine />}
+              onClick={() => handleReject(record.id)}
+              loading={processingId === record.id}
+            >
+              {t("organizations.invitations.actions.reject")}
+            </Button>
           );
         }
-        return null;
+
+        // Show delete button for all statuses except accepted
+        if (record.status !== "accepted") {
+          actions.push(
+            <Button
+              key="delete"
+              danger
+              size="small"
+              icon={<RiDeleteBinLine />}
+              onClick={() => handleDelete(record.id)}
+              loading={processingId === record.id}
+            >
+              {t("organizations.invitations.actions.delete")}
+            </Button>
+          );
+        }
+
+        return actions.length > 0 ? <Space>{actions}</Space> : null;
       },
     },
   ];
@@ -297,7 +367,9 @@ export default function InvitationsListResponsive({ organizationId }) {
         <div className="flex justify-center py-8">
           <Space orientation="vertical" align="center">
             <Spin size="large" />
-            <Text type="secondary">{t("organizations.invitations.loading")}</Text>
+            <Text type="secondary">
+              {t("organizations.invitations.loading")}
+            </Text>
           </Space>
         </div>
       </Card>
@@ -349,12 +421,21 @@ export default function InvitationsListResponsive({ organizationId }) {
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <RiLinksLine className="text-gray-500 text-base flex-shrink-0" />
-                        <Tag color={getRoleColor(link.role_name)} className="flex-shrink-0">
+                        <Tag
+                          color={getRoleColor(link.role_name)}
+                          className="flex-shrink-0"
+                        >
                           {getRoleDisplayName(link.role_name)}
                         </Tag>
-                        <Space size={4} className="text-xs text-gray-500 flex-shrink-0">
+                        <Space
+                          size={4}
+                          className="text-xs text-gray-500 flex-shrink-0"
+                        >
                           <RiUserLine className="text-xs" />
-                          <Text type="secondary" className="text-xs whitespace-nowrap">
+                          <Text
+                            type="secondary"
+                            className="text-xs whitespace-nowrap"
+                          >
                             {link.usage_count || 0}x
                           </Text>
                         </Space>
@@ -383,16 +464,20 @@ export default function InvitationsListResponsive({ organizationId }) {
                         />
                       </Space>
                     </div>
-                    {link.expires_at && getDaysLeft(link.expires_at) !== null && (
-                      <div className="flex items-center gap-1">
-                        <RiTimeLine className="text-xs text-gray-500" />
-                        <Text type="secondary" className="text-xs">
-                          {t("organizations.invitations.generalLinks.daysLeft", { 
-                            days: getDaysLeft(link.expires_at) 
-                          })}
-                        </Text>
-                      </div>
-                    )}
+                    {link.expires_at &&
+                      getDaysLeft(link.expires_at) !== null && (
+                        <div className="flex items-center gap-1">
+                          <RiTimeLine className="text-xs text-gray-500" />
+                          <Text type="secondary" className="text-xs">
+                            {t(
+                              "organizations.invitations.generalLinks.daysLeft",
+                              {
+                                days: getDaysLeft(link.expires_at),
+                              }
+                            )}
+                          </Text>
+                        </div>
+                      )}
                   </div>
                 </Card>
               ))}
@@ -452,145 +537,12 @@ export default function InvitationsListResponsive({ organizationId }) {
 
                     <Divider className="my-2" />
 
-                    <Space className="w-full" orientation="vertical" size="small">
-                      <Button
-                        type="primary"
-                        icon={<RiCheckLine />}
-                        onClick={() => handleApprove(invitation.id)}
-                        loading={processingId === invitation.id}
+                    {invitation.status === "pending_approval" ? (
+                      <Space
                         className="w-full"
-                        size="large"
+                        orientation="vertical"
+                        size="small"
                       >
-                        {t("organizations.invitations.actions.approve")}
-                      </Button>
-                      <Button
-                        danger
-                        icon={<RiCloseLine />}
-                        onClick={() => handleReject(invitation.id)}
-                        loading={processingId === invitation.id}
-                        className="w-full"
-                        size="large"
-                      >
-                        {t("organizations.invitations.actions.reject")}
-                      </Button>
-                    </Space>
-                  </Space>
-                </Card>
-              ))}
-            </Space>
-          </Card>
-        )}
-
-        {/* Regular Invitations Section */}
-        <Card
-          title={t("organizations.invitations.title")}
-          extra={
-            <Space>
-              <Text type="secondary" className="text-xs">
-                {showAll ? t("organizations.invitations.filters.showAll") : t("organizations.invitations.filters.onlyPending")}
-              </Text>
-              <Switch
-                checked={showAll}
-                onChange={setShowAll}
-                size="small"
-              />
-            </Space>
-          }
-        >
-          {filteredInvitations.length === 0 ? (
-            <Paragraph type="secondary">
-              {showAll
-                ? t("organizations.invitations.empty")
-                : t("organizations.invitations.emptyPending")}
-            </Paragraph>
-          ) : (
-            <Space orientation="vertical" size="middle" className="w-full">
-              {filteredInvitations.map((invitation) => (
-              <Card
-                key={invitation.id}
-                size="small"
-                className="shadow-sm"
-                styles={{ body: { padding: "16px" } }}
-              >
-                <Space orientation="vertical" size="small" className="w-full">
-                  <div className="flex items-center justify-between">
-                    <Space>
-                      <RiMailLine className="text-gray-500 text-lg" />
-                      <Text strong className="text-base">
-                        {invitation.full_name}
-                      </Text>
-                    </Space>
-                    {getStatusBadge(invitation.status, invitation.is_expired)}
-                  </div>
-
-                  <Text type="secondary" className="text-sm break-all">
-                    {invitation.email}
-                  </Text>
-
-                  <Divider className="my-2" />
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Text type="secondary" className="text-sm">
-                        {t("organizations.invitations.labels.role")}
-                      </Text>
-                      <Tag
-                        color={
-                          invitation.role?.name === "admin"
-                            ? "red"
-                            : invitation.role?.name === "security"
-                            ? "orange"
-                            : "blue"
-                        }
-                      >
-                        {getRoleDisplayName(invitation.role?.name)}
-                      </Tag>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Text type="secondary" className="text-sm">
-                        {t("organizations.invitations.labels.expires")}
-                      </Text>
-                      <Space size="small">
-                        <RiTimeLine className="text-gray-500" />
-                        <Text
-                          type={invitation.is_expired ? "danger" : "secondary"}
-                          className="text-sm"
-                        >
-                          {invitation.expires_at
-                            ? formatDateDDMMYYYY(invitation.expires_at)
-                            : "N/A"}
-                        </Text>
-                      </Space>
-                    </div>
-
-                    {invitation.invited_by_name && (
-                      <div className="flex items-center justify-between">
-                        <Text type="secondary" className="text-sm">
-                          {t("organizations.invitations.labels.invitedBy")}
-                        </Text>
-                        <Text className="text-sm">
-                          {invitation.invited_by_name}
-                        </Text>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <Text type="secondary" className="text-sm">
-                        {t("organizations.invitations.labels.createdAt")}
-                      </Text>
-                      <Text className="text-sm">
-                        {invitation.created_at
-                          ? formatDateDDMMYYYY(invitation.created_at)
-                          : "N/A"}
-                      </Text>
-                    </div>
-                  </div>
-
-                  {invitation.status === "pending_approval" && (
-                    <>
-                      <Divider className="my-2" />
-                      <Space className="w-full" orientation="vertical" size="small">
                         <Button
                           type="primary"
                           icon={<RiCheckLine />}
@@ -612,14 +564,194 @@ export default function InvitationsListResponsive({ organizationId }) {
                           {t("organizations.invitations.actions.reject")}
                         </Button>
                       </Space>
-                    </>
-                  )}
-                </Space>
-              </Card>
-            ))}
-          </Space>
+                    ) : invitation.status !== "accepted" ? (
+                      <Space
+                        className="w-full"
+                        orientation="vertical"
+                        size="small"
+                      >
+                        <Button
+                          danger
+                          icon={<RiDeleteBinLine />}
+                          onClick={() => handleDelete(invitation.id)}
+                          loading={processingId === invitation.id}
+                          className="w-full"
+                          size="large"
+                        >
+                          {t("organizations.invitations.actions.delete")}
+                        </Button>
+                      </Space>
+                    ) : null}
+                  </Space>
+                </Card>
+              ))}
+            </Space>
+          </Card>
         )}
-      </Card>
+
+        {/* Regular Invitations Section */}
+        <Card
+          title={t("organizations.invitations.title")}
+          extra={
+            <Space>
+              <Text type="secondary" className="text-xs">
+                {showAll
+                  ? t("organizations.invitations.filters.showAll")
+                  : t("organizations.invitations.filters.onlyPending")}
+              </Text>
+              <Switch checked={showAll} onChange={setShowAll} size="small" />
+            </Space>
+          }
+        >
+          {filteredInvitations.length === 0 ? (
+            <Paragraph type="secondary">
+              {showAll
+                ? t("organizations.invitations.empty")
+                : t("organizations.invitations.emptyPending")}
+            </Paragraph>
+          ) : (
+            <Space orientation="vertical" size="middle" className="w-full">
+              {filteredInvitations.map((invitation) => (
+                <Card
+                  key={invitation.id}
+                  size="small"
+                  className="shadow-sm"
+                  styles={{ body: { padding: "16px" } }}
+                >
+                  <Space orientation="vertical" size="small" className="w-full">
+                    <div className="flex items-center justify-between">
+                      <Space>
+                        <RiMailLine className="text-gray-500 text-lg" />
+                        <Text strong className="text-base">
+                          {invitation.full_name}
+                        </Text>
+                      </Space>
+                      {getStatusBadge(invitation.status, invitation.is_expired)}
+                    </div>
+
+                    <Text type="secondary" className="text-sm break-all">
+                      {invitation.email}
+                    </Text>
+
+                    <Divider className="my-2" />
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Text type="secondary" className="text-sm">
+                          {t("organizations.invitations.labels.role")}
+                        </Text>
+                        <Tag
+                          color={
+                            invitation.role?.name === "admin"
+                              ? "red"
+                              : invitation.role?.name === "security"
+                              ? "orange"
+                              : "blue"
+                          }
+                        >
+                          {getRoleDisplayName(invitation.role?.name)}
+                        </Tag>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Text type="secondary" className="text-sm">
+                          {t("organizations.invitations.labels.expires")}
+                        </Text>
+                        <Space size="small">
+                          <RiTimeLine className="text-gray-500" />
+                          <Text
+                            type={
+                              invitation.is_expired ? "danger" : "secondary"
+                            }
+                            className="text-sm"
+                          >
+                            {invitation.expires_at
+                              ? formatDateDDMMYYYY(invitation.expires_at)
+                              : "N/A"}
+                          </Text>
+                        </Space>
+                      </div>
+
+                      {invitation.invited_by_name && (
+                        <div className="flex items-center justify-between">
+                          <Text type="secondary" className="text-sm">
+                            {t("organizations.invitations.labels.invitedBy")}
+                          </Text>
+                          <Text className="text-sm">
+                            {invitation.invited_by_name}
+                          </Text>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <Text type="secondary" className="text-sm">
+                          {t("organizations.invitations.labels.createdAt")}
+                        </Text>
+                        <Text className="text-sm">
+                          {invitation.created_at
+                            ? formatDateDDMMYYYY(invitation.created_at)
+                            : "N/A"}
+                        </Text>
+                      </div>
+                    </div>
+
+                    {invitation.status === "pending_approval" ? (
+                      <>
+                        <Divider className="my-2" />
+                        <Space
+                          className="w-full"
+                          orientation="vertical"
+                          size="small"
+                        >
+                          <Button
+                            type="primary"
+                            icon={<RiCheckLine />}
+                            onClick={() => handleApprove(invitation.id)}
+                            loading={processingId === invitation.id}
+                            className="w-full"
+                            size="large"
+                          >
+                            {t("organizations.invitations.actions.approve")}
+                          </Button>
+                          <Button
+                            danger
+                            icon={<RiCloseLine />}
+                            onClick={() => handleReject(invitation.id)}
+                            loading={processingId === invitation.id}
+                            className="w-full"
+                            size="large"
+                          >
+                            {t("organizations.invitations.actions.reject")}
+                          </Button>
+                        </Space>
+                      </>
+                    ) : invitation.status !== "accepted" ? (
+                      <>
+                        <Divider className="my-2" />
+                        <Space
+                          className="w-full"
+                          orientation="vertical"
+                          size="small"
+                        >
+                          <Button
+                            danger
+                            icon={<RiDeleteBinLine />}
+                            onClick={() => handleDelete(invitation.id)}
+                            loading={processingId === invitation.id}
+                            className="w-full"
+                            size="large"
+                          >
+                            {t("organizations.invitations.actions.delete")}
+                          </Button>
+                        </Space>
+                      </>
+                    ) : null}
+                  </Space>
+                </Card>
+              ))}
+            </Space>
+          )}
+        </Card>
       </Space>
     );
   }
@@ -649,14 +781,17 @@ export default function InvitationsListResponsive({ organizationId }) {
                     </Tag>
                     {link.requires_approval && (
                       <Tag color="orange" icon={<RiShieldCheckLine />}>
-                        {t("organizations.invitations.generalLinks.requiresApproval")}
+                        {t(
+                          "organizations.invitations.generalLinks.requiresApproval"
+                        )}
                       </Tag>
                     )}
                   </Space>
 
                   <Space>
                     <Text type="secondary" className="text-sm">
-                      {t("organizations.invitations.generalLinks.uses")} {link.usage_count || 0}
+                      {t("organizations.invitations.generalLinks.uses")}{" "}
+                      {link.usage_count || 0}
                     </Text>
                     {link.expires_at && (
                       <Space size="small">
@@ -678,7 +813,9 @@ export default function InvitationsListResponsive({ organizationId }) {
                       onClick={() => handleCopyLink(link)}
                       size="large"
                     >
-                      {copiedLinkId === link.id ? t("organizations.invitations.generalLinks.copied") : t("organizations.invitations.generalLinks.copy")}
+                      {copiedLinkId === link.id
+                        ? t("organizations.invitations.generalLinks.copied")
+                        : t("organizations.invitations.generalLinks.copy")}
                     </Button>
                     <Button
                       danger
@@ -717,9 +854,13 @@ export default function InvitationsListResponsive({ organizationId }) {
         title={t("organizations.invitations.title")}
         extra={
           <Space>
-            <Text type="secondary">{t("organizations.invitations.filters.onlyPendingLabel")}</Text>
+            <Text type="secondary">
+              {t("organizations.invitations.filters.onlyPendingLabel")}
+            </Text>
             <Switch checked={showAll} onChange={setShowAll} />
-            <Text type="secondary">{t("organizations.invitations.filters.showAllLabel")}</Text>
+            <Text type="secondary">
+              {t("organizations.invitations.filters.showAllLabel")}
+            </Text>
           </Space>
         }
       >
@@ -731,11 +872,11 @@ export default function InvitationsListResponsive({ organizationId }) {
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
-            showTotal: (total) => t("organizations.invitations.pagination.total", { total }),
+            showTotal: (total) =>
+              t("organizations.invitations.pagination.total", { total }),
           }}
         />
       </Card>
     </Space>
   );
 }
-

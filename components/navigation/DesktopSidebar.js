@@ -2,23 +2,27 @@
 
 import {
   RiRocketLine,
-  RiUserLine,
   RiBuildingLine,
   RiAddLine,
+  RiArrowDownSLine,
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
-import { Menu, Space, Typography, Button, Spin } from "antd";
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
+import {
+  Menu,
+  Space,
+  Typography,
+  Button,
+  Spin,
+  Dropdown,
+  Badge,
+  Tooltip,
+} from "antd";
 import { Sider } from "@/components/ui/Layout";
-import { useTranslatedMenu } from "@/hooks/useTranslatedMenu";
-
-// Icon mapping for menu items
-const iconMap = {
-  RiBuildingLine: RiBuildingLine,
-  RiUserLine: RiUserLine,
-};
 
 export default function DesktopSidebar({
   collapsed,
@@ -29,20 +33,92 @@ export default function DesktopSidebar({
   const t = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
-  const { organizations, fetching } = useOrganizations();
-  const translatedMenu = useTranslatedMenu();
+  const { organizations, fetching: fetchingOrgs } = useOrganizations();
+  const {
+    organization,
+    organizationId,
+    loading: loadingOrg,
+  } = useCurrentOrganization();
 
-  // Transform config menu items to Ant Design menu format
-  const menuItems = useMemo(() => {
-    return translatedMenu.map((item) => {
-      const IconComponent = iconMap[item.iconName];
-      return {
-        key: item.key,
-        icon: IconComponent ? <IconComponent /> : null,
-        label: item.label,
-      };
-    });
-  }, [translatedMenu]);
+  // If user has no organizations, don't render sidebar
+  if (!fetchingOrgs && organizations.length === 0) {
+    return null;
+  }
+
+  // Build organization selector dropdown items
+  const organizationMenuItems = useMemo(() => {
+    const otherOrganizations = organizations.filter(
+      (org) => org.id !== organizationId
+    );
+
+    return [
+      ...otherOrganizations.map((org) => ({
+        key: org.id,
+        label: org.name,
+        onClick: async () => {
+          // Update main organization
+          try {
+            await fetch("/api/profiles/main-organization", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ organization_id: org.id }),
+            });
+          } catch (err) {
+            console.error("Error updating main organization:", err);
+          }
+          router.push(`/organizations/${org.id}`);
+        },
+      })),
+      ...(otherOrganizations.length > 0
+        ? [
+            {
+              type: "divider",
+            },
+          ]
+        : []),
+      {
+        key: "create",
+        label: (
+          <Space>
+            <RiAddLine />
+            <span>{t("organizations.header.createNew")}</span>
+          </Space>
+        ),
+        onClick: () => router.push("/organizations/create"),
+      },
+    ];
+  }, [organizations, organizationId, router, t]);
+
+  // Get dynamic menu items based on organization type and role
+  // Always show organization menu items (from current/main organization)
+  const orgMenuItems = useMemo(() => {
+    if (
+      !organization ||
+      !organization.organization_type ||
+      !organization.userRole
+    ) {
+      return [];
+    }
+    return getOrganizationMenuItems(
+      organization.organization_type,
+      organization.userRole,
+      organization.id,
+      t
+    );
+  }, [organization, t]);
+
+  // Get role label for badge
+  const roleLabel = useMemo(() => {
+    if (!organization?.userRole) return null;
+    const roleMap = {
+      admin: t("roles.admin"),
+      resident: t("roles.resident"),
+      security: t("roles.security"),
+    };
+    return roleMap[organization.userRole] || organization.userRole;
+  }, [organization, t]);
 
   return (
     <Sider
@@ -61,7 +137,8 @@ export default function DesktopSidebar({
         left: 0,
         top: 0,
         bottom: 0,
-        transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+        zIndex: 100,
+        transition: "width 2s cubic-bezier(0.16, 1, 0.3, 1)",
         willChange: "width",
         display: "flex",
         flexDirection: "column",
@@ -74,6 +151,7 @@ export default function DesktopSidebar({
       className="ant-layout-sider"
     >
       <div className="flex flex-col h-full">
+        {/* Logo Section */}
         <div
           className="p-4 border-b"
           style={{
@@ -93,7 +171,7 @@ export default function DesktopSidebar({
                 maxWidth: collapsed ? 0 : "200px",
                 overflow: "hidden",
                 transition:
-                  "opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "opacity 2s cubic-bezier(0.16, 1, 0.3, 1), max-width 2s cubic-bezier(0.16, 1, 0.3, 1)",
                 whiteSpace: "nowrap",
                 display: "inline-block",
               }}
@@ -102,121 +180,173 @@ export default function DesktopSidebar({
             </Typography.Text>
           </Space>
         </div>
-        <div className="flex-1 overflow-auto">
-          <Menu
-            mode="inline"
-            selectedKeys={[pathname]}
-            items={menuItems}
-            onClick={({ key }) => router.push(key)}
+
+        {/* Organization Selector */}
+        {organization && (
+          <div
+            className="p-4 border-b"
             style={{
-              borderRight: 0,
-              transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              borderColor: "rgba(0, 0, 0, 0.1)",
             }}
-          />
-        </div>
-
-        {/* Organizations Section */}
-        <div
-          className="border-t flex-shrink-0"
-          style={{
-            borderColor: "rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <div className="p-4">
-            {!collapsed && (
-              <>
-                {/* Organization List */}
-                {fetching ? (
-                  <div className="flex justify-center py-4 mb-3">
-                    <Spin size="small" />
-                  </div>
-                ) : organizations.length === 0 ? (
-                  <Typography.Text
-                    type="secondary"
-                    className="text-xs block mb-3"
-                  >
-                    {t("navigation.noOrganizations")}
-                  </Typography.Text>
-                ) : (
-                  <div className="space-y-1 mb-3">
-                    {organizations.map((org) => (
-                      <div
-                        key={org.id}
-                        className="cursor-pointer rounded-md px-3 py-2 transition-all border border-transparent hover:border-blue-200 hover:bg-blue-50"
-                        style={{
-                          backgroundColor:
-                            pathname === `/organizations/${org.id}`
-                              ? "#e6f7ff"
-                              : undefined,
-                          borderColor:
-                            pathname === `/organizations/${org.id}`
-                              ? "#91d5ff"
-                              : undefined,
-                        }}
-                        onClick={() => router.push(`/organizations/${org.id}`)}
-                      >
-                        <Typography.Text
-                          ellipsis
-                          className="text-xs"
-                          style={{
-                            color:
-                              pathname === `/organizations/${org.id}`
-                                ? "#1890ff"
-                                : "#595959",
-                            fontWeight:
-                              pathname === `/organizations/${org.id}`
-                                ? 500
-                                : 400,
-                          }}
-                        >
-                          {org.name}
-                        </Typography.Text>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Organizations Label with Create Button */}
-                <div className="flex items-center justify-between">
-                  <Space size="small">
-                    <RiBuildingLine className="text-lg text-blue-600" />
-                    <Typography.Text strong className="text-sm">
-                      {t("navigation.organizations")}
-                    </Typography.Text>
-                  </Space>
-                  <Button
-                    type="primary"
-                    icon={<RiAddLine />}
-                    size="small"
-                    shape="circle"
-                    onClick={() => router.push("/organizations/create")}
-                    title={t("navigation.createOrganization")}
-                    style={{
-                      minWidth: "32px",
-                      width: "32px",
-                      height: "32px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+          >
+            {collapsed ? (
+              <div className="flex justify-center">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <RiBuildingLine className="text-xl text-blue-600" />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <div
+                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{
+                    backgroundColor: "#e6f7ff",
+                  }}
+                >
+                  <RiBuildingLine
+                    className="text-2xl"
+                    style={{ color: "#1890ff" }}
                   />
                 </div>
-              </>
-            )}
-
-            {collapsed && (
-              <div className="flex justify-center">
-                <Button
-                  type="primary"
-                  icon={<RiAddLine />}
-                  size="small"
-                  onClick={() => router.push("/organizations/create")}
-                  title={t("navigation.createOrganization")}
-                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <Tooltip title={organization.name} placement="top">
+                      <Typography.Text
+                        strong
+                        className="text-base"
+                        style={{
+                          margin: 0,
+                          lineHeight: "1.4",
+                          flex: 1,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          wordBreak: "break-word",
+                          hyphens: "auto",
+                        }}
+                      >
+                        {organization.name}
+                      </Typography.Text>
+                    </Tooltip>
+                    {fetchingOrgs ? (
+                      <Spin
+                        size="small"
+                        style={{ flexShrink: 0, marginTop: "2px" }}
+                      />
+                    ) : (
+                      <Dropdown
+                        menu={{ items: organizationMenuItems }}
+                        placement="bottomRight"
+                        trigger={["click"]}
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<RiArrowDownSLine />}
+                          style={{
+                            padding: "4px",
+                            height: "auto",
+                            minWidth: "auto",
+                            flexShrink: 0,
+                            color: "#666",
+                            marginTop: "2px",
+                          }}
+                          aria-label={t(
+                            "organizations.header.changeOrganization"
+                          )}
+                        />
+                      </Dropdown>
+                    )}
+                  </div>
+                  {roleLabel && (
+                    <div>
+                      <span
+                        style={{
+                          backgroundColor: "#e6f7ff",
+                          color: "#1890ff",
+                          border: "1px solid #91d5ff",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontSize: "11px",
+                          fontWeight: 500,
+                          display: "inline-block",
+                        }}
+                      >
+                        {roleLabel}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
+        )}
+
+        {/* Menu Items */}
+        <div className="flex-1 overflow-auto">
+          {loadingOrg ? (
+            <div className="flex justify-center py-8">
+              <Spin />
+            </div>
+          ) : (
+            <Menu
+              mode="inline"
+              selectedKeys={[pathname]}
+              items={orgMenuItems.map((item) => ({
+                ...item,
+                key: item.path,
+                icon: item.icon ? <item.icon /> : null,
+              }))}
+              onClick={({ key }) => router.push(key)}
+              style={{
+                borderRight: 0,
+                transition: "all 2s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          )}
         </div>
+
+        {/* Add Organization Button at Bottom */}
+        {!collapsed && (
+          <div
+            className="p-4 border-t"
+            style={{
+              borderColor: "rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Button
+              type="primary"
+              icon={<RiAddLine />}
+              block
+              onClick={() => router.push("/organizations/create")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+              }}
+            >
+              {t("organizations.header.createNew")}
+            </Button>
+          </div>
+        )}
+        {collapsed && (
+          <div
+            className="p-4 border-t flex justify-center"
+            style={{
+              borderColor: "rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Button
+              type="primary"
+              icon={<RiAddLine />}
+              shape="circle"
+              onClick={() => router.push("/organizations/create")}
+              aria-label={t("organizations.header.createNew")}
+            />
+          </div>
+        )}
       </div>
     </Sider>
   );

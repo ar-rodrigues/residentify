@@ -153,7 +153,7 @@
     "subtitle": "Selecciona una organización para gestionarla",
     "loading": "Cargando organizaciones...",
     "header": {
-      "createNew": "Crear Nueva Organización",
+      "createNew": "Nueva Organización",
       "change": "Cambiar",
       "changeOrganization": "Cambiar Organización"
     },
@@ -209,6 +209,9 @@
         "admin": "Administrador",
         "resident": "Residente",
         "security": "Personal de Seguridad"
+      },
+      "success": {
+        "message": "Invitación creada exitosamente."
       },
       "errors": {
         "firstNameRequired": "Por favor ingresa el nombre",
@@ -309,8 +312,13 @@
       },
       "actions": {
         "approve": "Aprobar",
-        "reject": "Rechazar"
+        "reject": "Rechazar",
+        "delete": "Eliminar"
       },
+      "deleteTitle": "¿Eliminar invitación?",
+      "deleteContent": "Esta acción no se puede deshacer. La invitación será eliminada permanentemente.",
+      "deleteOk": "Eliminar",
+      "deleteCancel": "Cancelar",
       "labels": {
         "role": "Rol:",
         "expires": "Expira:",
@@ -445,6 +453,23 @@
         "plural": "{count} códigos"
       }
     }
+  },
+  "menu": {
+    "members": "Miembros",
+    "invitations": "Invitaciones",
+    "chatPermissions": "Permisos de Chat",
+    "chat": "Chat",
+    "invites": "Invitaciones",
+    "validate": "Validar",
+    "history": "Histórico",
+    "pending": "Pendientes",
+    "organizations": "Organizaciones",
+    "profile": "Mi Perfil"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "resident": "Residente",
+    "security": "Seguridad"
   },
   "navigation": {
     "organizations": "Organizaciones",
@@ -886,7 +911,40 @@
       "expirationNote": "Esta invitación expirará en 7 días. Si no aceptas la invitación antes de esa fecha, deberás solicitar una nueva invitación.",
       "ignoreNote": "Si no esperabas esta invitación, puedes ignorar este correo.",
       "companyName": "Tu Organización",
-      "allRightsReserved": "Todos los derechos reservados"
+      "allRightsReserved": "Todos los derechos reservados",
+      "acceptPage": {
+        "loading": "Cargando invitación",
+        "notFound": "Invitación no encontrada",
+        "expired": "La invitación no existe o ha expirado. Por favor, solicita una nueva invitación.",
+        "accepted": "¡Invitación Aceptada!",
+        "success": "Éxito",
+        "redirecting": "Serás redirigido en breve...",
+        "acceptTitle": "Aceptar Invitación",
+        "authenticatedAs": "Estás autenticado como",
+        "error": "Error",
+        "loginToAccept": "Iniciar Sesión para Aceptar",
+        "loginMessage": "Ya tienes una cuenta. Inicia sesión para aceptar la invitación.",
+        "email": "Email",
+        "emailRequired": "Por favor ingresa tu email",
+        "emailInvalid": "El email no es válido",
+        "password": "Contraseña",
+        "passwordRequired": "Por favor ingresa tu contraseña",
+        "loginAndAccept": "Iniciar Sesión y Aceptar",
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "completeRegistration": "Completa tu registro para unirte a la organización",
+        "firstName": "Nombre",
+        "firstNameRequired": "Por favor ingresa tu nombre",
+        "lastName": "Apellido",
+        "lastNameRequired": "Por favor ingresa tu apellido",
+        "dateOfBirth": "Fecha de Nacimiento",
+        "dateOfBirthRequired": "Por favor ingresa tu fecha de nacimiento",
+        "passwordRequiredRegister": "Por favor ingresa una contraseña",
+        "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+        "confirmPassword": "Confirmar Contraseña",
+        "confirmPasswordRequired": "Por favor confirma tu contraseña",
+        "passwordsDontMatch": "Las contraseñas no coinciden",
+        "acceptAndRegister": "Aceptar Invitación y Registrarse"
+      }
     },
     "welcome": {
       "title": "¡Bienvenid@!",

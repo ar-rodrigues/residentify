@@ -85,13 +85,11 @@ export default function OrganizationHeader({ organization, organizationId }) {
               placement="bottomRight"
               trigger={["click"]}
             >
-              <Button
-                type="default"
-                icon={<RiArrowDownSLine />}
-                iconPlacement="end"
-                size={isMobile ? "middle" : "large"}
-              >
-                {isMobile ? t("organizations.header.change") : t("organizations.header.changeOrganization")}
+              <Button type="default" size={isMobile ? "middle" : "large"}>
+                {isMobile
+                  ? t("organizations.header.change")
+                  : t("organizations.header.changeOrganization")}{" "}
+                <RiArrowDownSLine />
               </Button>
             </Dropdown>
           )}

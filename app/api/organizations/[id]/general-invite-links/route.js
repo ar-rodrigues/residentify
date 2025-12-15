@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 import crypto from "crypto";
 import { getBaseUrlFromHeaders } from "@/utils/config/app";
+import { getLocaleFromRequest } from "@/utils/i18n/request";
 
 /**
  * POST /api/organizations/[id]/general-invite-links
@@ -150,17 +151,13 @@ export async function POST(request, { params }) {
     );
 
     // The RPC function returns an array, get the first result
-    const link =
-      linkData && linkData.length > 0 ? linkData[0] : null;
+    const link = linkData && linkData.length > 0 ? linkData[0] : null;
 
     if (linkError) {
       console.error("Error creating general invite link:", linkError);
 
       // Handle duplicate token error
-      if (
-        linkError.code === "23505" ||
-        linkError.message?.includes("token")
-      ) {
+      if (linkError.code === "23505" || linkError.message?.includes("token")) {
         return NextResponse.json(
           {
             error: true,
@@ -192,9 +189,13 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Get locale from request for invite link
+    const locale = getLocaleFromRequest(request);
+
     // Get base URL for the invite link
     const baseUrl = await getBaseUrlFromHeaders();
-    const inviteUrl = `${baseUrl}/invitations/general/${token}`;
+    // Include locale in the invite link
+    const inviteUrl = `${baseUrl}/${locale}/invitations/general/${token}`;
 
     return NextResponse.json(
       {
@@ -321,6 +322,9 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Get locale from request for invite links
+    const locale = getLocaleFromRequest(request);
+
     // Get base URL for invite links
     const baseUrl = await getBaseUrlFromHeaders();
 
@@ -337,7 +341,8 @@ export async function GET(request, { params }) {
 
         return {
           ...link,
-          invite_url: `${baseUrl}/invitations/general/${link.token}`,
+          // Include locale in the invite link
+          invite_url: `${baseUrl}/${locale}/invitations/general/${link.token}`,
           usage_count: count || 0,
           is_expired: isExpired,
           role_name: link.organization_roles?.name,
@@ -365,7 +370,3 @@ export async function GET(request, { params }) {
     );
   }
 }
-
-
-
-

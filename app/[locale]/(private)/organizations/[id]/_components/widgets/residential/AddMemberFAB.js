@@ -4,16 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Modal, Space } from "antd";
-import {
-  RiUserAddLine,
-  RiLinksLine,
-  RiMailLine,
-} from "react-icons/ri";
+import { RiUserAddLine, RiLinksLine, RiMailLine } from "react-icons/ri";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import Button from "@/components/ui/Button";
 import CreateGeneralInviteLinkForm from "./CreateGeneralInviteLinkForm";
 
-export default function AddMemberFAB({ organizationId, onSwitchToInvitations }) {
+export default function AddMemberFAB({
+  organizationId,
+  onSwitchToInvitations = null,
+}) {
   const t = useTranslations();
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -67,7 +66,11 @@ export default function AddMemberFAB({ organizationId, onSwitchToInvitations }) 
         open={modalOpen}
         onCancel={handleCancel}
         footer={null}
-        title={showLinkForm ? t("organizations.addMember.createLinkTitle") : t("organizations.addMember.modalTitle")}
+        title={
+          showLinkForm
+            ? t("organizations.addMember.createLinkTitle")
+            : t("organizations.addMember.modalTitle")
+        }
         width={isMobile ? "90%" : 500}
         centered
         styles={{
@@ -113,4 +116,3 @@ export default function AddMemberFAB({ organizationId, onSwitchToInvitations }) 
     </>
   );
 }
-

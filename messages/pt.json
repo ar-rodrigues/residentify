@@ -153,7 +153,7 @@
     "subtitle": "Selecione uma organização para gerenciá-la",
     "loading": "Carregando organizações...",
     "header": {
-      "createNew": "Criar Nova Organização",
+      "createNew": "Nova Organização",
       "change": "Alterar",
       "changeOrganization": "Alterar Organização"
     },
@@ -209,6 +209,9 @@
         "admin": "Administrador",
         "resident": "Residente",
         "security": "Equipe de Segurança"
+      },
+      "success": {
+        "message": "Convite criado com sucesso."
       },
       "errors": {
         "firstNameRequired": "Por favor, insira o nome",
@@ -309,8 +312,13 @@
       },
       "actions": {
         "approve": "Aprovar",
-        "reject": "Rejeitar"
+        "reject": "Rejeitar",
+        "delete": "Excluir"
       },
+      "deleteTitle": "Excluir convite?",
+      "deleteContent": "Esta ação não pode ser desfeita. O convite será excluído permanentemente.",
+      "deleteOk": "Excluir",
+      "deleteCancel": "Cancelar",
       "labels": {
         "role": "Função:",
         "expires": "Expira:",
@@ -445,6 +453,23 @@
         "plural": "{count} códigos"
       }
     }
+  },
+  "menu": {
+    "members": "Membros",
+    "invitations": "Convites",
+    "chatPermissions": "Permissões de Chat",
+    "chat": "Chat",
+    "invites": "Convites",
+    "validate": "Validar",
+    "history": "Histórico",
+    "pending": "Pendentes",
+    "organizations": "Organizações",
+    "profile": "Mi Perfil"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "resident": "Residente",
+    "security": "Segurança"
   },
   "navigation": {
     "organizations": "Organizações",
@@ -886,7 +911,40 @@
       "expirationNote": "Este convite expirará em 7 dias. Se você não aceitar o convite antes dessa data, precisará solicitar um novo convite.",
       "ignoreNote": "Se você não esperava este convite, pode ignorar este email.",
       "companyName": "Sua Organização",
-      "allRightsReserved": "Todos os direitos reservados"
+      "allRightsReserved": "Todos os direitos reservados",
+      "acceptPage": {
+        "loading": "Carregando convite",
+        "notFound": "Convite não encontrado",
+        "expired": "O convite não existe ou expirou. Por favor, solicite um novo convite.",
+        "accepted": "Convite Aceito!",
+        "success": "Sucesso",
+        "redirecting": "Você será redirecionado em breve...",
+        "acceptTitle": "Aceitar Convite",
+        "authenticatedAs": "Você está autenticado como",
+        "error": "Erro",
+        "loginToAccept": "Entrar para Aceitar",
+        "loginMessage": "Você já tem uma conta. Entre para aceitar o convite.",
+        "email": "Email",
+        "emailRequired": "Por favor, insira seu email",
+        "emailInvalid": "O email não é válido",
+        "password": "Senha",
+        "passwordRequired": "Por favor, insira sua senha",
+        "loginAndAccept": "Entrar e Aceitar",
+        "forgotPassword": "Esqueceu sua senha?",
+        "completeRegistration": "Complete seu registro para se juntar à organização",
+        "firstName": "Nome",
+        "firstNameRequired": "Por favor, insira seu nome",
+        "lastName": "Sobrenome",
+        "lastNameRequired": "Por favor, insira seu sobrenome",
+        "dateOfBirth": "Data de Nascimento",
+        "dateOfBirthRequired": "Por favor, insira sua data de nascimento",
+        "passwordRequiredRegister": "Por favor, insira uma senha",
+        "passwordMinLength": "A senha deve ter pelo menos 6 caracteres",
+        "confirmPassword": "Confirmar Senha",
+        "confirmPasswordRequired": "Por favor, confirme sua senha",
+        "passwordsDontMatch": "As senhas não coincidem",
+        "acceptAndRegister": "Aceitar Convite e Registrar"
+      }
     },
     "welcome": {
       "title": "Bem-vindo(a)!",

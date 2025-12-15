@@ -3,6 +3,34 @@ import { createClient } from "@/utils/supabase/server";
 import crypto from "crypto";
 import { sendInvitationEmail } from "@/utils/mailer/mailer";
 import { getBaseUrlFromHeaders } from "@/utils/config/app";
+import { getLocaleFromRequest } from "@/utils/i18n/request";
+import messagesEs from "@/messages/es.json";
+import messagesPt from "@/messages/pt.json";
+
+/**
+ * Get translated message for a given locale and key
+ * @param {string} locale - The locale code
+ * @param {string} key - The translation key (e.g., "organizations.invite.success.message")
+ * @returns {string} The translated message
+ */
+function getTranslatedMessage(locale, key) {
+  // Normalize locale
+  const normalizedLocale = locale === "pt" ? "pt" : "es";
+
+  // Use static imports for known locales
+  const messages = normalizedLocale === "pt" ? messagesPt : messagesEs;
+
+  // Navigate through the nested object using the key path
+  const keys = key.split(".");
+  let value = messages;
+  for (const k of keys) {
+    value = value?.[k];
+    if (value === undefined) {
+      return key; // Return key if translation not found
+    }
+  }
+  return value || key;
+}
 
 /**
  * POST /api/organizations/[id]/invitations
@@ -238,13 +266,15 @@ export async function POST(request, { params }) {
       ? `${inviterProfile.first_name} ${inviterProfile.last_name}`
       : "Administrador";
 
+    // Get locale from request for email, success message, and invitation link
+    const locale = getLocaleFromRequest(request);
+
     // Get base URL for invitation link
     const baseUrl = await getBaseUrlFromHeaders();
-    const invitationLink = `${baseUrl}/invitations/${token}`;
+    // Include locale in the invitation link
+    const invitationLink = `${baseUrl}/${locale}/invitations/${token}`;
 
-    // Send invitation email (non-blocking - don't fail if email fails)
-    // TODO: Get locale from user preferences or Accept-Language header
-    const locale = "es"; // Default to Spanish, can be enhanced to detect from user preferences
+    // Send invitation email - if it fails, delete the invitation and return error
     try {
       await sendInvitationEmail(
         email.trim(),
@@ -258,20 +288,49 @@ export async function POST(request, { params }) {
       );
       console.log("Invitation email sent successfully to:", email);
     } catch (emailError) {
-      // Log the error but don't fail the invitation creation
+      // Log the error
       console.error("Error sending invitation email:", {
         email,
         error: emailError.message,
         stack: emailError.stack,
       });
-      // Continue - invitation is created even if email fails
+
+      // Delete the invitation since email failed
+      const { error: deleteError } = await supabase
+        .from("organization_invitations")
+        .delete()
+        .eq("id", invitation.id);
+
+      if (deleteError) {
+        console.error(
+          "Error deleting invitation after email failure:",
+          deleteError
+        );
+        // Even if deletion fails, we should still return an error to the user
+      }
+
+      // Return error response to inform the user
+      return NextResponse.json(
+        {
+          error: true,
+          message:
+            "La invitación no pudo ser enviada por correo electrónico. Por favor, verifica la configuración del servidor de correo e intenta nuevamente.",
+        },
+        { status: 500 }
+      );
     }
+
+    // Get translated success message
+    const successMessage = getTranslatedMessage(
+      locale,
+      "organizations.invite.success.message"
+    );
 
     return NextResponse.json(
       {
         error: false,
         data: invitation,
-        message: "Invitación creada exitosamente.",
+        message: successMessage,
       },
       { status: 201 }
     );

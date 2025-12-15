@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import Image from "next/image";
+import NextImage from "next/image";
 import { Card, Space, Typography, Alert, App, Segmented } from "antd";
 import {
   RiQrScanLine,
@@ -711,7 +711,9 @@ export default function QRScanner({ onScan, loading = false }) {
                   label: (
                     <Space size="small" className="flex items-center">
                       <RiCameraLine className="text-sm sm:text-base" />
-                      <span className="text-xs sm:text-sm">{t("qrCodes.scanner.camera")}</span>
+                      <span className="text-xs sm:text-sm">
+                        {t("qrCodes.scanner.camera")}
+                      </span>
                     </Space>
                   ),
                   value: "camera",
@@ -721,7 +723,9 @@ export default function QRScanner({ onScan, loading = false }) {
                   label: (
                     <Space size="small" className="flex items-center">
                       <RiKeyboardLine className="text-sm sm:text-base" />
-                      <span className="text-xs sm:text-sm">{t("qrCodes.scanner.manual")}</span>
+                      <span className="text-xs sm:text-sm">
+                        {t("qrCodes.scanner.manual")}
+                      </span>
                     </Space>
                   ),
                   value: "manual",
@@ -830,8 +834,11 @@ export default function QRScanner({ onScan, loading = false }) {
           {imagePreview && (
             <div className="w-full">
               <Card title={t("qrCodes.scanner.capturedImage")}>
-                <div className="w-full flex justify-center relative" style={{ minHeight: "200px", maxHeight: "256px" }}>
-                  <Image
+                <div
+                  className="w-full flex justify-center relative"
+                  style={{ minHeight: "200px", maxHeight: "256px" }}
+                >
+                  <NextImage
                     src={imagePreview}
                     alt={t("qrCodes.scanner.previewAlt")}
                     fill
