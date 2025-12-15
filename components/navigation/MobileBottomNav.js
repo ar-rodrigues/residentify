@@ -18,11 +18,6 @@ export default function MobileBottomNav() {
     loading: loadingOrg,
   } = useCurrentOrganization();
 
-  // If user has no organizations, don't render mobile menu
-  if (!fetchingOrgs && organizations.length === 0) {
-    return null;
-  }
-
   // Get dynamic menu items based on organization type and role
   const orgMenuItems = useMemo(() => {
     if (
@@ -47,6 +42,11 @@ export default function MobileBottomNav() {
       key: item.path,
     }));
   }, [orgMenuItems]);
+
+  // If user has no organizations, don't render mobile menu
+  if (!fetchingOrgs && organizations.length === 0) {
+    return null;
+  }
 
   const handleItemClick = (key) => {
     router.push(key);

@@ -89,7 +89,7 @@ export default function ProfilePage() {
         }
       });
     },
-    [passwordForm]
+    [passwordForm, t]
   );
 
   const handleEmailChange = useCallback(
@@ -128,7 +128,7 @@ export default function ProfilePage() {
         }
       });
     },
-    [emailForm]
+    [emailForm, t]
   );
 
   const tabItems = useMemo(() => {
@@ -521,6 +521,7 @@ export default function ProfilePage() {
     emailForm,
     handlePasswordChange,
     handleEmailChange,
+    t,
   ]);
 
   if (userLoading || !user) {

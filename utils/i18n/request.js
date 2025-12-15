@@ -46,3 +46,4 @@ export function getLocaleFromRequest(request) {
   // Default to Spanish
   return "es";
 }
+

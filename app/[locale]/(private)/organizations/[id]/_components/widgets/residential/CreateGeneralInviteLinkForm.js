@@ -39,7 +39,7 @@ export default function CreateGeneralInviteLinkForm({
     } finally {
       setLoadingRoles(false);
     }
-  }, [message]);
+  }, [message, t]);
 
   useEffect(() => {
     fetchRoles();

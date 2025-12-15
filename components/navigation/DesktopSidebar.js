@@ -40,11 +40,6 @@ export default function DesktopSidebar({
     loading: loadingOrg,
   } = useCurrentOrganization();
 
-  // If user has no organizations, don't render sidebar
-  if (!fetchingOrgs && organizations.length === 0) {
-    return null;
-  }
-
   // Build organization selector dropdown items
   const organizationMenuItems = useMemo(() => {
     const otherOrganizations = organizations.filter(
@@ -119,6 +114,11 @@ export default function DesktopSidebar({
     };
     return roleMap[organization.userRole] || organization.userRole;
   }, [organization, t]);
+
+  // If user has no organizations, don't render sidebar
+  if (!fetchingOrgs && organizations.length === 0) {
+    return null;
+  }
 
   return (
     <Sider
