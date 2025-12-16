@@ -15,7 +15,7 @@ export default async function ValidateTokenPage({ params }) {
   // Validate token
   if (!token || typeof token !== "string") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      <div className="flex items-center justify-center h-full py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
             <Space orientation="vertical" size="large" className="w-full">
@@ -41,7 +41,7 @@ export default async function ValidateTokenPage({ params }) {
   await requireRouteAccess(id, "/validate");
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <QRValidationPage organizationId={id} token={token} />
       </div>

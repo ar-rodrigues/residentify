@@ -159,7 +159,7 @@ export default function OrganizationsPage() {
   // Show loading while checking redirect or fetching organizations
   if (checkingRedirect || fetching) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex items-center justify-center h-full">
         <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph>{t("organizations.loading")}</Paragraph>
@@ -170,7 +170,7 @@ export default function OrganizationsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-6 px-4 sm:py-12">
+      <div className="flex items-center justify-center h-full py-6 px-4 sm:py-12">
         <div className="max-w-md w-full">
           <Card>
             <Space orientation="vertical" size="large" className="w-full">
@@ -194,7 +194,7 @@ export default function OrganizationsPage() {
   // Empty state - no organizations
   if (!organizations || organizations.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+      <div className="py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
             <Space
@@ -229,7 +229,7 @@ export default function OrganizationsPage() {
 
   // Show list of organizations
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+    <div className="py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <Space orientation="vertical" size="large" className="w-full">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">

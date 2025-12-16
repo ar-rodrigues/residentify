@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useMemo } from "react";
 import {
   RiRocketLine,
   RiBuildingLine,
@@ -9,10 +9,10 @@ import {
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
+import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 import {
   Menu,
   Space,
@@ -40,8 +40,7 @@ export default function DesktopSidebar({
     organizationId,
     loading: loadingOrg,
   } = useCurrentOrganization();
-  const [isPending, startTransition] = useTransition();
-  const [loadingPath, setLoadingPath] = useState(null);
+  const { isPending, loadingPath, startNavigation } = useNavigationLoading();
 
   // Build organization selector dropdown items
   const organizationMenuItems = useMemo(() => {
@@ -91,8 +90,7 @@ export default function DesktopSidebar({
             return;
           }
           const targetPath = `/organizations/${org.id}`;
-          setLoadingPath(targetPath);
-          startTransition(() => {
+          startNavigation(targetPath, () => {
             router.push(targetPath);
           });
         },
@@ -114,14 +112,13 @@ export default function DesktopSidebar({
         ),
         onClick: () => {
           const path = "/organizations/create";
-          setLoadingPath(path);
-          startTransition(() => {
+          startNavigation(path, () => {
             router.push(path);
           });
         },
       },
     ];
-  }, [organizations, organizationId, router, t]);
+  }, [organizations, organizationId, router, t, startNavigation]);
 
   // Get dynamic menu items based on organization type and role
   // Always show organization menu items (from current/main organization)
@@ -152,15 +149,9 @@ export default function DesktopSidebar({
     return roleMap[organization.userRole] || organization.userRole;
   }, [organization, t]);
 
-  // Reset loading state when pathname changes (navigation completes)
-  useEffect(() => {
-    setLoadingPath(null);
-  }, [pathname]);
-
   // Handle menu item click with loading state
   const handleMenuClick = ({ key }) => {
-    setLoadingPath(key);
-    startTransition(() => {
+    startNavigation(key, () => {
       router.push(key);
     });
   };
@@ -168,8 +159,7 @@ export default function DesktopSidebar({
   // Handle add organization button click with loading state
   const handleAddOrganizationClick = () => {
     const path = "/organizations/create";
-    setLoadingPath(path);
-    startTransition(() => {
+    startNavigation(path, () => {
       router.push(path);
     });
   };

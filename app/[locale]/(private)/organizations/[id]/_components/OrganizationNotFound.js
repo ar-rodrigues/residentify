@@ -17,7 +17,7 @@ export default function OrganizationNotFound({
   const defaultMessage = message || t("errors.organizationNotFound.message");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-6">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center h-full p-4 sm:p-6">
       <div className="w-full max-w-lg">
         <div className="[&_.ant-result-image]:!max-w-[180px] [&_.ant-result-image]:sm:!max-w-[220px]">
           <Result

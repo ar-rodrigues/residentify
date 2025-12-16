@@ -117,11 +117,11 @@ export default function InviteUserPage() {
 
   if (organization && !organization.isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4 pb-20 sm:pb-12">
+      <div className="flex items-center justify-center h-full py-4 sm:py-12 px-4 pb-20 sm:pb-12">
         <div className="max-w-md w-full">
           <Card styles={{ body: { padding: "20px 16px" } }}>
             <Alert
-              message={
+              title={
                 t("organizations.invite.errors.accessDeniedTitle") ||
                 "Acceso Denegado"
               }
@@ -147,7 +147,7 @@ export default function InviteUserPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-8">
+    <div className="py-4 sm:py-8 px-4 sm:px-6 lg:px-8 pb-20 sm:pb-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg" styles={{ body: { padding: "20px 16px" } }}>
           <Space orientation="vertical" size="middle" className="w-full">
@@ -170,7 +170,7 @@ export default function InviteUserPage() {
                 type="error"
                 showIcon
                 closable
-                onClose={() => setErrorMessage(null)}
+                afterClose={() => setErrorMessage(null)}
               />
             )}
 

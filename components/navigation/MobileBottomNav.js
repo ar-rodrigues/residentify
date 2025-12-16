@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useMemo, useState, useTransition, useEffect } from "react";
+import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
 import { useTranslations } from "next-intl";
 import { Spin } from "antd";
+import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 
 export default function MobileBottomNav() {
   const router = useRouter();
@@ -18,8 +19,7 @@ export default function MobileBottomNav() {
     organizationId,
     loading: loadingOrg,
   } = useCurrentOrganization();
-  const [isPending, startTransition] = useTransition();
-  const [loadingPath, setLoadingPath] = useState(null);
+  const { isPending, loadingPath, startNavigation } = useNavigationLoading();
 
   // Get dynamic menu items based on organization type and role
   const orgMenuItems = useMemo(() => {
@@ -46,19 +46,13 @@ export default function MobileBottomNav() {
     }));
   }, [orgMenuItems]);
 
-  // Reset loading state when pathname changes (navigation completes)
-  useEffect(() => {
-    setLoadingPath(null);
-  }, [pathname]);
-
   // If user has no organizations, don't render mobile menu
   if (!fetchingOrgs && organizations.length === 0) {
     return null;
   }
 
   const handleItemClick = (key) => {
-    setLoadingPath(key);
-    startTransition(() => {
+    startNavigation(key, () => {
       router.push(key);
     });
   };

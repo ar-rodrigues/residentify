@@ -1,6 +1,6 @@
 # Always check the document KNOWN_ISSUES to ensure you didnt commit any of the already know errors.
 
-# Always strive for efficiency and performance
+# Always strive for efficiency and performance. Be aware of LCP (largest contentful paint) to improve UX.
 
 # Dates will be ALWAYS with the format dd/mm/yyyy
 

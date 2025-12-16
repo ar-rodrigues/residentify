@@ -526,7 +526,7 @@ export default function ProfilePage() {
 
   if (userLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-full">
         <Space orientation="vertical" align="center" size="large">
           <Spin size="large" />
           <Paragraph className="text-gray-600">{t("profile.loading")}</Paragraph>
