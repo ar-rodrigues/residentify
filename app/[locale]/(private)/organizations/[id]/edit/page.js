@@ -30,7 +30,6 @@ export default function EditOrganizationPage() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [editForm] = Form.useForm();
 
   // Security: Ensure we use the organization matching the URL parameter
   // The context organization may be a different organization (main org)
@@ -67,6 +66,9 @@ export default function EditOrganizationPage() {
 
     fetchOrg();
   }, [id, contextOrg?.id, contextLoading, getOrganization]);
+
+  // Create form instance - must be called unconditionally
+  const [editForm] = Form.useForm();
 
   // Set form initial values when organization is loaded
   useEffect(() => {
@@ -128,172 +130,163 @@ export default function EditOrganizationPage() {
   // Show loading if fetching organization or if context is loading and org matches
   const isLoading =
     fetching || (contextLoading && contextOrg?.id === id) || loading;
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Space orientation="vertical" align="center" size="large">
-          <Spin size="large" />
-          <Paragraph>{t("organizations.edit.loading")}</Paragraph>
-        </Space>
-      </div>
-    );
-  }
-
-  if (!organization || organization.id !== id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="max-w-md w-full">
-          <Card>
-            <Space orientation="vertical" size="large" className="w-full">
-              <Alert
-                title={t("common.error")}
-                description={
-                  errorMessage || t("organizations.edit.errors.loadError")
-                }
-                type="error"
-                showIcon
-              />
-              <Button
-                type="primary"
-                onClick={() => router.push("/organizations")}
-                className="w-full"
-              >
-                {t("organizations.edit.backToOrganizations")}
-              </Button>
-            </Space>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Security check: Verify admin status for the organization matching the URL parameter
-  // At this point, we know organization.id === id (checked above)
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="max-w-md w-full">
-          <Card>
-            <Space orientation="vertical" size="large" className="w-full">
-              <Alert
-                title={t("organizations.edit.errors.accessDeniedTitle")}
-                description={t("organizations.edit.errors.accessDenied")}
-                type="error"
-                showIcon
-              />
-              <Button
-                type="primary"
-                onClick={() => router.push(`/organizations/${id}`)}
-                className="w-full"
-              >
-                {t("organizations.edit.backToOrganization")}
-              </Button>
-            </Space>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  const canEdit = organization && organization.id === id && isAdmin;
+  const hasError = !organization || organization.id !== id;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <Card className="shadow-lg">
-          <Space orientation="vertical" size="large" className="w-full">
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <RiBuildingLine className="text-4xl text-blue-600" />
-              </div>
-              <Title level={2} className="mb-2">
-                {t("organizations.edit.title")}
-              </Title>
-              <Paragraph className="text-gray-600">
-                {t("organizations.edit.subtitle")}
-              </Paragraph>
-            </div>
-
-            {errorMessage && (
-              <Alert
-                title={t("common.error")}
-                description={errorMessage}
-                type="error"
-                showIcon
-                closable
-                onClose={() => setErrorMessage(null)}
-              />
-            )}
-
-            {successMessage && (
-              <Alert
-                title={t("common.success")}
-                description={successMessage}
-                type="success"
-                showIcon
-              />
-            )}
-
-            <Form
-              form={editForm}
-              onFinish={handleUpdate}
-              layout="vertical"
-              requiredMark={false}
-            >
-              <Form.Item
-                name="name"
-                rules={[
-                  {
-                    required: true,
-                    message: t("organizations.edit.errors.nameRequired"),
-                  },
-                  {
-                    min: 2,
-                    message: t("organizations.edit.errors.nameMinLength"),
-                  },
-                  {
-                    max: 100,
-                    message: t("organizations.edit.errors.nameMaxLength"),
-                  },
-                  {
-                    whitespace: true,
-                    message: t("organizations.edit.errors.nameWhitespace"),
-                  },
-                ]}
-              >
-                <Input
-                  prefixIcon={<RiBuildingLine />}
-                  placeholder={t("organizations.edit.namePlaceholder")}
-                  size="large"
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Space className="w-full" orientation="vertical" size="middle">
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={loading || isSubmitting}
-                    disabled={isSubmitting || !!successMessage}
-                    className="w-full"
-                    size="large"
-                  >
-                    {t("organizations.edit.saveButton")}
-                  </Button>
-                  <Button
-                    htmlType="button"
-                    onClick={handleCancel}
-                    disabled={isSubmitting || !!successMessage}
-                    className="w-full"
-                    size="large"
-                    icon={<RiArrowLeftLine />}
-                  >
-                    {t("organizations.edit.cancelButton")}
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
+      {/* Always render Form to connect form instance - prevents useForm warning */}
+      <Form
+        form={editForm}
+        onFinish={canEdit ? handleUpdate : undefined}
+        layout="vertical"
+        requiredMark={false}
+        style={canEdit ? {} : { display: "none" }}
+      >
+        {isLoading ? (
+          <Space orientation="vertical" align="center" size="large">
+            <Spin size="large" />
+            <Paragraph>{t("organizations.edit.loading")}</Paragraph>
           </Space>
-        </Card>
-      </div>
+        ) : hasError ? (
+          <div className="max-w-md w-full">
+            <Card>
+              <Space orientation="vertical" size="large" className="w-full">
+                <Alert
+                  title={t("common.error")}
+                  description={
+                    errorMessage || t("organizations.edit.errors.loadError")
+                  }
+                  type="error"
+                  showIcon
+                />
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/organizations")}
+                  className="w-full"
+                >
+                  {t("organizations.edit.backToOrganizations")}
+                </Button>
+              </Space>
+            </Card>
+          </div>
+        ) : !isAdmin ? (
+          <div className="max-w-md w-full">
+            <Card>
+              <Space orientation="vertical" size="large" className="w-full">
+                <Alert
+                  title={t("organizations.edit.errors.accessDeniedTitle")}
+                  description={t("organizations.edit.errors.accessDenied")}
+                  type="error"
+                  showIcon
+                />
+                <Button
+                  type="primary"
+                  onClick={() => router.push(`/organizations/${id}`)}
+                  className="w-full"
+                >
+                  {t("organizations.edit.backToOrganization")}
+                </Button>
+              </Space>
+            </Card>
+          </div>
+        ) : (
+          <div className="max-w-md w-full space-y-8">
+            <Card className="shadow-lg">
+              <Space orientation="vertical" size="large" className="w-full">
+                <div className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <RiBuildingLine className="text-4xl text-blue-600" />
+                  </div>
+                  <Title level={2} className="mb-2">
+                    {t("organizations.edit.title")}
+                  </Title>
+                  <Paragraph className="text-gray-600">
+                    {t("organizations.edit.subtitle")}
+                  </Paragraph>
+                </div>
+
+                {errorMessage && (
+                  <Alert
+                    title={t("common.error")}
+                    description={errorMessage}
+                    type="error"
+                    showIcon
+                    closable
+                    onClose={() => setErrorMessage(null)}
+                  />
+                )}
+
+                {successMessage && (
+                  <Alert
+                    title={t("common.success")}
+                    description={successMessage}
+                    type="success"
+                    showIcon
+                  />
+                )}
+
+                <Form.Item
+                  name="name"
+                  rules={[
+                    {
+                      required: true,
+                      message: t("organizations.edit.errors.nameRequired"),
+                    },
+                    {
+                      min: 2,
+                      message: t("organizations.edit.errors.nameMinLength"),
+                    },
+                    {
+                      max: 100,
+                      message: t("organizations.edit.errors.nameMaxLength"),
+                    },
+                    {
+                      whitespace: true,
+                      message: t("organizations.edit.errors.nameWhitespace"),
+                    },
+                  ]}
+                >
+                  <Input
+                    prefixIcon={<RiBuildingLine />}
+                    placeholder={t("organizations.edit.namePlaceholder")}
+                    size="large"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Space
+                    className="w-full"
+                    orientation="vertical"
+                    size="middle"
+                  >
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading || isSubmitting}
+                      disabled={isSubmitting || !!successMessage}
+                      className="w-full"
+                      size="large"
+                    >
+                      {t("organizations.edit.saveButton")}
+                    </Button>
+                    <Button
+                      htmlType="button"
+                      onClick={handleCancel}
+                      disabled={isSubmitting || !!successMessage}
+                      className="w-full"
+                      size="large"
+                      icon={<RiArrowLeftLine />}
+                    >
+                      {t("organizations.edit.cancelButton")}
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Space>
+            </Card>
+          </div>
+        )}
+      </Form>
     </div>
   );
 }
