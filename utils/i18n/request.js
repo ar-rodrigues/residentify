@@ -47,3 +47,4 @@ export function getLocaleFromRequest(request) {
   return "es";
 }
 
+
