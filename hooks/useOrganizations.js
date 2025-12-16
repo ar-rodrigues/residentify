@@ -196,6 +196,8 @@ export function useOrganizations() {
         const channelName = `user-organizations-${user.id}`;
 
         // Subscribe to DELETE events on organization_members where this user is removed
+        // Note: We subscribe to ALL DELETE events on organization_members, not just for this user
+        // This is because RLS might prevent seeing the deleted record after deletion
         const channel = supabase
           .channel(channelName)
           .on(
@@ -204,9 +206,36 @@ export function useOrganizations() {
               event: "DELETE",
               schema: "public",
               table: "organization_members",
-              filter: `user_id=eq.${user.id}`,
+              // Remove filter to receive all DELETE events, then filter in handler
+              // This works around RLS limitations where deleted records may not be visible
             },
             (payload) => {
+              // Check if this DELETE event is for the current user
+              // Note: payload.old may not include user_id due to RLS, so we need to check
+              // by querying the database or using the member ID
+              const deletedMemberId = payload.old?.id;
+              const deletedUserId = payload.old?.user_id;
+
+              // If user_id is in payload, use it directly
+              if (deletedUserId === user.id) {
+                // This DELETE is for the current user - process it
+              } else if (deletedUserId && deletedUserId !== user.id) {
+                return; // Not for this user, ignore
+              } else if (!deletedUserId && deletedMemberId) {
+                // user_id not in payload (RLS blocked it) - refetch to check if we were removed
+                // Refetch organizations - if we were removed, the list will update
+                // This is safe because refetching is idempotent
+                if (mounted) {
+                  fetchOrganizations();
+                }
+                return; // Let refetch handle the update
+              } else {
+                // No useful data in payload - ignore
+                return;
+              }
+
+              // If we get here, the DELETE is confirmed for the current user
+
               // User was removed from an organization - refetch the list
               if (mounted) {
                 const removedOrgId = payload.old?.organization_id;

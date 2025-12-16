@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
@@ -92,6 +93,55 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Check if user is actually a member (in case of data inconsistency)
+    const { data: existingMember, error: memberCheckError } = await supabase
+      .from("organization_members")
+      .select("id")
+      .eq("organization_id", invitation.organization_id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingMember) {
+      // User is already a member - check if there are old accepted invitations to clean up
+      // This handles the case where invitation status doesn't match membership
+      const { error: cleanupError } = await supabase
+        .from("organization_invitations")
+        .update({ status: "cancelled" })
+        .eq("organization_id", invitation.organization_id)
+        .eq("email", invitation.email)
+        .eq("status", "accepted")
+        .neq("id", invitation.id);
+
+      if (cleanupError) {
+        console.error("Error cleaning up old invitations:", cleanupError);
+      }
+
+      return NextResponse.json(
+        {
+          error: true,
+          message: "Ya eres miembro de esta organización.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // Clean up any old accepted invitations for this email/organization
+    // NOTE: RLS may block this query from seeing old accepted invitations
+    // If cleanup fails due to RLS, we'll catch the constraint violation and handle it
+    const { data: cleanupData, error: cleanupError } = await supabase
+      .from("organization_invitations")
+      .update({ status: "cancelled" })
+      .eq("organization_id", invitation.organization_id)
+      .eq("email", invitation.email)
+      .eq("status", "accepted")
+      .neq("id", invitation.id)
+      .select();
+
+    if (cleanupError) {
+      console.error("Error cleaning up old accepted invitations (RLS may be blocking):", cleanupError);
+      // Continue anyway - we'll handle the constraint violation if it occurs
+    }
+
     // Use database function to add user to organization (bypasses RLS)
     const { data: memberData, error: memberError } = await supabase.rpc(
       "accept_organization_invitation",
@@ -136,10 +186,69 @@ export async function POST(request, { params }) {
       }
 
       if (memberError.code === "23505") {
+        // Constraint violation: there's an old accepted invitation that RLS blocked us from seeing
+        // Try to clean it up using service role client (bypasses RLS)
+        if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          const serviceClient = createServiceClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
+
+          // Instead of UPDATE (which can hit constraint), DELETE the old accepted invitations
+          // This avoids the unique constraint violation during the update operation
+          const { data: serviceCleanupData, error: serviceCleanupError } = await serviceClient
+            .from("organization_invitations")
+            .delete()
+            .eq("organization_id", invitation.organization_id)
+            .eq("email", invitation.email)
+            .eq("status", "accepted")
+            .neq("id", invitation.id)
+            .select();
+
+          if (!serviceCleanupError && serviceCleanupData && serviceCleanupData.length > 0) {
+            // Cleanup succeeded, retry the acceptance
+            const { data: retryMemberData, error: retryMemberError } = await supabase.rpc(
+              "accept_organization_invitation",
+              {
+                p_token: token,
+                p_user_id: user.id,
+              }
+            );
+
+            if (!retryMemberError && retryMemberData && retryMemberData.length > 0) {
+              const member = retryMemberData[0];
+              const updateResult = await updateMainOrganization(
+                user.id,
+                member.organization_id
+              );
+
+              if (updateResult.error) {
+                console.error("Error setting main organization:", updateResult.message);
+              }
+
+              return NextResponse.json(
+                {
+                  error: false,
+                  data: {
+                    user_id: user.id,
+                    organization_id: member.organization_id,
+                    organization_name: invitation.organization_name,
+                    role_name: invitation.role_name,
+                    is_new_user: false,
+                  },
+                  message: "Agregado a la organización exitosamente.",
+                },
+                { status: 200 }
+              );
+            }
+          }
+        }
+
+        // If cleanup failed or service role not available, return error
         return NextResponse.json(
           {
             error: true,
-            message: "Ya eres miembro de esta organización.",
+            message: "Ya eres miembro de esta organización o hay una invitación anterior que necesita ser limpiada.",
           },
           { status: 409 }
         );

@@ -66,6 +66,21 @@ export async function GET(request, { params }) {
       isLoggedIn &&
       user.email?.toLowerCase() === invitation.email.toLowerCase();
 
+    // Check if user is already a member of this organization (if logged in and email matches)
+    let isAlreadyMember = false;
+    if (isLoggedIn && emailMatches && invitation.organization_id) {
+      const { data: memberCheck, error: memberError } = await supabase
+        .from("organization_members")
+        .select("id")
+        .eq("organization_id", invitation.organization_id)
+        .eq("user_id", user.id)
+        .single();
+
+      // If member exists (no error or found), user is already a member
+      // PGRST116 means no rows found, which is fine - user is not a member
+      isAlreadyMember = !memberError && !!memberCheck;
+    }
+
     return NextResponse.json(
       {
         error: false,
@@ -75,6 +90,7 @@ export async function GET(request, { params }) {
           is_logged_in: isLoggedIn,
           email_matches: emailMatches,
           user_id: emailMatches ? user.id : null,
+          is_already_member: isAlreadyMember,
         },
       },
       { status: 200 }

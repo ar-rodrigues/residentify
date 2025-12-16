@@ -67,6 +67,21 @@ export default function InvitationAcceptPage() {
 
         setEmailCheck(result.data);
 
+        // Check if user is already a member (if logged in and email matches)
+        if (
+          result.data.is_already_member &&
+          result.data.email_matches &&
+          result.data.is_logged_in
+        ) {
+          // User is already a member - show error message
+          setErrorMessage(
+            "Ya eres miembro de esta organización. No necesitas aceptar la invitación nuevamente."
+          );
+          setMode("logged-in"); // Still show logged-in mode but with error
+          setLoadingInvitation(false);
+          return;
+        }
+
         // Determine mode based on check results
         // Handle all scenarios:
         // 1. User is logged in and email matches - can accept directly
@@ -465,7 +480,7 @@ export default function InvitationAcceptPage() {
                 type="primary"
                 onClick={handleAcceptLoggedIn}
                 loading={loading}
-                disabled={loading}
+                disabled={loading || emailCheck?.is_already_member}
                 className="w-full"
                 size="large"
                 icon={<RiUserAddLine />}
