@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
-import AccessHistoryList from "../_components/widgets/residential/AccessHistoryList";
+import HistoryPageClient from "./HistoryPageClient";
 
 export default async function HistoryPage({ params }) {
   const supabase = await createClient();
@@ -24,7 +24,8 @@ export default async function HistoryPage({ params }) {
     redirect("/organizations");
   }
 
-  // Fetch organization data
+  // Server-side verification (security check)
+  // Client-side will use context for fast UX, but server verifies for security
   const result = await getOrganizationById(id);
 
   if (result.error || !result.data) {
@@ -33,14 +34,11 @@ export default async function HistoryPage({ params }) {
 
   const organization = result.data;
 
-  // Check if user is security
+  // Server-side authorization check (defense in depth)
   if (organization.userRole !== "security") {
     redirect(`/organizations/${id}`);
   }
 
-  return (
-    <div className="w-full">
-      <AccessHistoryList organizationId={id} />
-    </div>
-  );
+  // Render client component that uses context for fast client-side checks
+  return <HistoryPageClient organizationId={id} />;
 }

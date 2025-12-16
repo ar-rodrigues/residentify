@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { RiBuildingLine, RiArrowLeftLine } from "react-icons/ri";
 import { useOrganizations } from "@/hooks/useOrganizations";
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { useOrganizationAuth } from "@/hooks/useOrganizationAuth";
 import { Form, Card, Typography, Space, Alert, Spin } from "antd";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -19,31 +21,67 @@ export default function EditOrganizationPage() {
   const {
     getOrganization,
     updateOrganization,
-    data: organization,
     loading,
+    data: fetchedOrg,
   } = useOrganizations();
+  const { organization: contextOrg, loading: contextLoading } =
+    useCurrentOrganization();
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editForm] = Form.useForm();
   const [fetching, setFetching] = useState(true);
+  const [editForm] = Form.useForm();
 
+  // Security: Ensure we use the organization matching the URL parameter
+  // The context organization may be a different organization (main org)
+  const organization = contextOrg?.id === id ? contextOrg : fetchedOrg;
+  const isAdmin = organization?.isAdmin || false;
+
+  // Fetch organization explicitly if context org doesn't match URL
   useEffect(() => {
-    if (id) {
+    if (!id) {
+      setFetching(false);
+      return;
+    }
+
+    // If context org matches URL, wait for context to finish loading
+    if (contextOrg?.id === id) {
+      setFetching(contextLoading);
+      return;
+    }
+
+    // If context is still loading, wait for it to finish before deciding to fetch
+    if (contextLoading) {
+      return;
+    }
+
+    // Context org doesn't match URL (or doesn't exist), fetch the correct organization
+    const fetchOrg = async () => {
       setFetching(true);
-      getOrganization(id).then((result) => {
-        setFetching(false);
-        if (result.error) {
-          setErrorMessage(result.message);
-        } else if (result.data && result.data.isAdmin) {
-          // Set form initial values only if user is admin
-          editForm.setFieldsValue({
-            name: result.data.name,
-          });
-        }
+      const result = await getOrganization(id);
+      if (result.error) {
+        setErrorMessage(result.message);
+      }
+      setFetching(false);
+    };
+
+    fetchOrg();
+  }, [id, contextOrg?.id, contextLoading, getOrganization]);
+
+  // Set form initial values when organization is loaded
+  useEffect(() => {
+    // Only set form values if organization matches URL and user is admin
+    if (
+      organization &&
+      organization.id === id &&
+      isAdmin &&
+      organization.name
+    ) {
+      editForm.setFieldsValue({
+        name: organization.name,
       });
     }
-  }, [id, getOrganization, editForm]);
+  }, [organization, id, isAdmin, editForm]);
 
   const handleUpdate = async (values) => {
     setErrorMessage(null);
@@ -62,6 +100,14 @@ export default function EditOrganizationPage() {
         editForm.setFieldsValue({
           name: values.name,
         });
+        // Dispatch event to update organization in context
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("organization:updated", {
+              detail: { organizationId: id },
+            })
+          );
+        }
         // Redirect to organization detail page after 2 seconds
         setTimeout(() => {
           router.push(`/organizations/${id}`);
@@ -79,7 +125,10 @@ export default function EditOrganizationPage() {
     router.push(`/organizations/${id}`);
   };
 
-  if (fetching || loading) {
+  // Show loading if fetching organization or if context is loading and org matches
+  const isLoading =
+    fetching || (contextLoading && contextOrg?.id === id) || loading;
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Space orientation="vertical" align="center" size="large">
@@ -90,7 +139,7 @@ export default function EditOrganizationPage() {
     );
   }
 
-  if (!organization) {
+  if (!organization || organization.id !== id) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
@@ -118,7 +167,9 @@ export default function EditOrganizationPage() {
     );
   }
 
-  if (!organization.isAdmin) {
+  // Security check: Verify admin status for the organization matching the URL parameter
+  // At this point, we know organization.id === id (checked above)
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">

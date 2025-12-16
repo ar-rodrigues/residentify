@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
-import ChatPermissionsSettings from "../_components/widgets/residential/ChatPermissionsSettings";
+import ChatPermissionsPageClient from "./ChatPermissionsPageClient";
 
 export default async function ChatPermissionsPage({ params }) {
   const supabase = await createClient();
@@ -24,7 +24,8 @@ export default async function ChatPermissionsPage({ params }) {
     redirect("/organizations");
   }
 
-  // Fetch organization data
+  // Server-side verification (security check)
+  // Client-side will use context for fast UX, but server verifies for security
   const result = await getOrganizationById(id);
 
   if (result.error || !result.data) {
@@ -33,14 +34,11 @@ export default async function ChatPermissionsPage({ params }) {
 
   const organization = result.data;
 
-  // Check if user is admin
+  // Server-side authorization check (defense in depth)
   if (organization.userRole !== "admin") {
     redirect(`/organizations/${id}`);
   }
 
-  return (
-    <div className="w-full">
-      <ChatPermissionsSettings organizationId={id} />
-    </div>
-  );
+  // Render client component that uses context for fast client-side checks
+  return <ChatPermissionsPageClient organizationId={id} />;
 }

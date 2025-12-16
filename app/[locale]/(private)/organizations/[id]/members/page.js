@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
-import MembersListResponsive from "../_components/widgets/residential/MembersListResponsive";
-import AddMemberFAB from "../_components/widgets/residential/AddMemberFAB";
+import MembersPageClient from "./MembersPageClient";
 
 export default async function MembersPage({ params }) {
   const supabase = await createClient();
@@ -25,7 +24,8 @@ export default async function MembersPage({ params }) {
     redirect("/organizations");
   }
 
-  // Fetch organization data
+  // Server-side verification (security check)
+  // Client-side will use context for fast UX, but server verifies for security
   const result = await getOrganizationById(id);
 
   if (result.error || !result.data) {
@@ -34,15 +34,11 @@ export default async function MembersPage({ params }) {
 
   const organization = result.data;
 
-  // Check if user is admin
+  // Server-side authorization check (defense in depth)
   if (organization.userRole !== "admin") {
     redirect(`/organizations/${id}`);
   }
 
-  return (
-    <div className="w-full">
-      <MembersListResponsive organizationId={id} />
-      <AddMemberFAB organizationId={id} />
-    </div>
-  );
+  // Render client component that uses context for fast client-side checks
+  return <MembersPageClient organizationId={id} />;
 }

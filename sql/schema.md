@@ -1,6 +1,7 @@
 1.[Supabase Schema](#supabase-schema)
-2.[RLS Policies](#rls-policies)
-3.[Supabase Functions](#supabase-functions)
+2.[Database Views](#database-views)
+3.[RLS Policies](#rls-policies)
+4.[Supabase Functions](#supabase-functions)
 
 
 # Supabase schema
@@ -142,6 +143,41 @@
 | user_flags                 | updated_at             | timestamp with time zone | YES         | now()                                          | false          | null                  | null                   |
 
 
+
+
+## Database Views
+
+### organization_details_view
+
+Optimized view that combines organization, type, member, role, and invitation data in a single query. Reduces 5 sequential queries to 1 query.
+
+**Purpose**: Optimize organization fetching by combining multiple related tables into a single queryable view.
+
+**Columns**:
+- `id` (uuid) - Organization ID
+- `name` (text) - Organization name
+- `created_by` (uuid) - User ID who created the organization
+- `created_at` (timestamp) - Organization creation timestamp
+- `updated_at` (timestamp) - Organization last update timestamp
+- `organization_type_id` (integer) - Organization type ID
+- `organization_type` (text) - Organization type name (e.g., 'residential')
+- `organization_type_description` (text) - Organization type description
+- `user_id` (uuid) - Current user's ID (if member)
+- `organization_role_id` (integer) - User's role ID in organization
+- `user_role` (text) - User's role name (e.g., 'admin', 'resident', 'security_personnel')
+- `role_description` (text) - Role description
+- `is_admin` (boolean) - Whether user is admin
+- `normalized_user_role` (text) - Normalized role name ('security_personnel' -> 'security')
+- `invitation_status` (text) - Invitation status if user has pending/accepted invitation
+- `is_pending_approval` (boolean) - Whether user has pending approval invitation
+
+**Security**:
+- Uses `security_invoker = true` for RLS
+- Filters by `auth.uid()` for membership
+- Uses `auth.jwt() ->> 'email'` for invitation matching (avoids direct `auth.users` access)
+- Only returns organizations where user is a member OR has a pending/accepted invitation
+
+**Access**: Granted to `authenticated` role
 
 
 ## RLS Policies

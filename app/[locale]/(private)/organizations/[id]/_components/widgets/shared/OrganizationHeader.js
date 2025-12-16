@@ -7,13 +7,15 @@ import { Typography, Dropdown, Space, Spin } from "antd";
 import Button from "@/components/ui/Button";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 
 const { Text } = Typography;
 
-export default function OrganizationHeader({ organization, organizationId }) {
+export default function OrganizationHeader() {
   const t = useTranslations();
   const router = useRouter();
   const { organizations, fetching } = useOrganizations();
+  const { organization, organizationId } = useCurrentOrganization();
   const isMobile = useIsMobile();
 
   const handleOrganizationSelect = async (orgId) => {
@@ -65,6 +67,11 @@ export default function OrganizationHeader({ organization, organizationId }) {
   const otherOrganizations = organizations.filter(
     (org) => org.id !== organizationId
   );
+
+  // Show loading state if organization is not loaded
+  if (!organization) {
+    return null;
+  }
 
   const menuItems = [
     ...otherOrganizations.map((org) => ({

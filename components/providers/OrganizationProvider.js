@@ -14,9 +14,15 @@ import { isValidUUID } from "@/utils/validation/uuid";
 
 const OrganizationContext = createContext(null);
 
+const STORAGE_KEY = "org_cache";
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Provider for current organization state
- * Uses URL as source of truth but caches data to prevent unnecessary refetches
+ * Optimized strategy:
+ * 1. Load main organization immediately (fast, single query)
+ * 2. Show sidebar with main org instantly
+ * 3. Check URL in background - only update sidebar if URL org differs from main org
  */
 export function OrganizationProvider({ children }) {
   const pathname = usePathname();
@@ -24,15 +30,14 @@ export function OrganizationProvider({ children }) {
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const cacheRef = useRef(new Map()); // Cache organizations by ID (using ref for stability)
+  const cacheRef = useRef(new Map()); // In-memory cache
+  const initializedRef = useRef(false);
+  const backgroundCheckRef = useRef(null);
 
-  // Extract organization ID from URL if on organization page
-  // Exclude special paths like /organizations/create (but include /organizations/[id]/edit)
+  // Extract organization ID from URL (for background check only)
   const organizationIdFromUrl = useMemo(() => {
     if (!pathname) return null;
 
-    // Exclude special paths that are not organization detail pages
-    // Note: /organizations/[id]/edit is NOT excluded - it uses the org from URL
     const excludedPaths = ["/organizations/create"];
     if (excludedPaths.some((path) => pathname.includes(path))) {
       return null;
@@ -42,10 +47,6 @@ export function OrganizationProvider({ children }) {
     if (!match) return null;
 
     const extractedId = match[1];
-
-    // Only treat it as an organization ID if it's a valid UUID
-    // This prevents treating paths like "/organizations/create" as organization pages
-    // But allows paths like "/organizations/[id]/edit" to use the organization from URL
     if (isValidUUID(extractedId)) {
       return extractedId;
     }
@@ -53,33 +54,69 @@ export function OrganizationProvider({ children }) {
     return null;
   }, [pathname]);
 
+  // Save to localStorage
+  const saveToStorage = useCallback((orgData) => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          data: orgData,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (err) {
+      console.error("Error saving cache:", err);
+    }
+  }, []);
+
+  // Load from localStorage on mount (instant)
+  useEffect(() => {
+    if (initializedRef.current) return;
+
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+
+        // Use cache if less than 5 minutes old
+        if (age < CACHE_EXPIRY && data) {
+          cacheRef.current.set(data.id, data);
+          setOrganization(data);
+          setLoading(false);
+          initializedRef.current = true;
+        }
+      }
+    } catch (err) {
+      console.error("Error loading cache:", err);
+    }
+  }, []);
+
+  // Fetch organization (non-blocking when skipLoading=true)
   const fetchOrganization = useCallback(
-    async (orgId) => {
-      if (!orgId) {
-        setOrganization(null);
-        setLoading(false);
-        return;
+    async (orgId, skipLoading = false) => {
+      if (!orgId || !isValidUUID(orgId)) {
+        if (!skipLoading) {
+          setOrganization(null);
+          setLoading(false);
+        }
+        return null;
       }
 
-      // Validate UUID before fetching
-      if (!isValidUUID(orgId)) {
-        setOrganization(null);
-        setLoading(false);
-        setError(null);
-        return;
-      }
-
-      // Check cache first (using ref for stable access)
+      // Check in-memory cache first
       if (cacheRef.current.has(orgId)) {
         const cachedOrg = cacheRef.current.get(orgId);
-        setOrganization(cachedOrg);
-        setLoading(false);
-        setError(null);
-        return;
+        if (!skipLoading) {
+          setOrganization(cachedOrg);
+          setLoading(false);
+        }
+        return cachedOrg;
       }
 
       try {
-        setLoading(true);
+        if (!skipLoading) {
+          setLoading(true);
+        }
         setError(null);
 
         const response = await fetch(`/api/organizations/${orgId}`, {
@@ -93,9 +130,13 @@ export function OrganizationProvider({ children }) {
 
         if (!response.ok || result.error) {
           // If it's a 404 error, the user was likely removed from this organization
-          // Clear the cache and trigger organizations refetch
           if (response.status === 404 || result.status === 404) {
             cacheRef.current.delete(orgId);
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+            } catch (err) {
+              console.error("Error clearing cache:", err);
+            }
 
             // Dispatch event to refetch organizations list
             if (typeof window !== "undefined") {
@@ -104,45 +145,48 @@ export function OrganizationProvider({ children }) {
 
             // If we're currently on this organization's page, redirect to organizations list
             if (organizationIdFromUrl === orgId) {
-              // Use setTimeout to avoid navigation during render
               setTimeout(() => {
                 router.push("/organizations");
               }, 0);
             }
           }
 
-          // Don't throw error, just set organization to null
-          // This allows the sidebar to still render with global menu items
-          setOrganization(null);
+          if (!skipLoading) {
+            setOrganization(null);
+            setLoading(false);
+          }
           setError(null);
-          setLoading(false);
-          return;
+          return null;
         }
 
-        // Cache the organization data (using ref for stable access)
+        // Cache the organization data
         const orgData = result.data;
         cacheRef.current.set(orgId, orgData);
-        setOrganization(orgData);
+        saveToStorage(orgData);
+
+        if (!skipLoading) {
+          setOrganization(orgData);
+          setLoading(false);
+        }
+
         setError(null);
+        return orgData;
       } catch (err) {
         console.error("Error fetching organization:", err);
-        // Don't set error state - just set organization to null
-        // This allows the sidebar to still render
-        setOrganization(null);
+        if (!skipLoading) {
+          setOrganization(null);
+          setLoading(false);
+        }
         setError(null);
-      } finally {
-        setLoading(false);
+        return null;
       }
     },
-    [organizationIdFromUrl, router]
-  ); // Include organizationIdFromUrl and router for 404 handling
+    [organizationIdFromUrl, router, saveToStorage]
+  );
 
-  // Fetch main organization if not on org page
-  const fetchMainOrganization = useCallback(async () => {
+  // Fetch main organization ID (fast, single query)
+  const fetchMainOrganizationId = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
-
       const response = await fetch("/api/profiles/main-organization", {
         method: "GET",
         headers: {
@@ -153,39 +197,37 @@ export function OrganizationProvider({ children }) {
       const result = await response.json();
 
       if (result.error || !result.data) {
-        // No main organization - keep current organization if it exists
-        // Only clear if we don't have one (to show empty state when user has no orgs)
-        setError(null);
-        setLoading(false);
-        return;
+        return null;
       }
 
-      // Fetch the organization details (will use cache if available)
-      // This will update the organization state
-      await fetchOrganization(result.data);
+      return result.data;
     } catch (err) {
-      console.error("Error fetching main organization:", err);
-      // Don't clear organization on error - keep current one
-      // This allows the sidebar to still show menu items
-      setError(null);
-      setLoading(false);
+      console.error("Error fetching main organization ID:", err);
+      return null;
     }
-  }, [fetchOrganization]);
+  }, []);
 
-  // Listen for organizations refetch events to clear cache for removed organizations
+  // Listen for organizations refetch events and organization updates
   useEffect(() => {
     const handleOrganizationsRefetch = () => {
-      // When organizations list is refetched, clear cache for organizations
-      // that are no longer accessible (they'll be refetched if needed)
-      // This ensures removed organizations are immediately cleared from cache
+      // When organizations list is refetched, clear cache
       if (organizationIdFromUrl) {
         // Don't clear the current organization's cache immediately
         // Let the fetch handle it - if it fails, it will be cleared
       } else {
         // If not on an org page, clear all cache to force fresh fetch
         cacheRef.current.clear();
-        // Refetch main organization to ensure we have valid data
-        fetchMainOrganization();
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (err) {
+          console.error("Error clearing cache:", err);
+        }
+        // Refetch main organization
+        fetchMainOrganizationId().then((mainOrgId) => {
+          if (mainOrgId) {
+            fetchOrganization(mainOrgId);
+          }
+        });
       }
     };
 
@@ -194,12 +236,34 @@ export function OrganizationProvider({ children }) {
       const removedOrgId = event.detail?.organizationId;
       if (removedOrgId) {
         cacheRef.current.delete(removedOrgId);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (err) {
+          console.error("Error clearing cache:", err);
+        }
 
         // If we're currently viewing the removed organization, redirect
         if (organizationIdFromUrl === removedOrgId) {
           setTimeout(() => {
             router.push("/organizations");
           }, 0);
+        }
+      }
+    };
+
+    const handleOrganizationUpdated = (event) => {
+      // When organization is updated, invalidate cache
+      const updatedOrgId = event.detail?.organizationId;
+      if (updatedOrgId) {
+        cacheRef.current.delete(updatedOrgId);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (err) {
+          console.error("Error clearing cache:", err);
+        }
+        // Refetch if it's the current organization
+        if (organization?.id === updatedOrgId) {
+          fetchOrganization(updatedOrgId);
         }
       }
     };
@@ -213,6 +277,10 @@ export function OrganizationProvider({ children }) {
         "organization:removed",
         handleOrganizationRemoved
       );
+      window.addEventListener(
+        "organization:updated",
+        handleOrganizationUpdated
+      );
       return () => {
         window.removeEventListener(
           "organizations:refetch",
@@ -222,47 +290,126 @@ export function OrganizationProvider({ children }) {
           "organization:removed",
           handleOrganizationRemoved
         );
+        window.removeEventListener(
+          "organization:updated",
+          handleOrganizationUpdated
+        );
       };
     }
-  }, [organizationIdFromUrl, fetchMainOrganization, router]);
+  }, [
+    organizationIdFromUrl,
+    organization?.id,
+    fetchMainOrganizationId,
+    fetchOrganization,
+    router,
+  ]);
 
-  // Update organization when URL changes
+  // Initialize: Load main organization first (fast)
   useEffect(() => {
-    if (organizationIdFromUrl) {
-      // On organization page - fetch from URL (will use cache if available)
-      fetchOrganization(organizationIdFromUrl);
-    } else {
-      // Not on organization page (e.g., /organizations/create)
-      // Fetch main organization to ensure we have the current org loaded
-      // This will keep the current organization if fetch fails
-      fetchMainOrganization();
-    }
-  }, [organizationIdFromUrl, fetchOrganization, fetchMainOrganization]);
+    if (initializedRef.current) return;
 
-  // Method to update organization in cache (useful when switching organizations)
-  const updateOrganization = useCallback((orgData) => {
-    if (orgData?.id) {
-      cacheRef.current.set(orgData.id, orgData);
-      setOrganization(orgData);
-    }
-  }, []);
+    const initialize = async () => {
+      initializedRef.current = true;
 
-  // Method to clear cache (useful on logout)
+      // Step 1: Get main organization ID (fast, single query)
+      const mainOrgId = await fetchMainOrganizationId();
+
+      if (mainOrgId) {
+        // Step 2: Load main organization (shows sidebar immediately)
+        await fetchOrganization(mainOrgId, false);
+
+        // Step 3: Check URL in background (non-blocking)
+        // Only update sidebar if URL org differs from main org
+        if (organizationIdFromUrl && organizationIdFromUrl !== mainOrgId) {
+          // URL has different org - fetch it in background
+          backgroundCheckRef.current = setTimeout(async () => {
+            const urlOrg = await fetchOrganization(organizationIdFromUrl, true);
+            if (urlOrg) {
+              // Update sidebar only if URL org is different
+              setOrganization(urlOrg);
+            }
+          }, 100);
+        }
+      } else {
+        // No main organization
+        setLoading(false);
+      }
+    };
+
+    initialize();
+
+    return () => {
+      // Reset initialization flag on unmount to allow reinitialization on remount
+      initializedRef.current = false;
+      if (backgroundCheckRef.current) {
+        clearTimeout(backgroundCheckRef.current);
+      }
+    };
+  }, []); // Only run once on mount
+
+  // Background check when URL changes (only if different from current org)
+  useEffect(() => {
+    if (!initializedRef.current || !organizationIdFromUrl) return;
+
+    // Clear any pending background check
+    if (backgroundCheckRef.current) {
+      clearTimeout(backgroundCheckRef.current);
+    }
+
+    // Only check if URL org is different from current org
+    if (organization?.id !== organizationIdFromUrl) {
+      backgroundCheckRef.current = setTimeout(async () => {
+        const urlOrg = await fetchOrganization(organizationIdFromUrl, true);
+        if (urlOrg) {
+          setOrganization(urlOrg);
+        }
+      }, 100);
+    }
+
+    return () => {
+      if (backgroundCheckRef.current) {
+        clearTimeout(backgroundCheckRef.current);
+      }
+    };
+  }, [organizationIdFromUrl, organization?.id, fetchOrganization]);
+
+  // Method to update organization in cache
+  const updateOrganization = useCallback(
+    (orgData) => {
+      if (orgData?.id) {
+        cacheRef.current.set(orgData.id, orgData);
+        saveToStorage(orgData);
+        setOrganization(orgData);
+      }
+    },
+    [saveToStorage]
+  );
+
+  // Method to clear cache
   const clearCache = useCallback(() => {
     cacheRef.current.clear();
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      console.error("Error clearing cache:", err);
+    }
     setOrganization(null);
+    initializedRef.current = false;
   }, []);
 
   // Method to refetch current organization
   const refetch = useCallback(() => {
-    if (organizationIdFromUrl) {
-      // Clear cache for this org to force refetch
-      cacheRef.current.delete(organizationIdFromUrl);
-      fetchOrganization(organizationIdFromUrl);
-    } else {
-      fetchMainOrganization();
+    const targetOrgId = organizationIdFromUrl || organization?.id;
+    if (targetOrgId) {
+      cacheRef.current.delete(targetOrgId);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {
+        console.error("Error clearing cache:", err);
+      }
+      fetchOrganization(targetOrgId);
     }
-  }, [organizationIdFromUrl, fetchOrganization, fetchMainOrganization]);
+  }, [organizationIdFromUrl, organization?.id, fetchOrganization]);
 
   const value = {
     organization,
