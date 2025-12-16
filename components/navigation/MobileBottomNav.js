@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState, useTransition, useEffect } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
 import { useTranslations } from "next-intl";
+import { Spin } from "antd";
 
 export default function MobileBottomNav() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function MobileBottomNav() {
     organizationId,
     loading: loadingOrg,
   } = useCurrentOrganization();
+  const [isPending, startTransition] = useTransition();
+  const [loadingPath, setLoadingPath] = useState(null);
 
   // Get dynamic menu items based on organization type and role
   const orgMenuItems = useMemo(() => {
@@ -43,13 +46,21 @@ export default function MobileBottomNav() {
     }));
   }, [orgMenuItems]);
 
+  // Reset loading state when pathname changes (navigation completes)
+  useEffect(() => {
+    setLoadingPath(null);
+  }, [pathname]);
+
   // If user has no organizations, don't render mobile menu
   if (!fetchingOrgs && organizations.length === 0) {
     return null;
   }
 
   const handleItemClick = (key) => {
-    router.push(key);
+    setLoadingPath(key);
+    startTransition(() => {
+      router.push(key);
+    });
   };
 
   return (
@@ -70,17 +81,22 @@ export default function MobileBottomNav() {
           const IconComponent = item.icon;
           const isActive =
             pathname === item.path || pathname.startsWith(item.path + "/");
+          const isLoading = loadingPath === item.path;
+          const isDisabled = isPending && !isLoading;
 
           return (
             <button
               key={item.path}
               onClick={() => handleItemClick(item.path)}
+              disabled={isDisabled}
               className={`
                 flex flex-col items-center justify-center flex-1 h-full mx-2 rounded-lg
                 transition-all duration-200 ease-out
                 active:scale-95 active:opacity-80
                 ${
-                  isActive
+                  isDisabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : isActive
                     ? "text-blue-400"
                     : "text-gray-500 hover:text-gray-600"
                 }
@@ -94,12 +110,20 @@ export default function MobileBottomNav() {
               }}
               aria-label={item.label}
             >
-              {IconComponent && (
-                <IconComponent
-                  className={`text-xl mb-1 transition-colors duration-200 ${
-                    isActive ? "text-blue-400" : "text-gray-500"
-                  }`}
+              {isLoading ? (
+                <Spin
+                  size="small"
+                  className="mb-1"
+                  style={{ color: isActive ? "#60a5fa" : "#6b7280" }}
                 />
+              ) : (
+                IconComponent && (
+                  <IconComponent
+                    className={`text-xl mb-1 transition-colors duration-200 ${
+                      isActive ? "text-blue-400" : "text-gray-500"
+                    }`}
+                  />
+                )
               )}
               <span
                 className={`

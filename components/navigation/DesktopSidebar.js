@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   RiRocketLine,
   RiBuildingLine,
@@ -40,6 +40,8 @@ export default function DesktopSidebar({
     organizationId,
     loading: loadingOrg,
   } = useCurrentOrganization();
+  const [isPending, startTransition] = useTransition();
+  const [loadingPath, setLoadingPath] = useState(null);
 
   // Build organization selector dropdown items
   const organizationMenuItems = useMemo(() => {
@@ -88,7 +90,11 @@ export default function DesktopSidebar({
             // Don't navigate if there's an error
             return;
           }
-          router.push(`/organizations/${org.id}`);
+          const targetPath = `/organizations/${org.id}`;
+          setLoadingPath(targetPath);
+          startTransition(() => {
+            router.push(targetPath);
+          });
         },
       })),
       ...(otherOrganizations.length > 0
@@ -106,7 +112,13 @@ export default function DesktopSidebar({
             <span>{t("organizations.header.createNew")}</span>
           </Space>
         ),
-        onClick: () => router.push("/organizations/create"),
+        onClick: () => {
+          const path = "/organizations/create";
+          setLoadingPath(path);
+          startTransition(() => {
+            router.push(path);
+          });
+        },
       },
     ];
   }, [organizations, organizationId, router, t]);
@@ -139,6 +151,28 @@ export default function DesktopSidebar({
     };
     return roleMap[organization.userRole] || organization.userRole;
   }, [organization, t]);
+
+  // Reset loading state when pathname changes (navigation completes)
+  useEffect(() => {
+    setLoadingPath(null);
+  }, [pathname]);
+
+  // Handle menu item click with loading state
+  const handleMenuClick = ({ key }) => {
+    setLoadingPath(key);
+    startTransition(() => {
+      router.push(key);
+    });
+  };
+
+  // Handle add organization button click with loading state
+  const handleAddOrganizationClick = () => {
+    const path = "/organizations/create";
+    setLoadingPath(path);
+    startTransition(() => {
+      router.push(path);
+    });
+  };
 
   // If user has no organizations, don't render sidebar
   if (!fetchingOrgs && organizations.length === 0) {
@@ -318,12 +352,20 @@ export default function DesktopSidebar({
             <Menu
               mode="inline"
               selectedKeys={[pathname]}
-              items={orgMenuItems.map((item) => ({
-                ...item,
-                key: item.path,
-                icon: item.icon ? <item.icon /> : null,
-              }))}
-              onClick={({ key }) => router.push(key)}
+              items={orgMenuItems.map((item) => {
+                const isLoading = loadingPath === item.path;
+                return {
+                  ...item,
+                  key: item.path,
+                  icon: isLoading ? (
+                    <Spin size="small" />
+                  ) : item.icon ? (
+                    <item.icon />
+                  ) : null,
+                  disabled: isPending && !isLoading,
+                };
+              })}
+              onClick={handleMenuClick}
               style={{
                 borderRight: 0,
                 transition: "all 2s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -342,9 +384,17 @@ export default function DesktopSidebar({
           >
             <Button
               type="primary"
-              icon={<RiAddLine />}
+              icon={
+                loadingPath === "/organizations/create" ? (
+                  <Spin size="small" />
+                ) : (
+                  <RiAddLine />
+                )
+              }
               block
-              onClick={() => router.push("/organizations/create")}
+              onClick={handleAddOrganizationClick}
+              loading={loadingPath === "/organizations/create"}
+              disabled={isPending && loadingPath !== "/organizations/create"}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -365,9 +415,17 @@ export default function DesktopSidebar({
           >
             <Button
               type="primary"
-              icon={<RiAddLine />}
+              icon={
+                loadingPath === "/organizations/create" ? (
+                  <Spin size="small" />
+                ) : (
+                  <RiAddLine />
+                )
+              }
               shape="circle"
-              onClick={() => router.push("/organizations/create")}
+              onClick={handleAddOrganizationClick}
+              loading={loadingPath === "/organizations/create"}
+              disabled={isPending && loadingPath !== "/organizations/create"}
               aria-label={t("organizations.header.createNew")}
             />
           </div>
