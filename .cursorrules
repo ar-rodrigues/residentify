@@ -3,3 +3,46 @@
 #Always act as an expert on UI and UX to build the components and the interactivity, using animations and good design practice.
 This includes being aware of responsiveness so the UI/UX work well on every device.
 
+# Cursor Code Generation Rules: Semantic HTML and Ant Design
+
+## Primary Directive
+
+Prioritize **Semantic HTML** and **Ant Design (antd) Components** over generic, unstyled tags (div, span) wherever possible. Aim for clean, accessible, and maintainable React code.
+
+## 1. Ant Design Component Preference
+
+Always use the Ant Design component if a dedicated element exists for the purpose.
+
+| Purpose                | Preferred Ant Design Component            | Tags to AVOID                           |
+| :--------------------- | :---------------------------------------- | :-------------------------------------- |
+| **Headings/Titles**    | Typography.Title (level={1-5})            | h1, h2, h3, h4                          |
+| **Paragraph/Text**     | Typography.Text, Typography.Paragraph     | p, span (for blocks of text)            |
+| **Buttons**            | Button                                    | <button> (if styled/primary action)     |
+| **Layout/Spacing**     | Space, Row, Col, Layout                   | Nested div with manual margins/flex     |
+| **Grouping/Container** | Card, Modal, Drawer, Form                 | div (unless a final, necessary wrapper) |
+| **Input Fields**       | Input, Select, DatePicker, etc.           | <input>, <select>                       |
+| **Icons**              | <*Name*Outlined /> from @ant-design/icons | SVG, custom images for basic icons      |
+
+## 2. Semantic HTML
+
+Use native semantic tags for page structure:
+
+- Use `<header>`, `<nav>`, `<main>`, `<aside>`, `<section>`, `<article>`, `<footer>`.
+- Avoid using `<div>` for structural elements that have a semantic counterpart.
+- Use `<label>` linked via `htmlFor` (or Ant Design's `Form.Item`) for all form inputs.
+
+## 3. Layout Best Practice
+
+- **Spacing:** Use `<Space>` for horizontal or vertical gaps between inline elements. Do not use manual `margin` or `padding` for this purpose.
+- **Grid:** Use `<Row>` and `<Col>` for responsive grid layouts.
+
+## 4. Accessibility (A11y)
+
+- Ensure all images or icons used as content have a meaningful `alt` attribute.
+- Interactive elements must be achieved using `<Button>`, `<a>`, or Ant Design equivalents, not by adding `onClick` to a `<div>`.
+
+## 5. React Syntax
+
+- Use functional components and hooks.
+- Always destructure props (e.g., `const MyComp = ({ data, loading }) => { ... }`).
+- Prefer modern ES6+ syntax (const, let, arrow functions, optional chaining).

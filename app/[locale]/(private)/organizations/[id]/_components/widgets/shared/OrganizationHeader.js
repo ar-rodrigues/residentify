@@ -16,7 +16,44 @@ export default function OrganizationHeader({ organization, organizationId }) {
   const { organizations, fetching } = useOrganizations();
   const isMobile = useIsMobile();
 
-  const handleOrganizationSelect = (orgId) => {
+  const handleOrganizationSelect = async (orgId) => {
+    // Validate that the organization is still in the user's list
+    // This prevents navigation to organizations the user was removed from
+    const orgStillExists = organizations.some((o) => o.id === orgId);
+    if (!orgStillExists) {
+      // Organization was removed - refetch organizations list
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("organizations:refetch"));
+      }
+      return;
+    }
+
+    // Update main organization before navigating
+    try {
+      const response = await fetch("/api/profiles/main-organization", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ organization_id: orgId }),
+      });
+
+      const result = await response.json();
+
+      // If update fails (e.g., user no longer has access), don't navigate
+      if (!response.ok || result.error) {
+        // Refetch organizations list in case it's stale
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("organizations:refetch"));
+        }
+        return;
+      }
+    } catch (err) {
+      console.error("Error updating main organization:", err);
+      // Don't navigate if there's an error
+      return;
+    }
+
     router.push(`/organizations/${orgId}`);
   };
 

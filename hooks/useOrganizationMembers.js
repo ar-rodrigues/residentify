@@ -3,6 +3,12 @@
 import { useState, useCallback } from "react";
 
 /**
+ * Custom event to notify that organizations list should be refetched
+ * This is used when a member is removed to ensure the organizations list is up to date
+ */
+const ORGANIZATIONS_REFETCH_EVENT = "organizations:refetch";
+
+/**
  * Custom hook for organization member operations
  * @returns {{
  *   data: Array | null,
@@ -172,6 +178,13 @@ export function useOrganizationMembers() {
         // Only refetch members on success
         if (currentOrganizationId === organizationId) {
           await getMembers(organizationId);
+        }
+
+        // Dispatch event to refetch organizations list
+        // This ensures that if a user was removed from an organization,
+        // the organizations list is updated for all users
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent(ORGANIZATIONS_REFETCH_EVENT));
         }
 
         return {

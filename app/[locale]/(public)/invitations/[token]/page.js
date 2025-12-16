@@ -61,20 +61,29 @@ export default function InvitationAcceptPage() {
           // Default to register mode if check fails
           setMode("register");
           setCheckingEmail(false);
+          setLoadingInvitation(false);
           return;
         }
 
         setEmailCheck(result.data);
 
         // Determine mode based on check results
+        // Handle all scenarios:
+        // 1. User is logged in and email matches - can accept directly
+        // 2. User exists but not logged in (or logged in with different email) - show login
+        // 3. New user - show registration
         if (result.data.email_matches && result.data.is_logged_in) {
-          // User is logged in and email matches - can accept directly
+          // Scenario: User B logged in accessing own link (has account)
           setMode("logged-in");
         } else if (result.data.user_exists) {
-          // User exists but not logged in - show login
+          // Scenario: User exists but not logged in OR logged in with different email
+          // - User A logged in accessing User B's link (B has account) → logout happened, now show login
+          // - No one logged in, User B has account → show login
           setMode("login");
         } else {
-          // New user - show registration
+          // Scenario: New user
+          // - User A logged in accessing User B's link (B has no account) → logout happened, now show register
+          // - No one logged in, User B has no account → show register
           setMode("register");
         }
       } catch (error) {
@@ -103,14 +112,31 @@ export default function InvitationAcceptPage() {
 
       setInvitation(result.data);
 
-      // Check email status
+      // Check if a user is logged in and their email doesn't match the invitation email
+      // If so, logout before proceeding to ensure clean session state
+      const {
+        data: { user: currentLoggedInUser },
+      } = await supabase.auth.getUser();
+
+      if (
+        currentLoggedInUser &&
+        currentLoggedInUser.email?.toLowerCase() !==
+          result.data.email.toLowerCase()
+      ) {
+        // User is logged in but email doesn't match - logout silently
+        await supabase.auth.signOut();
+        // Wait a brief moment for session to clear before checking email status
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // Check email status (will show login or register based on whether user exists)
       await checkEmailStatus(result.data.email);
     } catch (error) {
       console.error("Error loading invitation:", error);
       setErrorMessage("Error al cargar la invitación.");
       setLoadingInvitation(false);
     }
-  }, [token, getInvitationByToken, checkEmailStatus]);
+  }, [token, getInvitationByToken, checkEmailStatus, supabase]);
 
   useEffect(() => {
     if (token) {
@@ -145,6 +171,19 @@ export default function InvitationAcceptPage() {
       }, 0);
     }
   }, [invitation, mode, registerForm, loginForm]);
+
+  // Get initial values for forms
+  const loginInitialValues = invitation
+    ? { email: invitation.email }
+    : undefined;
+
+  const registerInitialValues = invitation
+    ? {
+        email: invitation.email,
+        firstName: invitation.first_name,
+        lastName: invitation.last_name,
+      }
+    : undefined;
 
   const handleAcceptLoggedIn = async () => {
     setErrorMessage(null);
@@ -494,6 +533,7 @@ export default function InvitationAcceptPage() {
                 layout="vertical"
                 requiredMark={false}
                 preserve={false}
+                initialValues={loginInitialValues}
               >
                 <Form.Item
                   name="email"
@@ -505,7 +545,7 @@ export default function InvitationAcceptPage() {
                 >
                   <Input
                     prefixIcon={<RiMailLine />}
-                    placeholder="email@ejemplo.com"
+                    placeholder={invitation?.email || "email@ejemplo.com"}
                     type="email"
                     size="large"
                     disabled
@@ -635,6 +675,7 @@ export default function InvitationAcceptPage() {
                 onFinish={handleAccept}
                 layout="vertical"
                 requiredMark={false}
+                initialValues={registerInitialValues}
               >
                 <Form.Item
                   name="firstName"

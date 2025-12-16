@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 /**
@@ -14,6 +14,7 @@ export function useOrganizations() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState(null);
   const supabase = useMemo(() => createClient(), []);
+  const channelRef = useRef(null);
 
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -155,6 +156,117 @@ export function useOrganizations() {
   useEffect(() => {
     fetchOrganizations();
   }, [fetchOrganizations]);
+
+  // Listen for events to refetch organizations (e.g., when a member is removed)
+  useEffect(() => {
+    const handleRefetch = () => {
+      fetchOrganizations();
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("organizations:refetch", handleRefetch);
+      return () => {
+        window.removeEventListener("organizations:refetch", handleRefetch);
+      };
+    }
+  }, [fetchOrganizations]);
+
+  // Set up real-time subscription to detect when user is removed from an organization
+  useEffect(() => {
+    let mounted = true;
+
+    const setupSubscription = async () => {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          return;
+        }
+
+        // Clean up existing channel if any
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+
+        // Create a unique channel name for this user
+        const channelName = `user-organizations-${user.id}`;
+
+        // Subscribe to DELETE events on organization_members where this user is removed
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            "postgres_changes",
+            {
+              event: "DELETE",
+              schema: "public",
+              table: "organization_members",
+              filter: `user_id=eq.${user.id}`,
+            },
+            (payload) => {
+              // User was removed from an organization - refetch the list
+              if (mounted) {
+                const removedOrgId = payload.old?.organization_id;
+
+                // Dispatch event to clear cache for this organization
+                if (typeof window !== "undefined" && removedOrgId) {
+                  window.dispatchEvent(
+                    new CustomEvent("organization:removed", {
+                      detail: { organizationId: removedOrgId },
+                    })
+                  );
+                }
+
+                // Refetch organizations list
+                fetchOrganizations();
+              }
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "organization_members",
+              filter: `user_id=eq.${user.id}`,
+            },
+            (payload) => {
+              // User was added to an organization - refetch the list
+              if (mounted) {
+                fetchOrganizations();
+              }
+            }
+          )
+          .subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("Subscribed to organization_members changes");
+            } else if (status === "CHANNEL_ERROR") {
+              console.error(
+                "Error subscribing to organization_members changes"
+              );
+            }
+          });
+
+        channelRef.current = channel;
+      } catch (err) {
+        console.error("Error setting up organization subscription:", err);
+      }
+    };
+
+    setupSubscription();
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [supabase, fetchOrganizations]);
 
   const createOrganization = useCallback(
     async (name, organizationTypeId = null) => {

@@ -51,17 +51,41 @@ export default function DesktopSidebar({
         key: org.id,
         label: org.name,
         onClick: async () => {
+          // Validate that the organization is still in the user's list
+          // This prevents navigation to organizations the user was removed from
+          const orgStillExists = organizations.some((o) => o.id === org.id);
+          if (!orgStillExists) {
+            // Organization was removed - refetch organizations list
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("organizations:refetch"));
+            }
+            return;
+          }
+
           // Update main organization
           try {
-            await fetch("/api/profiles/main-organization", {
+            const response = await fetch("/api/profiles/main-organization", {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({ organization_id: org.id }),
             });
+
+            const result = await response.json();
+
+            // If update fails (e.g., user no longer has access), don't navigate
+            if (!response.ok || result.error) {
+              // Refetch organizations list in case it's stale
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("organizations:refetch"));
+              }
+              return;
+            }
           } catch (err) {
             console.error("Error updating main organization:", err);
+            // Don't navigate if there's an error
+            return;
           }
           router.push(`/organizations/${org.id}`);
         },

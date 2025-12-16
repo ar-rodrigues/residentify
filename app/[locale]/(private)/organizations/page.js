@@ -51,7 +51,7 @@ export default function OrganizationsPage() {
       try {
         const response = await fetch("/api/profiles/main-organization");
         const result = await response.json();
-        
+
         if (!result.error && result.data) {
           setMainOrganizationId(result.data);
         } else {
@@ -85,7 +85,7 @@ export default function OrganizationsPage() {
       // If user has exactly one organization and it's not pending approval, set as main and redirect
       if (organizations.length === 1 && !organizations[0].isPendingApproval) {
         const singleOrgId = organizations[0].id;
-        
+
         // Set as main organization
         fetch("/api/profiles/main-organization", {
           method: "PUT",
@@ -103,9 +103,26 @@ export default function OrganizationsPage() {
 
       setCheckingRedirect(false);
     }
-  }, [fetching, organizations, mainOrganizationId, mainOrgFetchCompleted, router]);
+  }, [
+    fetching,
+    organizations,
+    mainOrganizationId,
+    mainOrgFetchCompleted,
+    router,
+  ]);
 
   const handleOrganizationClick = async (orgId) => {
+    // Validate that the organization is still in the user's list
+    // This prevents navigation to organizations the user was removed from
+    const orgStillExists = organizations.some((o) => o.id === orgId);
+    if (!orgStillExists) {
+      // Organization was removed - refetch organizations list
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("organizations:refetch"));
+      }
+      return;
+    }
+
     // Update main organization before redirecting
     try {
       const response = await fetch("/api/profiles/main-organization", {
@@ -116,13 +133,20 @@ export default function OrganizationsPage() {
         body: JSON.stringify({ organization_id: orgId }),
       });
 
-      if (!response.ok) {
-        console.error("Error updating main organization");
-        // Continue anyway - not critical
+      const result = await response.json();
+
+      // If update fails (e.g., user no longer has access), don't navigate
+      if (!response.ok || result.error) {
+        // Refetch organizations list in case it's stale
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("organizations:refetch"));
+        }
+        return;
       }
     } catch (err) {
       console.error("Error updating main organization:", err);
-      // Continue anyway - not critical
+      // Don't navigate if there's an error
+      return;
     }
 
     router.push(`/organizations/${orgId}`);
@@ -245,7 +269,11 @@ export default function OrganizationsPage() {
                   }}
                   styles={{ body: { padding: "16px" } }}
                 >
-                  <Space orientation="vertical" size="middle" className="w-full">
+                  <Space
+                    orientation="vertical"
+                    size="middle"
+                    className="w-full"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex-shrink-0">
                         <RiBuildingLine className="text-xl sm:text-2xl text-blue-600" />
@@ -271,7 +299,8 @@ export default function OrganizationsPage() {
                     <div className="flex items-center gap-2 text-gray-500">
                       <RiCalendarLine className="text-sm sm:text-base" />
                       <Text type="secondary" className="text-xs sm:text-sm">
-                        {t("organizations.card.created")} {formatDateDDMMYYYY(org.created_at)}
+                        {t("organizations.card.created")}{" "}
+                        {formatDateDDMMYYYY(org.created_at)}
                       </Text>
                     </div>
 
