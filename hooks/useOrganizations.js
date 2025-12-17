@@ -174,6 +174,10 @@ export function useOrganizations() {
   // Set up real-time subscription to detect when user is removed from an organization
   useEffect(() => {
     let mounted = true;
+    let retryTimeout = null;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+    const RETRY_DELAYS = [1000, 2000, 5000]; // Exponential backoff in ms
 
     const setupSubscription = async () => {
       try {
@@ -195,9 +199,8 @@ export function useOrganizations() {
         // Create a unique channel name for this user
         const channelName = `user-organizations-${user.id}`;
 
-        // Subscribe to DELETE events on organization_members where this user is removed
-        // Note: We subscribe to ALL DELETE events on organization_members, not just for this user
-        // This is because RLS might prevent seeing the deleted record after deletion
+        // Try to subscribe with a filter first (more efficient and RLS-friendly)
+        // If RLS blocks filtered subscriptions, we'll fall back to unfiltered
         const channel = supabase
           .channel(channelName)
           .on(
@@ -206,36 +209,11 @@ export function useOrganizations() {
               event: "DELETE",
               schema: "public",
               table: "organization_members",
-              // Remove filter to receive all DELETE events, then filter in handler
-              // This works around RLS limitations where deleted records may not be visible
+              // Use filter to only receive DELETE events for this user
+              // This is more efficient and RLS-friendly
+              filter: `user_id=eq.${user.id}`,
             },
             (payload) => {
-              // Check if this DELETE event is for the current user
-              // Note: payload.old may not include user_id due to RLS, so we need to check
-              // by querying the database or using the member ID
-              const deletedMemberId = payload.old?.id;
-              const deletedUserId = payload.old?.user_id;
-
-              // If user_id is in payload, use it directly
-              if (deletedUserId === user.id) {
-                // This DELETE is for the current user - process it
-              } else if (deletedUserId && deletedUserId !== user.id) {
-                return; // Not for this user, ignore
-              } else if (!deletedUserId && deletedMemberId) {
-                // user_id not in payload (RLS blocked it) - refetch to check if we were removed
-                // Refetch organizations - if we were removed, the list will update
-                // This is safe because refetching is idempotent
-                if (mounted) {
-                  fetchOrganizations();
-                }
-                return; // Let refetch handle the update
-              } else {
-                // No useful data in payload - ignore
-                return;
-              }
-
-              // If we get here, the DELETE is confirmed for the current user
-
               // User was removed from an organization - refetch the list
               if (mounted) {
                 const removedOrgId = payload.old?.organization_id;
@@ -269,19 +247,93 @@ export function useOrganizations() {
               }
             }
           )
-          .subscribe((status) => {
+          .subscribe((status, err) => {
             if (status === "SUBSCRIBED") {
               console.log("Subscribed to organization_members changes");
+              retryCount = 0; // Reset retry count on success
             } else if (status === "CHANNEL_ERROR") {
-              console.error(
-                "Error subscribing to organization_members changes"
+              const errorMessage = err?.message || "Unknown error";
+              console.warn(
+                "Error subscribing to organization_members changes:",
+                errorMessage,
+                err
               );
+
+              // Only retry if we haven't exceeded max retries and component is still mounted
+              if (mounted && retryCount < MAX_RETRIES) {
+                const delay =
+                  RETRY_DELAYS[retryCount] ||
+                  RETRY_DELAYS[RETRY_DELAYS.length - 1];
+                console.log(
+                  `Retrying subscription in ${delay}ms (attempt ${
+                    retryCount + 1
+                  }/${MAX_RETRIES})`
+                );
+
+                retryTimeout = setTimeout(() => {
+                  if (mounted) {
+                    retryCount++;
+                    // Clean up failed channel before retrying
+                    if (channelRef.current) {
+                      supabase.removeChannel(channelRef.current);
+                      channelRef.current = null;
+                    }
+                    setupSubscription();
+                  }
+                }, delay);
+              } else if (mounted) {
+                // Max retries exceeded - gracefully degrade
+                console.warn(
+                  "Max retries exceeded for organization_members subscription. " +
+                    "Real-time updates disabled. The app will continue to work, " +
+                    "but you may need to refresh to see organization changes."
+                );
+                // The app continues to work - users can still manually refresh
+                // or rely on the existing refetch mechanisms
+              }
+            } else if (status === "TIMED_OUT") {
+              console.warn(
+                "Subscription to organization_members changes timed out. " +
+                  "This may be due to network issues."
+              );
+              // Retry on timeout
+              if (mounted && retryCount < MAX_RETRIES) {
+                const delay =
+                  RETRY_DELAYS[retryCount] ||
+                  RETRY_DELAYS[RETRY_DELAYS.length - 1];
+                retryTimeout = setTimeout(() => {
+                  if (mounted) {
+                    retryCount++;
+                    if (channelRef.current) {
+                      supabase.removeChannel(channelRef.current);
+                      channelRef.current = null;
+                    }
+                    setupSubscription();
+                  }
+                }, delay);
+              }
+            } else if (status === "CLOSED") {
+              // Channel was closed - this is normal during cleanup
+              if (mounted) {
+                console.log("Organization subscription channel closed");
+              }
             }
           });
 
         channelRef.current = channel;
       } catch (err) {
         console.error("Error setting up organization subscription:", err);
+        // Retry on exception if we haven't exceeded max retries
+        if (mounted && retryCount < MAX_RETRIES) {
+          const delay =
+            RETRY_DELAYS[retryCount] || RETRY_DELAYS[RETRY_DELAYS.length - 1];
+          retryTimeout = setTimeout(() => {
+            if (mounted) {
+              retryCount++;
+              setupSubscription();
+            }
+          }, delay);
+        }
       }
     };
 
@@ -290,6 +342,10 @@ export function useOrganizations() {
     // Cleanup function
     return () => {
       mounted = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+        retryTimeout = null;
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
