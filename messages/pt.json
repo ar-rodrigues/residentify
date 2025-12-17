@@ -413,6 +413,36 @@
       "errors": {
         "loadRolesError": "Erro ao carregar as funções da organização.",
         "copyError": "Erro ao copiar o link"
+      },
+      "acceptPage": {
+        "loading": "Carregando link de convite...",
+        "backToHome": "Voltar ao Início",
+        "expiredTitle": "Link Expirado",
+        "expiredDescription": "Este link de convite expirou. Por favor, entre em contato com o administrador para obter um novo link.",
+        "alreadyMemberTitle": "Você já é membro",
+        "alreadyMemberDescription": "Você já é membro de {organization}",
+        "goToOrganization": "Ir para a Organização",
+        "joinTitle": "Juntar-se a {organization}",
+        "invitedMessage": "Você foi convidado para se juntar a esta organização",
+        "haveAccount": "Já tenho conta",
+        "haveAccountDescription": "Entre com sua conta existente",
+        "createAccount": "Criar nova conta",
+        "createAccountDescription": "Registre-se para se juntar a esta organização",
+        "loginToJoin": "Entrar para se Juntar",
+        "loginToJoinDescription": "Entre com sua conta para se juntar a esta organização",
+        "loginAndJoin": "Entrar e se Juntar",
+        "approvalRequired": "Aprovação Necessária",
+        "approvalRequiredDescription": "Sua solicitação será revisada por um administrador. Notificaremos você quando for aprovada.",
+        "createAccountAndJoin": "Criar Conta e se Juntar",
+        "defaultRole": "Membro",
+        "firstNameMinLength": "O nome deve ter pelo menos 2 caracteres",
+        "firstNameMaxLength": "O nome não pode ter mais de 100 caracteres",
+        "lastNameMinLength": "O sobrenome deve ter pelo menos 2 caracteres",
+        "lastNameMaxLength": "O sobrenome não pode ter mais de 100 caracteres",
+        "loadError": "Erro ao carregar o link de convite.",
+        "invalidCredentials": "Credenciais inválidas. Por favor, verifique seu email e senha.",
+        "loginError": "Erro ao entrar. Por favor, tente novamente.",
+        "unexpectedLoginError": "Erro inesperado ao entrar."
       }
     },
     "accessHistory": {

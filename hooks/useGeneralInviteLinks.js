@@ -310,6 +310,108 @@ export function useGeneralInviteLinks() {
     }
   }, []);
 
+  const checkGeneralInviteLinkStatus = useCallback(async (token) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!token || typeof token !== "string") {
+        throw new Error("Token de enlace inválido.");
+      }
+
+      const response = await fetch(
+        `/api/general-invite-links/${token}/check-status`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Error al verificar el estado del enlace."
+        );
+      }
+
+      if (result.error) {
+        throw new Error(
+          result.message || "Error al verificar el estado del enlace."
+        );
+      }
+
+      return {
+        error: false,
+        message: result.message || "Estado verificado exitosamente.",
+        data: result.data,
+      };
+    } catch (err) {
+      const errorMessage =
+        err.message || "Error inesperado al verificar el estado del enlace.";
+      setError(err);
+      return {
+        error: true,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const acceptGeneralInviteLinkLoggedIn = useCallback(async (token) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!token || typeof token !== "string") {
+        throw new Error("Token de enlace inválido.");
+      }
+
+      const response = await fetch(
+        `/api/general-invite-links/${token}/accept-logged-in`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Error al aceptar el enlace de invitación."
+        );
+      }
+
+      if (result.error) {
+        throw new Error(
+          result.message || "Error al aceptar el enlace de invitación."
+        );
+      }
+
+      return {
+        error: false,
+        message: result.message || "Invitación aceptada exitosamente.",
+        data: result.data,
+      };
+    } catch (err) {
+      const errorMessage =
+        err.message || "Error inesperado al aceptar el enlace de invitación.";
+      setError(err);
+      return {
+        error: true,
+        message: errorMessage,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
@@ -318,5 +420,7 @@ export function useGeneralInviteLinks() {
     deleteGeneralInviteLink,
     getGeneralInviteLinkByToken,
     acceptGeneralInviteLink,
+    checkGeneralInviteLinkStatus,
+    acceptGeneralInviteLinkLoggedIn,
   };
 }

@@ -413,6 +413,36 @@
       "errors": {
         "loadRolesError": "Error al cargar los roles de organización.",
         "copyError": "Error al copiar el enlace"
+      },
+      "acceptPage": {
+        "loading": "Cargando enlace de invitación...",
+        "backToHome": "Volver al Inicio",
+        "expiredTitle": "Enlace Expirado",
+        "expiredDescription": "Este enlace de invitación ha expirado. Por favor, contacta al administrador para obtener un nuevo enlace.",
+        "alreadyMemberTitle": "Ya eres miembro",
+        "alreadyMemberDescription": "Ya eres miembro de {organization}",
+        "goToOrganization": "Ir a la Organización",
+        "joinTitle": "Unirse a {organization}",
+        "invitedMessage": "Has sido invitado a unirte a esta organización",
+        "haveAccount": "Ya tengo cuenta",
+        "haveAccountDescription": "Inicia sesión con tu cuenta existente",
+        "createAccount": "Crear cuenta nueva",
+        "createAccountDescription": "Regístrate para unirte a esta organización",
+        "loginToJoin": "Inicia Sesión para Unirte",
+        "loginToJoinDescription": "Inicia sesión con tu cuenta para unirte a esta organización",
+        "loginAndJoin": "Iniciar Sesión y Unirse",
+        "approvalRequired": "Aprobación Requerida",
+        "approvalRequiredDescription": "Tu solicitud será revisada por un administrador. Te notificaremos cuando sea aprobada.",
+        "createAccountAndJoin": "Crear Cuenta y Unirse",
+        "defaultRole": "Miembro",
+        "firstNameMinLength": "El nombre debe tener al menos 2 caracteres",
+        "firstNameMaxLength": "El nombre no puede tener más de 100 caracteres",
+        "lastNameMinLength": "El apellido debe tener al menos 2 caracteres",
+        "lastNameMaxLength": "El apellido no puede tener más de 100 caracteres",
+        "loadError": "Error al cargar el enlace de invitación.",
+        "invalidCredentials": "Credenciales inválidas. Por favor, verifica tu email y contraseña.",
+        "loginError": "Error al iniciar sesión. Por favor, intenta nuevamente.",
+        "unexpectedLoginError": "Error inesperado al iniciar sesión."
       }
     },
     "accessHistory": {
