@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import {
   Table,
   Card,
@@ -12,7 +11,6 @@ import {
   Modal,
   Typography,
   Badge,
-  message,
 } from "antd";
 import { RiUserLine, RiDeleteBinLine, RiEditLine } from "react-icons/ri";
 import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
@@ -23,7 +21,6 @@ const { Text, Paragraph } = Typography;
 const { confirm } = Modal;
 
 export default function MembersList({ organizationId }) {
-  const t = useTranslations();
   const {
     data: members,
     loading,
@@ -35,7 +32,6 @@ export default function MembersList({ organizationId }) {
   const [roles, setRoles] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
-  const [selectValues, setSelectValues] = useState({}); // Track select values by member ID
 
   useEffect(() => {
     if (organizationId) {
@@ -43,17 +39,6 @@ export default function MembersList({ organizationId }) {
       fetchRoles();
     }
   }, [organizationId, getMembers]);
-
-  // Initialize select values when members change
-  useEffect(() => {
-    if (members && members.length > 0) {
-      const newSelectValues = {};
-      members.forEach((member) => {
-        newSelectValues[member.id] = member.role.id;
-      });
-      setSelectValues(newSelectValues);
-    }
-  }, [members]);
 
   const fetchRoles = async () => {
     try {
@@ -70,7 +55,7 @@ export default function MembersList({ organizationId }) {
     }
   };
 
-  const handleRoleChange = async (memberId, newRoleId, currentRoleId) => {
+  const handleRoleChange = async (memberId, newRoleId) => {
     try {
       setUpdatingMemberId(memberId);
       const result = await updateMemberRole(
@@ -79,47 +64,51 @@ export default function MembersList({ organizationId }) {
         newRoleId
       );
       if (result.error) {
-        // Show warning message without blocking the UI
-        message.warning(result.message);
-        return false; // Indicate failure to reset Select
+        Modal.error({
+          title: "Error",
+          content: result.message,
+        });
       } else {
-        // Show success message briefly
-        message.success(result.message);
+        Modal.success({
+          title: "Éxito",
+          content: result.message,
+        });
       }
     } catch (err) {
-      message.warning(t("organizations.members.errors.updateRoleError"));
-      return false; // Indicate failure to reset Select
+      Modal.error({
+        title: "Error",
+        content: "Error inesperado al actualizar el rol.",
+      });
     } finally {
       setUpdatingMemberId(null);
     }
-    return true; // Indicate success
   };
 
   const handleRemoveMember = (member) => {
     confirm({
-      title: t("organizations.members.modals.deleteTitle"),
-      content: t("organizations.members.modals.deleteContent", { name: member.name }),
-      okText: t("organizations.members.modals.deleteOk"),
+      title: "¿Eliminar miembro?",
+      content: `¿Estás seguro de que deseas eliminar a ${member.name} de la organización?`,
+      okText: "Eliminar",
       okButtonProps: { danger: true },
-      cancelText: t("organizations.members.modals.deleteCancel"),
+      cancelText: "Cancelar",
       onOk: async () => {
         try {
           const result = await removeMember(organizationId, member.id);
           if (result.error) {
             Modal.error({
-              title: t("common.errorTitle"),
+              title: "Error",
               content: result.message,
             });
           } else {
             Modal.success({
-              title: t("common.success"),
+              title: "Éxito",
               content: result.message,
             });
           }
         } catch (err) {
           Modal.error({
-            title: t("common.error"),
-            content: t("organizations.members.errors.deleteError"),
+            title: "Error",
+            content: "Error inesperado al eliminar el miembro.",
           });
         }
       },
@@ -127,12 +116,17 @@ export default function MembersList({ organizationId }) {
   };
 
   const getRoleDisplayName = (roleName) => {
-    return t(`organizations.members.roles.${roleName}`, { defaultValue: roleName });
+    const roleMap = {
+      admin: "Administrador",
+      resident: "Residente",
+      security: "Personal de Seguridad",
+    };
+    return roleMap[roleName] || roleName;
   };
 
   const columns = [
     {
-      title: t("organizations.members.columns.name"),
+      title: "Nombre",
       dataIndex: "name",
       key: "name",
       render: (text) => (
@@ -143,7 +137,7 @@ export default function MembersList({ organizationId }) {
       ),
     },
     {
-      title: t("organizations.members.columns.role"),
+      title: "Rol",
       dataIndex: ["role", "name"],
       key: "role",
       render: (roleName) => (
@@ -160,33 +154,25 @@ export default function MembersList({ organizationId }) {
       ),
     },
     {
-      title: t("organizations.members.columns.joinedAt"),
+      title: "Fecha de Ingreso",
       dataIndex: "joined_at",
       key: "joined_at",
       render: (date) => (date ? formatDateDDMMYYYY(date) : "N/A"),
     },
     {
-      title: t("organizations.members.columns.invitedBy"),
+      title: "Invitado por",
       dataIndex: "invited_by_name",
       key: "invited_by_name",
       render: (text) => text || "N/A",
     },
     {
-      title: t("organizations.members.columns.actions"),
+      title: "Acciones",
       key: "actions",
       render: (_, record) => (
         <Space>
           <Select
-            value={selectValues[record.id] ?? record.role.id}
-            onChange={async (value) => {
-              // Optimistically update the UI
-              setSelectValues((prev) => ({ ...prev, [record.id]: value }));
-              const success = await handleRoleChange(record.id, value, record.role.id);
-              // If failed, reset to original value
-              if (!success) {
-                setSelectValues((prev) => ({ ...prev, [record.id]: record.role.id }));
-              }
-            }}
+            value={record.role.id}
+            onChange={(value) => handleRoleChange(record.id, value)}
             loading={updatingMemberId === record.id}
             disabled={updatingMemberId !== null}
             style={{ width: 180 }}
@@ -204,7 +190,7 @@ export default function MembersList({ organizationId }) {
             onClick={() => handleRemoveMember(record)}
             disabled={updatingMemberId !== null}
           >
-            {t("organizations.members.actions.delete")}
+            Eliminar
           </Button>
         </Space>
       ),
@@ -217,7 +203,7 @@ export default function MembersList({ organizationId }) {
         <div className="flex justify-center py-8">
           <Space orientation="vertical" align="center">
             <Spin size="large" />
-            <Text type="secondary">{t("organizations.members.loading")}</Text>
+            <Text type="secondary">Cargando miembros...</Text>
           </Space>
         </div>
       </Card>
@@ -228,8 +214,8 @@ export default function MembersList({ organizationId }) {
     return (
       <Card>
         <Alert
-          title={t("common.error")}
-          description={error.message || t("organizations.members.error")}
+          title="Error"
+          description={error.message || "Error al cargar los miembros."}
           type="error"
           showIcon
         />
@@ -239,16 +225,16 @@ export default function MembersList({ organizationId }) {
 
   if (!members || members.length === 0) {
     return (
-      <Card title={t("organizations.members.title")}>
+      <Card title="Miembros">
         <Paragraph type="secondary">
-          {t("organizations.members.empty")}
+          No hay miembros en esta organización.
         </Paragraph>
       </Card>
     );
   }
 
   return (
-    <Card title={t("organizations.members.title")}>
+    <Card title="Miembros">
       <Table
         columns={columns}
         dataSource={members}
@@ -257,7 +243,7 @@ export default function MembersList({ organizationId }) {
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
-          showTotal: (total) => t("organizations.members.pagination.total", { total }),
+          showTotal: (total) => `Total: ${total} miembros`,
         }}
       />
     </Card>

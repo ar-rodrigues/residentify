@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import AntdProvider from "@/components/providers/AntdProvider";
 import "../globals.css";
 import "antd/dist/reset.css";
@@ -25,9 +26,11 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
-        <NextIntlClientProvider messages={messages}>
-          <AntdProvider locale={locale}>{children}</AntdProvider>
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AntdProvider locale={locale}>{children}</AntdProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -51,7 +51,7 @@ export default function AddMemberFAB({
       <Button
         type="primary"
         shape="circle"
-        icon={<RiUserAddLine className="text-xl" />}
+        icon={<RiUserAddLine className="text-xl" style={{ color: "var(--color-primary)" }} />}
         onClick={handleClick}
         className="!fixed !z-50 shadow-lg"
         style={{
@@ -59,6 +59,9 @@ export default function AddMemberFAB({
           height: isMobile ? "56px" : "64px",
           bottom: isMobile ? "80px" : "24px",
           right: isMobile ? "16px" : "24px",
+          backgroundColor: "var(--color-primary-bg)",
+          borderColor: "var(--color-primary)",
+          color: "var(--color-primary)",
         }}
         aria-label={t("organizations.addMember.ariaLabel")}
       />
@@ -92,11 +95,16 @@ export default function AddMemberFAB({
           <Space orientation="vertical" size="large" className="w-full">
             <Button
               type="primary"
-              icon={<RiMailLine />}
+              icon={<RiMailLine style={{ color: "var(--color-primary)" }} />}
               onClick={handleInviteUser}
               size="large"
               className="w-full"
               block
+              style={{
+                backgroundColor: "var(--color-primary-bg)",
+                borderColor: "var(--color-primary)",
+                color: "var(--color-primary)",
+              }}
             >
               {t("organizations.addMember.inviteUser")}
             </Button>

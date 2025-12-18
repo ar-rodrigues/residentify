@@ -191,10 +191,10 @@ export default function DesktopSidebar({
         willChange: "width",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        backgroundColor: "var(--color-bg-elevated)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        borderRight: "1px solid rgba(0, 0, 0, 0.1)",
+        borderRight: "1px solid var(--color-border)",
         boxShadow: "2px 0 8px rgba(0, 0, 0, 0.1)",
       }}
       className="ant-layout-sider"
@@ -204,14 +204,17 @@ export default function DesktopSidebar({
         <div
           className="p-4 border-b"
           style={{
-            borderColor: "rgba(0, 0, 0, 0.1)",
+            borderColor: "var(--color-border)",
             display: "flex",
             alignItems: "center",
             justifyContent: collapsed ? "center" : "flex-start",
           }}
         >
           <Space size="small">
-            <RiRocketLine className="text-2xl text-blue-600" />
+            <RiRocketLine 
+              className="text-2xl" 
+              style={{ color: "var(--color-primary)" }}
+            />
             <Typography.Text
               strong
               className="text-lg"
@@ -235,13 +238,21 @@ export default function DesktopSidebar({
           <div
             className="p-4 border-b"
             style={{
-              borderColor: "rgba(0, 0, 0, 0.1)",
+              borderColor: "var(--color-border)",
             }}
           >
             {collapsed ? (
               <div className="flex justify-center">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <RiBuildingLine className="text-xl text-blue-600" />
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{
+                    backgroundColor: "var(--color-primary-bg)",
+                  }}
+                >
+                  <RiBuildingLine 
+                    className="text-xl" 
+                    style={{ color: "var(--color-primary)" }}
+                  />
                 </div>
               </div>
             ) : (
@@ -249,12 +260,12 @@ export default function DesktopSidebar({
                 <div
                   className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
-                    backgroundColor: "#e6f7ff",
+                    backgroundColor: "var(--color-primary-bg)",
                   }}
                 >
                   <RiBuildingLine
                     className="text-2xl"
-                    style={{ color: "#1890ff" }}
+                    style={{ color: "var(--color-primary)" }}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -298,7 +309,7 @@ export default function DesktopSidebar({
                             height: "auto",
                             minWidth: "auto",
                             flexShrink: 0,
-                            color: "#666",
+                            color: "var(--color-text-secondary)",
                             marginTop: "2px",
                           }}
                           aria-label={t(
@@ -312,9 +323,9 @@ export default function DesktopSidebar({
                     <div>
                       <span
                         style={{
-                          backgroundColor: "#e6f7ff",
-                          color: "#1890ff",
-                          border: "1px solid #91d5ff",
+                          backgroundColor: "var(--color-primary-bg)",
+                          color: "var(--color-primary)",
+                          border: "1px solid var(--color-border)",
                           padding: "2px 8px",
                           borderRadius: "12px",
                           fontSize: "11px",
@@ -369,7 +380,7 @@ export default function DesktopSidebar({
           <div
             className="p-4 border-t"
             style={{
-              borderColor: "rgba(0, 0, 0, 0.1)",
+              borderColor: "var(--color-border)",
             }}
           >
             <Button
@@ -378,7 +389,7 @@ export default function DesktopSidebar({
                 loadingPath === "/organizations/create" ? (
                   <Spin size="small" />
                 ) : (
-                  <RiAddLine />
+                  <RiAddLine style={{ color: "var(--color-primary)" }} />
                 )
               }
               block
@@ -390,6 +401,9 @@ export default function DesktopSidebar({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "8px",
+                backgroundColor: "var(--color-primary-bg)",
+                borderColor: "var(--color-primary)",
+                color: "var(--color-primary)",
               }}
             >
               {t("organizations.header.createNew")}
@@ -400,7 +414,7 @@ export default function DesktopSidebar({
           <div
             className="p-4 border-t flex justify-center"
             style={{
-              borderColor: "rgba(0, 0, 0, 0.1)",
+              borderColor: "var(--color-border)",
             }}
           >
             <Button
@@ -409,7 +423,7 @@ export default function DesktopSidebar({
                 loadingPath === "/organizations/create" ? (
                   <Spin size="small" />
                 ) : (
-                  <RiAddLine />
+                  <RiAddLine style={{ color: "var(--color-primary)" }} />
                 )
               }
               shape="circle"
@@ -417,6 +431,11 @@ export default function DesktopSidebar({
               loading={loadingPath === "/organizations/create"}
               disabled={isPending && loadingPath !== "/organizations/create"}
               aria-label={t("organizations.header.createNew")}
+              style={{
+                backgroundColor: "var(--color-primary-bg)",
+                borderColor: "var(--color-primary)",
+                color: "var(--color-primary)",
+              }}
             />
           </div>
         )}

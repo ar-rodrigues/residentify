@@ -58,19 +58,38 @@ export default function HistoryLinkCard({
       <div className="flex flex-col gap-3">
         {/* Arrival Notification - Show when QR code is validated */}
         {qrCode?.is_used === true && qrCode?.validated_at && (
-          <div className="w-full p-2 bg-green-50 border border-green-200 rounded-lg">
+          <div
+            className="w-full p-2 rounded-lg"
+            style={{
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-primary)",
+            }}
+          >
             <Space orientation="vertical" size="small" className="w-full">
               <div className="flex items-center gap-2">
-                <RiCheckboxCircleLine className="text-green-500 text-base flex-shrink-0" />
-                <Text strong className="text-green-700 text-xs">
+                <RiCheckboxCircleLine
+                  className="text-base flex-shrink-0"
+                  style={{ color: "var(--color-primary)" }}
+                />
+                <Text
+                  strong
+                  className="text-xs"
+                  style={{ color: "var(--color-primary)" }}
+                >
                   {qrCode.visitor_name 
                     ? t("qrCodes.historyLinkCard.visitorArrived", { name: qrCode.visitor_name })
                     : t("qrCodes.historyLinkCard.visitorArrivedGeneric")}
                 </Text>
               </div>
               <div className="flex items-center gap-2 pl-6">
-                <RiCalendarLine className="text-green-600 text-xs flex-shrink-0" />
-                <Text className="text-green-600 text-xs">
+                <RiCalendarLine
+                  className="text-xs flex-shrink-0"
+                  style={{ color: "var(--color-primary)", opacity: 0.7 }}
+                />
+                <Text
+                  className="text-[10px] italic"
+                  style={{ color: "var(--color-primary)", opacity: 0.7 }}
+                >
                   {formatRelativeTime(qrCode.validated_at)}
                 </Text>
               </div>
@@ -87,17 +106,23 @@ export default function HistoryLinkCard({
               <Badge status={statusInfo.status} text={statusInfo.text} />
             </div>
             {qrCode.validated_at && (
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <RiCheckLine />
-                <Text type="secondary">
+              <div className="flex items-center gap-1">
+                <RiCheckLine style={{ color: "var(--color-text-secondary)", opacity: 0.7 }} />
+                <Text
+                  className="text-[10px] italic"
+                  style={{ color: "var(--color-text-secondary)", opacity: 0.7 }}
+                >
                   {t("qrCodes.historyLinkCard.validated")} {formatDateDDMMYYYY(qrCode.validated_at)}
                 </Text>
               </div>
             )}
             {qrCode.expires_at && !qrCode.validated_at && (
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <RiCloseLine />
-                <Text type="secondary">
+              <div className="flex items-center gap-1">
+                <RiCloseLine style={{ color: "var(--color-text-secondary)", opacity: 0.7 }} />
+                <Text
+                  className="text-[10px] italic"
+                  style={{ color: "var(--color-text-secondary)", opacity: 0.7 }}
+                >
                   {t("qrCodes.historyLinkCard.expired")} {formatDateDDMMYYYY(qrCode.expires_at)}
                 </Text>
               </div>

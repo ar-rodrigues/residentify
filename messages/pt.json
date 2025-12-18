@@ -627,6 +627,7 @@
       "file": "Arquivo",
       "takePhoto": "Tirar foto",
       "uploadPhoto": "Enviar foto",
+      "deletePhoto": "Excluir Foto",
       "takeDocumentPhoto": "Tirar Foto do Documento",
       "errors": {
         "visitorNameRequired": "O nome do visitante é obrigatório",

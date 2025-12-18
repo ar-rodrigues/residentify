@@ -1,9 +1,144 @@
 @import "tailwindcss";
 
+:root {
+  /* Simplified Color Palette - 3 Main Colors */
+  
+  /* 1. Primary Color (Blue) - for accents, buttons, active states */
+  --color-primary: #2563eb;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-bg: #eff6ff;
+  
+  /* 2. Neutral Gray Scale - for backgrounds and text */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-elevated: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-subtle: #f3f4f6;
+  
+  /* 3. Accent Color (Error/Alert) - minimal use */
+  --color-error: #dc2626;
+  --color-error-bg: #fef2f2;
+  
+  /* Header (kept for consistency) */
+  --color-bg-header: #1e1b4b;
+  --color-text-header: #ffffff;
+  
+  /* Fonts */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, monospace;
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+[data-theme="dark"] {
+  /* Dark Mode - Simplified Palette - Consistent Black Backgrounds */
+  
+  /* 1. Primary Color (Desaturated Blue) */
+  --color-primary: #5b8def;
+  --color-primary-light: #7ba3f0;
+  --color-primary-dark: #4a7ae0;
+  --color-primary-bg: rgba(91, 141, 239, 0.15);
+  
+  /* 2. Neutral Gray Scale - All backgrounds consistently black */
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #000000;
+  --color-bg-elevated: #000000;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #a0a0a0;
+  --color-border: #1a1a1a;
+  --color-border-subtle: #0f0f0f;
+  
+  /* 3. Accent Color (Neutral Gray for delete/danger actions) */
+  --color-error: #6b7280;
+  --color-error-bg: rgba(107, 114, 128, 0.15);
+  
+  /* Header */
+  --color-bg-header: #000000;
+  --color-text-header: #e0e0e0;
+}
+
 /* Prevent horizontal scrolling at the root level */
 html,
 body {
   overflow-x: hidden;
   max-width: 100vw;
   height: 100%;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth transitions for theme switching - optimized for performance */
+div, section, article, aside, header, footer, nav, main, button, a, span, p, h1, h2, h3, h4, h5, h6 {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Exclude SVG and icon elements from transitions */
+svg, path, circle, rect, line, polygon, ellipse {
+  transition: none;
+}
+
+/* Override Ant Design Menu styles to match sidebar background */
+.ant-menu {
+  background: var(--color-bg-elevated) !important;
+}
+
+.ant-menu-item {
+  background: transparent !important;
+}
+
+.ant-menu-item-selected {
+  background: transparent !important;
+}
+
+.ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Keep primary color for selected text/icon only */
+.ant-menu-item-selected .ant-menu-title-content,
+.ant-menu-item-selected .anticon {
+  color: var(--color-primary) !important;
+}
+
+/* Regular menu items use normal text color */
+.ant-menu-item:not(.ant-menu-item-selected) .ant-menu-title-content,
+.ant-menu-item:not(.ant-menu-item-selected) .anticon {
+  color: var(--color-text-primary) !important;
+}
+
+/* Primary buttons in dark mode - match the icon pattern */
+[data-theme="dark"] .ant-btn-primary {
+  background-color: var(--color-primary-bg) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .ant-btn-primary:hover {
+  background-color: var(--color-primary-bg) !important;
+  border-color: var(--color-primary-light) !important;
+  color: var(--color-primary-light) !important;
+}
+
+[data-theme="dark"] .ant-btn-primary:active,
+[data-theme="dark"] .ant-btn-primary:focus {
+  background-color: var(--color-primary-bg) !important;
+  border-color: var(--color-primary-dark) !important;
+  color: var(--color-primary-dark) !important;
+}
+
+/* Primary button icons in dark mode */
+[data-theme="dark"] .ant-btn-primary .anticon,
+[data-theme="dark"] .ant-btn-primary svg {
+  color: var(--color-primary) !important;
 }

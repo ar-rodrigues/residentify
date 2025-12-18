@@ -11,6 +11,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { isValidUUID } from "@/utils/validation/uuid";
+import { hasRouteAccess } from "@/utils/auth/routePermissions";
 
 const OrganizationContext = createContext(null);
 
@@ -255,6 +256,7 @@ export function OrganizationProvider({ children }) {
       // When organization is updated, invalidate cache
       const updatedOrgId = event.detail?.organizationId;
       if (updatedOrgId) {
+        const oldRole = organization?.userRole;
         cacheRef.current.delete(updatedOrgId);
         try {
           localStorage.removeItem(STORAGE_KEY);
@@ -263,7 +265,27 @@ export function OrganizationProvider({ children }) {
         }
         // Refetch if it's the current organization
         if (organization?.id === updatedOrgId) {
-          fetchOrganization(updatedOrgId);
+          fetchOrganization(updatedOrgId, false).then((freshOrg) => {
+            if (freshOrg && oldRole && freshOrg.userRole !== oldRole) {
+              // Role changed - check if current route is still accessible
+              if (pathname && organizationIdFromUrl === updatedOrgId) {
+                // Extract route path from pathname (e.g., /organizations/[id]/members -> /members)
+                const routeMatch = pathname.match(/\/organizations\/[^\/]+\/(.+)$/);
+                if (routeMatch) {
+                  const routePath = `/${routeMatch[1]}`;
+                  const orgType = freshOrg.organization_type || "residential";
+                  const hasAccess = hasRouteAccess(routePath, freshOrg.userRole, orgType);
+                  
+                  if (!hasAccess) {
+                    // User no longer has access to current route - redirect to organization home
+                    setTimeout(() => {
+                      router.push(`/organizations/${updatedOrgId}`);
+                    }, 0);
+                  }
+                }
+              }
+            }
+          });
         }
       }
     };
@@ -299,9 +321,11 @@ export function OrganizationProvider({ children }) {
   }, [
     organizationIdFromUrl,
     organization?.id,
+    organization?.userRole,
     fetchMainOrganizationId,
     fetchOrganization,
     router,
+    pathname,
   ]);
 
   // Initialize: Load main organization first (fast)
@@ -371,7 +395,77 @@ export function OrganizationProvider({ children }) {
         clearTimeout(backgroundCheckRef.current);
       }
     };
-  }, [organizationIdFromUrl, organization?.id, fetchOrganization]);
+  }, [organizationIdFromUrl, organization?.id, fetchOrganization, pathname, router]);
+
+  // Check for role changes when page becomes visible or window regains focus
+  // This helps detect role changes made by other admins
+  useEffect(() => {
+    if (!initializedRef.current || !organization?.id) return;
+
+    const checkForRoleChanges = () => {
+      // Only check if page is visible and focused
+      if (document.hidden) return;
+
+      // Invalidate cache and refetch to get latest role
+      cacheRef.current.delete(organization.id);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {
+        console.error("Error clearing cache:", err);
+      }
+      fetchOrganization(organization.id, true).then((freshOrg) => {
+        if (freshOrg && freshOrg.userRole !== organization.userRole) {
+          // Role changed - update state
+          setOrganization(freshOrg);
+          
+          // Check if current route is still accessible with new role
+          if (pathname && organizationIdFromUrl === organization.id) {
+            // Extract route path from pathname (e.g., /organizations/[id]/members -> /members)
+            const routeMatch = pathname.match(/\/organizations\/[^\/]+\/(.+)$/);
+            if (routeMatch) {
+              const routePath = `/${routeMatch[1]}`;
+              const orgType = freshOrg.organization_type || "residential";
+              const hasAccess = hasRouteAccess(routePath, freshOrg.userRole, orgType);
+              
+              if (!hasAccess) {
+                // User no longer has access to current route - redirect to organization home
+                setTimeout(() => {
+                  router.push(`/organizations/${organization.id}`);
+                }, 0);
+              }
+            }
+          }
+        }
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkForRoleChanges();
+      }
+    };
+
+    const handleFocus = () => {
+      checkForRoleChanges();
+    };
+
+    // Periodic check every 30 seconds when page is visible
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        checkForRoleChanges();
+      }
+    }, 30000);
+
+    if (typeof window !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("focus", handleFocus);
+      return () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("focus", handleFocus);
+        clearInterval(intervalId);
+      };
+    }
+  }, [organization?.id, organization?.userRole, fetchOrganization, pathname, organizationIdFromUrl, router]);
 
   // Method to update organization in cache
   const updateOrganization = useCallback(

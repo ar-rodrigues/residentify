@@ -295,7 +295,12 @@ export default function SignupPage() {
   }, [handleDateInputChange, signupForm]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: "linear-gradient(to bottom right, var(--color-bg-secondary), var(--color-bg-elevated))",
+      }}
+    >
       <div className="w-full max-w-md">
         <Space
           orientation="vertical"
@@ -303,12 +308,15 @@ export default function SignupPage() {
           className="w-full text-center mb-8"
         >
           <Space size="middle" className="justify-center">
-            <RiRocketLine className="text-4xl text-blue-600" />
-            <Title level={2} className="!mb-0">
+            <RiRocketLine
+              className="text-4xl"
+              style={{ color: "var(--color-primary)" }}
+            />
+            <Title level={2} className="!mb-0" style={{ color: "var(--color-text-primary)" }}>
               {t("auth.signup.title")}
             </Title>
           </Space>
-          <Paragraph className="text-gray-600">
+          <Paragraph style={{ color: "var(--color-text-secondary)" }}>
             {t("auth.signup.subtitle")}
           </Paragraph>
         </Space>
@@ -383,7 +391,9 @@ export default function SignupPage() {
                   className="w-full"
                   size="large"
                   style={{ width: "100%" }}
-                  suffixIcon={<RiCalendarLine className="text-gray-400" />}
+                  suffixIcon={
+                    <RiCalendarLine style={{ color: "var(--color-text-secondary)" }} />
+                  }
                   inputReadOnly={false}
                   onChange={(date) => {
                     // This handles both calendar selection and programmatic updates
@@ -462,24 +472,26 @@ export default function SignupPage() {
                 loading={loading || isPending}
                 className="w-full"
                 size="large"
-                style={{ backgroundColor: "#16a34a" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#15803d";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#16a34a";
-                }}
               >
                 {t("auth.signup.button")}
               </Button>
             </Form.Item>
 
             <div className="text-center">
-              <Text type="secondary" className="text-sm">
+              <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                 {t("auth.signup.hasAccount")}{" "}
                 <Link
                   href="/login"
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="font-medium"
+                  style={{
+                    color: "var(--color-primary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-primary-light)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--color-primary)";
+                  }}
                 >
                   {t("auth.signup.login")}
                 </Link>
@@ -489,7 +501,7 @@ export default function SignupPage() {
         </Card>
 
         <div className="text-center mt-6">
-          <Text type="secondary" className="text-sm">
+          <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {t("auth.signup.terms")}
           </Text>
         </div>

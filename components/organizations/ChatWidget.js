@@ -565,7 +565,7 @@ export default function ChatWidget({ organizationId }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
+      <div className="flex justify-center items-center h-full w-full">
         <Spin size="large" />
       </div>
     );
@@ -573,21 +573,29 @@ export default function ChatWidget({ organizationId }) {
 
   return (
     <div
-      className={`flex h-full bg-white rounded-lg overflow-hidden ${
-        isMobile ? "flex-col" : ""
-      }`}
+      className="flex flex-row h-full w-full rounded-lg overflow-hidden"
+      style={{
+        backgroundColor: "var(--ant-color-bg-blur)",
+        borderWidth: "1px",
+        borderColor: "rgba(0, 0, 0, 1)",
+        borderStyle: "solid",
+      }}
     >
       {/* Conversations List */}
       <div
         className={`${
           isMobile
             ? showConversationsList
-              ? "flex flex-col w-full"
+              ? "flex flex-col w-full h-full"
               : "hidden"
-            : "w-80 border-r border-gray-200 flex flex-col"
+            : "w-80 border-r flex flex-col h-full"
         }`}
+        style={{ borderColor: "var(--color-border)" }}
       >
-        <div className="p-4 border-b border-gray-200 space-y-3">
+        <div
+          className="p-4 border-b space-y-3"
+          style={{ borderColor: "var(--color-border)" }}
+        >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold m-0">Conversaciones</h3>
             <Button
@@ -611,12 +619,15 @@ export default function ChatWidget({ organizationId }) {
 
         <div className="flex-1 overflow-y-auto">
           {showMembers ? (
-            <div className="divide-y divide-gray-200">
+            <div
+              className="divide-y pb-4"
+              style={{ borderColor: "var(--color-border)" }}
+            >
               {members.length === 0 ? (
                 <div className="p-4 text-center">
                   <Empty
                     description={
-                      <span className="text-gray-500">
+                      <span style={{ color: "var(--color-text-secondary)" }}>
                         {t("chat.noMembersAvailable")}
                       </span>
                     }
@@ -634,7 +645,17 @@ export default function ChatWidget({ organizationId }) {
                         setShowConversationsList(false);
                       }
                     }}
-                    className="p-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
+                    className="p-4 cursor-pointer flex items-center gap-3"
+                    style={{
+                      backgroundColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor =
+                        "var(--color-bg-secondary)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
                   >
                     <Avatar
                       icon={<RiUserLine />}
@@ -644,7 +665,10 @@ export default function ChatWidget({ organizationId }) {
                       {member.fullName?.[0]?.toUpperCase() || "U"}
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">
+                      <div
+                        className="font-medium truncate"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
                         {member.fullName || "Usuario"}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -674,12 +698,15 @@ export default function ChatWidget({ organizationId }) {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div
+              className="divide-y pb-4"
+              style={{ borderColor: "var(--color-border)" }}
+            >
               {filteredConversations.length === 0 ? (
                 <div className="p-4 text-center">
                   <Empty
                     description={
-                      <span className="text-gray-500">
+                      <span style={{ color: "var(--color-text-secondary)" }}>
                         {searchTerm.trim()
                           ? t("chat.noConversationsFound")
                           : t("chat.noConversations")}
@@ -719,9 +746,23 @@ export default function ChatWidget({ organizationId }) {
                           setTemporaryConversation(null);
                         }
                       }}
-                      className={`p-4 hover:bg-gray-50 cursor-pointer flex items-center gap-3 ${
-                        isSelected ? "bg-blue-50" : ""
-                      }`}
+                      className="p-4 cursor-pointer flex items-center gap-3"
+                      style={{
+                        backgroundColor: isSelected
+                          ? "var(--color-primary-bg)"
+                          : "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor =
+                            "var(--color-bg-secondary)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }
+                      }}
                     >
                       <Avatar
                         icon={<RiUserLine />}
@@ -743,14 +784,20 @@ export default function ChatWidget({ organizationId }) {
                               />
                             )}
                         </div>
-                        <div className="text-sm text-gray-500 truncate">
+                        <div
+                          className="text-sm truncate"
+                          style={{ color: "var(--color-text-secondary)" }}
+                        >
                           {conversation.isTemporary
                             ? t("chat.noMessages")
                             : conversation.lastMessage || ""}
                         </div>
                         {!conversation.isTemporary &&
                           conversation.lastMessageTime && (
-                            <div className="text-xs text-gray-400 mt-1">
+                            <div
+                              className="text-[10px] mt-1 italic opacity-70"
+                              style={{ color: "var(--color-text-secondary)" }}
+                            >
                               {formatTime(conversation.lastMessageTime)}
                             </div>
                           )}
@@ -773,7 +820,10 @@ export default function ChatWidget({ organizationId }) {
         {selectedConversation ? (
           <>
             {/* Header */}
-            <div className="p-4 border-b border-gray-200">
+            <div
+              className="p-4 border-b"
+              style={{ borderColor: "var(--color-border)" }}
+            >
               {(() => {
                 const otherUser = getOtherUser(selectedConversation);
                 return (
@@ -797,7 +847,12 @@ export default function ChatWidget({ organizationId }) {
                       {otherUser.name?.[0]?.toUpperCase() || "U"}
                     </Avatar>
                     <div>
-                      <div className="font-medium">{otherUser.name}</div>
+                      <div
+                        className="font-medium"
+                        style={{ color: "var(--color-text-primary)" }}
+                      >
+                        {otherUser.name}
+                      </div>
                     </div>
                   </div>
                 );
@@ -821,7 +876,7 @@ export default function ChatWidget({ organizationId }) {
                 <div className="flex justify-center items-center h-full">
                   <Empty
                     description={
-                      <span className="text-gray-500">
+                      <span style={{ color: "var(--color-text-secondary)" }}>
                         {t("chat.noMessages")}. {t("chat.sendFirstMessage")}
                       </span>
                     }
@@ -839,19 +894,26 @@ export default function ChatWidget({ organizationId }) {
                       }`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                          isOwn
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 text-gray-900"
-                        }`}
+                        className="max-w-[70%] rounded-lg px-4 py-2"
+                        style={{
+                          backgroundColor: isOwn
+                            ? "var(--color-primary)"
+                            : "var(--color-bg-secondary)",
+                          color: isOwn
+                            ? "var(--color-text-header)"
+                            : "var(--color-text-primary)",
+                        }}
                       >
                         <div className="text-sm whitespace-pre-wrap break-words">
                           {msg.content}
                         </div>
                         <div
-                          className={`text-xs mt-1 ${
-                            isOwn ? "text-blue-100" : "text-gray-500"
-                          }`}
+                          className="text-[10px] mt-1.5 italic opacity-70"
+                          style={{
+                            color: isOwn
+                              ? "rgba(255, 255, 255, 0.7)"
+                              : "var(--color-text-secondary)",
+                          }}
                         >
                           {formatTime(msg.created_at)}
                         </div>
@@ -864,7 +926,10 @@ export default function ChatWidget({ organizationId }) {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-200">
+            <div
+              className="p-4 border-t"
+              style={{ borderColor: "var(--color-border)" }}
+            >
               <div className="flex gap-2">
                 <TextArea
                   value={messageContent}
@@ -898,7 +963,7 @@ export default function ChatWidget({ organizationId }) {
             ) : (
               <Empty
                 description={
-                  <span className="text-gray-500">
+                  <span style={{ color: "var(--color-text-secondary)" }}>
                     {t("chat.selectConversation")}
                   </span>
                 }

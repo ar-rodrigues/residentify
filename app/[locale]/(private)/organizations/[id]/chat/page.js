@@ -8,8 +8,8 @@ export default async function ChatPage({ params }) {
   await requireRouteAccess(id, "/chat");
 
   return (
-    <div className="w-full">
-      <div className="h-[600px]">
+    <div className="w-full h-full flex flex-col" style={{ minHeight: "100%" }}>
+      <div className="h-full w-full flex-1">
         <ChatWidget organizationId={id} />
       </div>
     </div>

@@ -15,6 +15,7 @@ import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvide
 import { OrganizationProvider } from "@/components/providers/OrganizationProvider";
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -33,23 +34,26 @@ function ContentWithOverlay({ children, isMobile, hasOrganizations, collapsed })
 
   return (
     <Content
-      className="p-2 bg-gray-50 overflow-x-hidden"
+      className="p-2 overflow-x-hidden"
       style={{
         flex: 1,
         overflowY: "auto",
         display: "flex",
         flexDirection: "column",
         position: "relative",
+        backgroundColor: "var(--color-bg-secondary)",
       }}
     >
       <div
-        className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden"
+        className="rounded-lg shadow-sm p-6 overflow-x-hidden"
         style={{
           height: "100%",
           minHeight: "100%",
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          backgroundColor: "var(--color-bg-elevated)",
+          border: "1px solid var(--color-border)",
         }}
       >
         {children}
@@ -62,7 +66,8 @@ function ContentWithOverlay({ children, isMobile, hasOrganizations, collapsed })
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              backgroundColor: "var(--color-bg-primary)",
+              opacity: 0.8,
               backdropFilter: "blur(4px)",
               WebkitBackdropFilter: "blur(4px)",
               display: "flex",
@@ -206,15 +211,15 @@ export default function PrivateLayout({ children }) {
               paddingTop: "8px",
               paddingBottom: "8px",
               backgroundColor: isCurrent
-                ? "rgba(37, 99, 235, 0.1)"
-                : "rgba(0, 0, 0, 0.02)",
+                ? "var(--color-primary-bg)"
+                : "transparent",
               margin: "0",
               marginTop: "0",
               marginBottom: "0",
               marginLeft: "-12px",
               marginRight: "-12px",
               borderLeft: "3px solid",
-              borderColor: isCurrent ? "#2563eb" : "transparent",
+              borderColor: isCurrent ? "var(--color-primary)" : "transparent",
               borderRadius: "8px",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -224,7 +229,7 @@ export default function PrivateLayout({ children }) {
           >
             <span
               style={{
-                color: isCurrent ? "#2563eb" : "inherit",
+                color: isCurrent ? "var(--color-primary)" : "var(--color-text-primary)",
                 fontWeight: isCurrent ? 500 : 400,
               }}
             >
@@ -238,7 +243,7 @@ export default function PrivateLayout({ children }) {
               >
                 <RiCheckLine
                   style={{
-                    color: "#2563eb",
+                    color: "var(--color-primary)",
                     fontSize: "16px",
                     marginLeft: "8px",
                   }}
@@ -277,7 +282,7 @@ export default function PrivateLayout({ children }) {
             <span
               style={{
                 fontSize: "12px",
-                color: "#8b8b8b",
+                color: "var(--color-text-secondary)",
                 fontWeight: "normal",
               }}
             >
@@ -373,16 +378,19 @@ export default function PrivateLayout({ children }) {
             }}
           >
             <Header
-              className="shadow-sm border-b border-gray-700 flex items-center justify-end"
+              className="shadow-sm border-b flex items-center justify-end"
               style={{
-                backgroundColor: "#1e1b4b",
-                color: "#ffffff",
+                backgroundColor: "var(--color-bg-header)",
+                color: "var(--color-text-header)",
+                borderColor: "var(--color-border)",
                 paddingLeft: isMobile ? "16px" : "24px",
                 paddingRight: isMobile ? "16px" : "24px",
                 flexShrink: 0,
               }}
             >
               <Space size="middle">
+                {/* Theme toggle */}
+                <ThemeToggle />
                 {/* Profile icon dropdown */}
                 <Dropdown
                   open={dropdownOpen}
@@ -425,9 +433,9 @@ export default function PrivateLayout({ children }) {
                   )}
                 >
                   <Avatar
-                    icon={<RiUserLine />}
+                    icon={<RiUserLine style={{ color: "var(--color-primary)" }} />}
                     style={{
-                      backgroundColor: "#2563eb",
+                      backgroundColor: "var(--color-primary-bg)",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
                     }}

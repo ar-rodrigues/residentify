@@ -19,7 +19,12 @@ export default function SignupSuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: "linear-gradient(to bottom right, var(--color-bg-secondary), var(--color-bg-elevated))",
+      }}
+    >
       <div className="w-full max-w-md">
         <Space
           orientation="vertical"
@@ -27,8 +32,11 @@ export default function SignupSuccessPage() {
           className="w-full text-center mb-8"
         >
           <Space size="middle" className="justify-center">
-            <RiRocketLine className="text-4xl text-blue-600" />
-            <Title level={2} className="!mb-0">
+            <RiRocketLine
+              className="text-4xl"
+              style={{ color: "var(--color-primary)" }}
+            />
+            <Title level={2} className="!mb-0" style={{ color: "var(--color-text-primary)" }}>
               Residentify
             </Title>
           </Space>
@@ -40,11 +48,21 @@ export default function SignupSuccessPage() {
             size="large"
             className="w-full text-center"
           >
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <RiCheckLine className="text-3xl text-green-600" />
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+              style={{
+                backgroundColor: "var(--color-primary-bg)",
+              }}
+            >
+              <RiCheckLine
+                className="text-3xl"
+                style={{ color: "var(--color-primary)" }}
+              />
             </div>
-            <Title level={3}>¡Registro Completado!</Title>
-            <Paragraph className="text-gray-600">
+            <Title level={3} style={{ color: "var(--color-text-primary)" }}>
+              ¡Registro Completado!
+            </Title>
+            <Paragraph style={{ color: "var(--color-text-secondary)" }}>
               Tu cuenta ha sido creada exitosamente. Ya puedes comenzar a usar
               la plataforma.
             </Paragraph>
@@ -54,13 +72,6 @@ export default function SignupSuccessPage() {
                 onClick={handleContinue}
                 className="w-full"
                 size="large"
-                style={{ backgroundColor: "#16a34a" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#15803d";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#16a34a";
-                }}
               >
                 <Space>
                   Continuar

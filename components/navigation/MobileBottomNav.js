@@ -62,10 +62,10 @@ export default function MobileBottomNav() {
       className="fixed bottom-0 left-0 right-0 z-50 border-t shadow-lg"
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
-        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        backgroundColor: "var(--color-bg-elevated)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        borderColor: "rgba(0, 0, 0, 0.1)",
+        borderColor: "var(--color-border)",
         boxShadow:
           "0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)",
       }}
@@ -90,17 +90,18 @@ export default function MobileBottomNav() {
                 ${
                   isDisabled
                     ? "opacity-50 cursor-not-allowed"
-                    : isActive
-                    ? "text-blue-400"
-                    : "text-gray-500 hover:text-gray-600"
+                    : ""
                 }
               `}
               style={{
                 backgroundColor: isActive
-                  ? "rgba(59, 130, 246, 0.05)"
-                  : "rgba(255, 255, 255, 0.4)",
+                  ? "var(--color-primary-bg)"
+                  : "transparent",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
+                color: isActive 
+                  ? "var(--color-primary)" 
+                  : "var(--color-text-secondary)",
               }}
               aria-label={item.label}
             >
@@ -108,22 +109,31 @@ export default function MobileBottomNav() {
                 <Spin
                   size="small"
                   className="mb-1"
-                  style={{ color: isActive ? "#60a5fa" : "#6b7280" }}
+                  style={{ 
+                    color: isActive 
+                      ? "var(--color-primary)" 
+                      : "var(--color-text-secondary)" 
+                  }}
                 />
               ) : (
                 IconComponent && (
                   <IconComponent
-                    className={`text-xl mb-1 transition-colors duration-200 ${
-                      isActive ? "text-blue-400" : "text-gray-500"
-                    }`}
+                    className="text-xl mb-1 transition-colors duration-200"
+                    style={{
+                      color: isActive 
+                        ? "var(--color-primary)" 
+                        : "var(--color-text-secondary)",
+                    }}
                   />
                 )
               )}
               <span
-                className={`
-                  text-xs font-medium transition-colors duration-200
-                  ${isActive ? "text-blue-400" : "text-gray-500"}
-                `}
+                className="text-xs font-medium transition-colors duration-200"
+                style={{
+                  color: isActive 
+                    ? "var(--color-primary)" 
+                    : "var(--color-text-secondary)",
+                }}
               >
                 {item.label}
               </span>

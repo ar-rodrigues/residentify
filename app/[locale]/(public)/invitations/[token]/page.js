@@ -292,12 +292,12 @@ export default function InvitationAcceptPage() {
 
   if (loadingInvitation || checkingEmail || mode === "checking") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] px-4">
         <Card
           className="shadow-2xl border-0 max-w-md w-full"
           style={{
             borderRadius: "20px",
-            background: "white",
+            background: "var(--color-bg-elevated)",
           }}
         >
           <div className="w-full py-10 px-4 flex flex-col items-center">
@@ -312,7 +312,7 @@ export default function InvitationAcceptPage() {
             >
               {/* Spinning ring */}
               <div
-                className="absolute border-4 border-blue-600 border-t-transparent rounded-full animate-spin"
+                className="absolute border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin"
                 style={{
                   width: "80px",
                   height: "80px",
@@ -330,11 +330,11 @@ export default function InvitationAcceptPage() {
                   left: 0,
                 }}
               >
-                <RiUserAddLine className="text-3xl text-blue-600" />
+                <RiUserAddLine className="text-3xl text-[var(--color-primary)]" />
               </div>
             </div>
             <div className="text-center mt-6">
-              <Title level={4} className="!mb-0 !text-gray-800 !font-semibold">
+              <Title level={4} className="!mb-0 !font-semibold">
                 {t("emails.invitation.acceptPage.loading")}
               </Title>
             </div>
@@ -346,7 +346,7 @@ export default function InvitationAcceptPage() {
 
   if (!invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
             <Space orientation="vertical" size="large" className="w-full">
@@ -368,7 +368,7 @@ export default function InvitationAcceptPage() {
   // Show success message only after acceptance
   if (successMessage) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[var(--color-bg-primary)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Card className="shadow-lg">
             <Space orientation="vertical" size="large" className="w-full">
@@ -386,7 +386,7 @@ export default function InvitationAcceptPage() {
                 type="success"
                 showIcon
               />
-              <Paragraph className="text-center text-gray-600">
+              <Paragraph className="text-center text-[var(--color-text-secondary)]">
                 {t("emails.invitation.acceptPage.redirecting")}
               </Paragraph>
             </Space>
@@ -398,7 +398,7 @@ export default function InvitationAcceptPage() {
 
   // Always render both forms to keep them connected (hidden when not needed)
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg">
           <Space orientation="vertical" size="large" className="w-full">
@@ -406,22 +406,22 @@ export default function InvitationAcceptPage() {
             <div style={{ display: mode === "logged-in" ? "block" : "none" }}>
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <RiUserAddLine className="text-4xl text-blue-600" />
+                  <RiUserAddLine className="text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="mb-2">
                   {t("emails.invitation.acceptPage.acceptTitle")}
                 </Title>
-                <Paragraph className="text-gray-600">
+                <Paragraph className="text-[var(--color-text-secondary)]">
                   {t("emails.invitation.acceptPage.authenticatedAs")}{" "}
                   {currentUser?.email}
                 </Paragraph>
               </div>
 
               {/* Invitation Details */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[var(--color-primary-bg)] border-[var(--color-primary)]">
                 <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
-                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <RiBuildingLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.organization")}
@@ -430,7 +430,7 @@ export default function InvitationAcceptPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.role")}
@@ -444,7 +444,7 @@ export default function InvitationAcceptPage() {
                   </div>
                   {invitation?.inviter_name && (
                     <div className="flex items-start gap-3">
-                      <RiUserLine className="text-xl text-blue-600 mt-1" />
+                      <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                       <div>
                         <Text strong className="block mb-1">
                           {t("emails.invitation.invitedBy")}
@@ -493,21 +493,21 @@ export default function InvitationAcceptPage() {
             <div style={{ display: mode === "login" ? "block" : "none" }}>
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <RiLoginBoxLine className="text-4xl text-blue-600" />
+                  <RiLoginBoxLine className="text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="mb-2">
                   {t("emails.invitation.acceptPage.loginToAccept")}
                 </Title>
-                <Paragraph className="text-gray-600">
+                <Paragraph className="text-[var(--color-text-secondary)]">
                   {t("emails.invitation.acceptPage.loginMessage")}
                 </Paragraph>
               </div>
 
               {/* Invitation Details */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[var(--color-primary-bg)] border-[var(--color-primary)]">
                 <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
-                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <RiBuildingLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.organization")}
@@ -516,7 +516,7 @@ export default function InvitationAcceptPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.role")}
@@ -602,7 +602,7 @@ export default function InvitationAcceptPage() {
                         href={`/forgot-password?email=${encodeURIComponent(
                           invitation?.email || ""
                         )}`}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
+                        className="text-[var(--color-primary)] hover:text-[var(--color-primary-light)] text-sm"
                       >
                         {t("emails.invitation.acceptPage.forgotPassword")}
                       </Link>
@@ -616,21 +616,21 @@ export default function InvitationAcceptPage() {
             <div style={{ display: mode === "register" ? "block" : "none" }}>
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <RiUserAddLine className="text-4xl text-blue-600" />
+                  <RiUserAddLine className="text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="mb-2">
                   {t("emails.invitation.acceptPage.acceptTitle")}
                 </Title>
-                <Paragraph className="text-gray-600">
+                <Paragraph className="text-[var(--color-text-secondary)]">
                   {t("emails.invitation.acceptPage.completeRegistration")}
                 </Paragraph>
               </div>
 
               {/* Invitation Details */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[var(--color-primary-bg)] border-[var(--color-primary)]">
                 <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
-                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <RiBuildingLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.organization")}
@@ -639,7 +639,7 @@ export default function InvitationAcceptPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.role")}
@@ -653,7 +653,7 @@ export default function InvitationAcceptPage() {
                   </div>
                   {invitation?.inviter_name && (
                     <div className="flex items-start gap-3">
-                      <RiUserLine className="text-xl text-blue-600 mt-1" />
+                      <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                       <div>
                         <Text strong className="block mb-1">
                           {t("emails.invitation.invitedBy")}

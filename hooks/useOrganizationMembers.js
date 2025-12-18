@@ -123,6 +123,17 @@ export function useOrganizationMembers() {
           await getMembers(organizationId);
         }
 
+        // Dispatch event to invalidate organization cache
+        // This ensures that when a role is changed, the organization data is refetched
+        // to reflect the updated role for the affected user
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("organization:updated", {
+              detail: { organizationId },
+            })
+          );
+        }
+
         return {
           error: false,
           message: result.message || "Rol actualizado exitosamente.",

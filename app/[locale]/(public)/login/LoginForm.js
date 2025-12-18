@@ -82,7 +82,12 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: "linear-gradient(to bottom right, var(--color-bg-secondary), var(--color-bg-elevated))",
+      }}
+    >
       <div className="w-full max-w-md">
         <Space
           orientation="vertical"
@@ -90,12 +95,15 @@ export default function LoginForm() {
           className="w-full text-center mb-8"
         >
           <Space size="middle" className="justify-center">
-            <RiRocketLine className="text-4xl text-blue-600" />
-            <Title level={2} className="!mb-0">
+            <RiRocketLine
+              className="text-4xl"
+              style={{ color: "var(--color-primary)" }}
+            />
+            <Title level={2} className="!mb-0" style={{ color: "var(--color-text-primary)" }}>
               Residentify
             </Title>
           </Space>
-          <Paragraph className="text-gray-600">
+          <Paragraph style={{ color: "var(--color-text-secondary)" }}>
             {t("auth.login.subtitle")}
           </Paragraph>
         </Space>
@@ -108,11 +116,21 @@ export default function LoginForm() {
               size="large"
               className="w-full text-center"
             >
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <RiCheckLine className="text-3xl text-green-600" />
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+                style={{
+                  backgroundColor: "var(--color-primary-bg)",
+                }}
+              >
+                <RiCheckLine
+                  className="text-3xl"
+                  style={{ color: "var(--color-primary)" }}
+                />
               </div>
-              <Title level={3}>{t("auth.login.success.title")}</Title>
-              <Paragraph className="text-gray-600">
+              <Title level={3} style={{ color: "var(--color-text-primary)" }}>
+                {t("auth.login.success.title")}
+              </Title>
+              <Paragraph style={{ color: "var(--color-text-secondary)" }}>
                 {t("auth.login.success.message")}
               </Paragraph>
               <Space orientation="vertical" className="w-full" size="small">
@@ -206,7 +224,16 @@ export default function LoginForm() {
                 <div className="text-right">
                   <Link
                     href="/forgot-password"
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="text-sm"
+                    style={{
+                      color: "var(--color-primary)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--color-primary-light)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--color-primary)";
+                    }}
                   >
                     {t("auth.login.forgotPassword")}
                   </Link>
@@ -226,11 +253,20 @@ export default function LoginForm() {
               </Form.Item>
 
               <div className="text-center mt-4">
-                <Text type="secondary" className="text-sm">
+                <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                   {t("auth.login.noAccount")}{" "}
                   <Link
                     href="/signup"
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    className="font-medium"
+                    style={{
+                      color: "var(--color-primary)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--color-primary-light)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--color-primary)";
+                    }}
                   >
                     {t("auth.login.createAccount")}
                   </Link>
@@ -241,7 +277,7 @@ export default function LoginForm() {
         )}
 
         <div className="text-center mt-6">
-          <Text type="secondary" className="text-sm">
+          <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {t("auth.signup.terms")}
           </Text>
         </div>

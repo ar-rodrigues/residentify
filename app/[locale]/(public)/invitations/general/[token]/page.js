@@ -218,11 +218,11 @@ export default function GeneralInviteLinkPage() {
 
   if (loadingLink || checkingStatus || mode === "checking") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <Card className="max-w-md w-full">
           <div className="flex justify-center py-8">
             <Space orientation="vertical" align="center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
               <Text type="secondary">{t("organizations.generalInviteLinks.acceptPage.loading")}</Text>
             </Space>
           </div>
@@ -233,7 +233,7 @@ export default function GeneralInviteLinkPage() {
 
   if (errorMessage && !link) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
             <Alert
@@ -262,7 +262,7 @@ export default function GeneralInviteLinkPage() {
 
   if (link.is_expired) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
             <Alert
@@ -287,7 +287,7 @@ export default function GeneralInviteLinkPage() {
 
   if (successMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <div className="max-w-md w-full">
           <Card>
             <Alert
@@ -309,7 +309,7 @@ export default function GeneralInviteLinkPage() {
   // Already member mode - show centered card
   if (mode === "already-member") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <div className="max-w-md w-full">
           <Card className="shadow-lg">
             <Space orientation="vertical" size="middle" className="w-full">
@@ -320,18 +320,18 @@ export default function GeneralInviteLinkPage() {
                 <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                   {t("organizations.generalInviteLinks.acceptPage.alreadyMemberTitle")}
                 </Title>
-                <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                   {t("organizations.generalInviteLinks.acceptPage.alreadyMemberDescription", {
                     organization: link.organization_name,
                   })}
                 </Paragraph>
                 {statusCheck?.user_name && (
-                  <Paragraph className="text-gray-600 text-sm sm:text-base !mt-2 !mb-0">
+                  <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mt-2 !mb-0">
                     {statusCheck.user_name}
                   </Paragraph>
                 )}
                 {statusCheck?.user_email && (
-                  <Paragraph className="text-gray-500 text-xs sm:text-sm !mt-1 !mb-0">
+                  <Paragraph className="text-[var(--color-text-secondary)] text-xs sm:text-sm !mt-1 !mb-0">
                     {statusCheck.user_email}
                   </Paragraph>
                 )}
@@ -361,20 +361,20 @@ export default function GeneralInviteLinkPage() {
   // Selection mode - show centered selection cards
   if (mode === "select") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)] py-4 sm:py-12 px-4">
         <div className="max-w-3xl w-full">
           <Card className="shadow-lg">
             <Space orientation="vertical" size="middle" className="w-full">
               <div className="text-center mb-6">
                 <div className="flex justify-center mb-3 sm:mb-4">
-                  <RiUserAddLine className="text-3xl sm:text-4xl text-blue-600" />
+                  <RiUserAddLine className="text-3xl sm:text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                   {t("organizations.generalInviteLinks.acceptPage.joinTitle", {
                     organization: link.organization_name,
                   })}
                 </Title>
-                <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                   {t("organizations.generalInviteLinks.acceptPage.invitedMessage")}
                 </Paragraph>
               </div>
@@ -384,7 +384,7 @@ export default function GeneralInviteLinkPage() {
                 <Card
                   hoverable
                   onClick={() => setMode("login")}
-                  className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-blue-500"
+                  className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-[var(--color-primary)]"
                   styles={{
                     body: { padding: "24px", textAlign: "center" },
                   }}
@@ -396,12 +396,12 @@ export default function GeneralInviteLinkPage() {
                     align="center"
                   >
                     <div className="flex justify-center">
-                      <RiLoginBoxLine className="text-4xl sm:text-5xl text-blue-600" />
+                      <RiLoginBoxLine className="text-4xl sm:text-5xl text-[var(--color-primary)]" />
                     </div>
                     <Title level={4} className="!mb-0 !text-lg">
                       {t("organizations.generalInviteLinks.acceptPage.haveAccount")}
                     </Title>
-                    <Paragraph className="text-gray-600 text-sm !mb-0">
+                    <Paragraph className="text-[var(--color-text-secondary)] text-sm !mb-0">
                       {t("organizations.generalInviteLinks.acceptPage.haveAccountDescription")}
                     </Paragraph>
                   </Space>
@@ -411,7 +411,7 @@ export default function GeneralInviteLinkPage() {
                 <Card
                   hoverable
                   onClick={() => setMode("register")}
-                  className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-blue-500"
+                  className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-[var(--color-primary)]"
                   styles={{
                     body: { padding: "24px", textAlign: "center" },
                   }}
@@ -423,12 +423,12 @@ export default function GeneralInviteLinkPage() {
                     align="center"
                   >
                     <div className="flex justify-center">
-                      <RiUserAddLine className="text-4xl sm:text-5xl text-blue-600" />
+                      <RiUserAddLine className="text-4xl sm:text-5xl text-[var(--color-primary)]" />
                     </div>
                     <Title level={4} className="!mb-0 !text-lg">
                       {t("organizations.generalInviteLinks.acceptPage.createAccount")}
                     </Title>
-                    <Paragraph className="text-gray-600 text-sm !mb-0">
+                    <Paragraph className="text-[var(--color-text-secondary)] text-sm !mb-0">
                       {t("organizations.generalInviteLinks.acceptPage.createAccountDescription")}
                     </Paragraph>
                   </Space>
@@ -451,7 +451,7 @@ export default function GeneralInviteLinkPage() {
 
   // Always render forms to keep them connected (hidden when not needed)
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <Card className="shadow-lg" styles={{ body: { padding: "20px 16px" } }}>
           <Space orientation="vertical" size="middle" className="w-full">
@@ -459,29 +459,29 @@ export default function GeneralInviteLinkPage() {
             <div style={{ display: mode === "logged-in" ? "block" : "none" }}>
               <div className="text-center">
                 <div className="flex justify-center mb-3 sm:mb-4">
-                  <RiUserAddLine className="text-3xl sm:text-4xl text-blue-600" />
+                  <RiUserAddLine className="text-3xl sm:text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                   {t("organizations.generalInviteLinks.acceptPage.joinTitle", {
                     organization: link.organization_name,
                   })}
                 </Title>
-                <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                   {t("emails.invitation.acceptPage.authenticatedAs")}{" "}
                   {statusCheck?.user_email || currentUser?.email}
                 </Paragraph>
                 {statusCheck?.user_name && (
-                  <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                  <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                     {statusCheck.user_name}
                   </Paragraph>
                 )}
               </div>
 
               {/* Organization Details */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[var(--color-primary-bg)] border-[var(--color-primary)]">
                 <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
-                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <RiBuildingLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.organization")}
@@ -490,7 +490,7 @@ export default function GeneralInviteLinkPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <RiUserLine className="text-xl text-blue-600 mt-1" />
+                    <RiUserLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.role")}
@@ -551,21 +551,21 @@ export default function GeneralInviteLinkPage() {
               </Button>
               <div className="text-center">
                 <div className="flex justify-center mb-3 sm:mb-4">
-                  <RiLoginBoxLine className="text-3xl sm:text-4xl text-blue-600" />
+                  <RiLoginBoxLine className="text-3xl sm:text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                   {t("organizations.generalInviteLinks.acceptPage.loginToJoin")}
                 </Title>
-                <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                   {t("organizations.generalInviteLinks.acceptPage.loginToJoinDescription")}
                 </Paragraph>
               </div>
 
               {/* Organization Details */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-[var(--color-primary-bg)] border-[var(--color-primary)]">
                 <Space orientation="vertical" size="middle" className="w-full">
                   <div className="flex items-start gap-3">
-                    <RiBuildingLine className="text-xl text-blue-600 mt-1" />
+                    <RiBuildingLine className="text-xl text-[var(--color-primary)] mt-1" />
                     <div>
                       <Text strong className="block mb-1">
                         {t("emails.invitation.organization")}
@@ -664,14 +664,14 @@ export default function GeneralInviteLinkPage() {
               </Button>
               <div className="text-center">
                 <div className="flex justify-center mb-3 sm:mb-4">
-                  <RiUserAddLine className="text-3xl sm:text-4xl text-blue-600" />
+                  <RiUserAddLine className="text-3xl sm:text-4xl text-[var(--color-primary)]" />
                 </div>
                 <Title level={2} className="!mb-2 !text-xl sm:!text-2xl">
                   {t("organizations.generalInviteLinks.acceptPage.joinTitle", {
                     organization: link.organization_name,
                   })}
                 </Title>
-                <Paragraph className="text-gray-600 text-sm sm:text-base !mb-0">
+                <Paragraph className="text-[var(--color-text-secondary)] text-sm sm:text-base !mb-0">
                   {t("organizations.generalInviteLinks.acceptPage.invitedMessage")}
                 </Paragraph>
               </div>

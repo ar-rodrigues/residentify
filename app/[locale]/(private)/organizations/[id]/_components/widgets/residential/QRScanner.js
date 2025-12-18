@@ -751,8 +751,17 @@ export default function QRScanner({ onScan, loading = false }) {
           {scanMode === "camera" && cameraSupported && (
             <div className="w-full">
               {!isScanning ? (
-                <div className="w-full flex flex-col items-center justify-center py-6 sm:py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 px-4">
-                  <RiQrScanLine className="text-4xl sm:text-6xl text-gray-400 mb-4" />
+                <div
+                  className="w-full flex flex-col items-center justify-center py-6 sm:py-8 rounded-lg border-2 border-dashed px-4"
+                  style={{
+                    backgroundColor: "var(--color-bg-secondary)",
+                    borderColor: "var(--color-border)",
+                  }}
+                >
+                  <RiQrScanLine
+                    className="text-4xl sm:text-6xl mb-4"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  />
                   <Button
                     type="primary"
                     icon={<RiQrScanLine />}
@@ -853,9 +862,21 @@ export default function QRScanner({ onScan, loading = false }) {
           {/* Camera Fallback - Show when camera is not supported or when there's a camera error */}
           {scanMode === "camera" && !cameraSupported && (
             <div className="w-full">
-              <div className="w-full flex flex-col items-center justify-center py-6 sm:py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 px-4">
-                <RiCameraLine className="text-4xl sm:text-6xl text-gray-400 mb-4" />
-                <p className="mb-4 text-gray-500 text-center text-sm sm:text-base px-2">
+              <div
+                className="w-full flex flex-col items-center justify-center py-6 sm:py-8 rounded-lg border-2 border-dashed px-4"
+                style={{
+                  backgroundColor: "var(--color-bg-secondary)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <RiCameraLine
+                  className="text-4xl sm:text-6xl mb-4"
+                  style={{ color: "var(--color-text-secondary)" }}
+                />
+                <p
+                  className="mb-4 text-center text-sm sm:text-base px-2"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
                   {t("qrCodes.scanner.cameraNotAvailable")}
                 </p>
                 <input

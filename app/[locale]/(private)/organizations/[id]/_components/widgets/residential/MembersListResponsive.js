@@ -217,7 +217,6 @@ export default function MembersListResponsive({ organizationId }) {
             }))}
           />
           <Button
-            type="default"
             danger
             icon={<RiDeleteBinLine />}
             size="small"
