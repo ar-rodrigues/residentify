@@ -36,7 +36,7 @@ export default function InvitationsPageClient({ organizationId }) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-full overflow-x-hidden">
       <InvitationsListResponsive organizationId={organizationId} />
     </div>
   );

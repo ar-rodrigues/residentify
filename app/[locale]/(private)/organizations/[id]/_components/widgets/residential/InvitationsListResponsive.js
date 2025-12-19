@@ -758,7 +758,7 @@ export default function InvitationsListResponsive({ organizationId }) {
 
   // Desktop: Table layout
   return (
-    <Space orientation="vertical" size="large" className="w-full">
+    <Space orientation="vertical" size="large" className="w-full max-w-full overflow-x-hidden">
       {/* Active General Invite Links Section */}
       {activeLinks.length > 0 && (
         <Card
@@ -839,13 +839,16 @@ export default function InvitationsListResponsive({ organizationId }) {
           title={t("organizations.invitations.pendingApproval.title")}
           className="border-orange-200 bg-orange-50/50"
         >
-          <Table
-            columns={columns}
-            dataSource={pendingApprovalInvitations}
-            rowKey="id"
-            loading={loading}
-            pagination={false}
-          />
+          <div className="overflow-x-auto w-full">
+            <Table
+              columns={columns}
+              dataSource={pendingApprovalInvitations}
+              rowKey="id"
+              loading={loading}
+              pagination={false}
+              scroll={{ x: "max-content" }}
+            />
+          </div>
         </Card>
       )}
 
@@ -864,18 +867,21 @@ export default function InvitationsListResponsive({ organizationId }) {
           </Space>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={filteredInvitations}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) =>
-              t("organizations.invitations.pagination.total", { total }),
-          }}
-        />
+        <div className="overflow-x-auto w-full">
+          <Table
+            columns={columns}
+            dataSource={filteredInvitations}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) =>
+                t("organizations.invitations.pagination.total", { total }),
+            }}
+            scroll={{ x: "max-content" }}
+          />
+        </div>
       </Card>
     </Space>
   );
