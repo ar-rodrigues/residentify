@@ -6,7 +6,7 @@ import { getDefaultRoute } from "@/utils/menu/organizationMenu";
 
 export default async function OrganizationDetailPage({ params }) {
   const supabase = await createClient();
-  const { id } = await params;
+  const { id, locale } = await params;
 
   // Authenticate user
   const {
@@ -98,7 +98,8 @@ export default async function OrganizationDetailPage({ params }) {
   const defaultRoute = getDefaultRoute(
     organization.organization_type,
     organization.userRole,
-    id
+    id,
+    locale
   );
 
   if (defaultRoute) {

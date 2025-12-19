@@ -97,13 +97,15 @@ const RESIDENTIAL_MENU_ITEMS = {
  * @param {string} role - The user's role in the organization (e.g., 'admin', 'resident', 'security')
  * @param {string} organizationId - The organization ID
  * @param {Function} t - Translation function
+ * @param {string} locale - The locale code (e.g., 'es', 'pt')
  * @returns {Array} Array of menu items with full paths and icons
  */
 export function getOrganizationMenuItems(
   organizationType,
   role,
   organizationId,
-  t
+  t,
+  locale
 ) {
   // Handle no organization case
   if (!organizationType || !role || !organizationId) {
@@ -133,7 +135,7 @@ export function getOrganizationMenuItems(
         key: item.key,
         label: t(`menu.${item.key}`),
         icon: IconComponent || null,
-        path: `/organizations/${organizationId}${item.path}`,
+        path: `/${locale}/organizations/${organizationId}${item.path}`,
       };
     });
 }
@@ -143,9 +145,10 @@ export function getOrganizationMenuItems(
  * @param {string} organizationType - The organization type
  * @param {string} role - The user's role
  * @param {string} organizationId - The organization ID
+ * @param {string} locale - The locale code (e.g., 'es', 'pt')
  * @returns {string|null} Default route path or null
  */
-export function getDefaultRoute(organizationType, role, organizationId) {
+export function getDefaultRoute(organizationType, role, organizationId, locale) {
   if (!organizationType || !role || !organizationId) {
     return null;
   }
@@ -154,7 +157,8 @@ export function getDefaultRoute(organizationType, role, organizationId) {
     organizationType,
     role,
     organizationId,
-    () => ""
+    () => "",
+    locale
   );
 
   if (menuItems.length > 0) {

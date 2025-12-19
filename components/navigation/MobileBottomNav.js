@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Spin } from "antd";
 import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 
@@ -13,6 +13,7 @@ export default function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations();
+  const locale = useLocale();
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
   const {
     organization,
@@ -34,9 +35,10 @@ export default function MobileBottomNav() {
       organization.organization_type,
       organization.userRole,
       organization.id,
-      t
+      t,
+      locale
     );
-  }, [organization, t]);
+  }, [organization, t, locale]);
 
   // Use only organization menu items (limit to 4 for mobile)
   const menuItems = useMemo(() => {
@@ -87,11 +89,7 @@ export default function MobileBottomNav() {
                 flex flex-col items-center justify-center flex-1 h-full mx-2 rounded-lg
                 transition-all duration-200 ease-out
                 active:scale-95 active:opacity-80
-                ${
-                  isDisabled
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }
+                ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}
               `}
               style={{
                 backgroundColor: isActive
@@ -99,8 +97,8 @@ export default function MobileBottomNav() {
                   : "transparent",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
-                color: isActive 
-                  ? "var(--color-primary)" 
+                color: isActive
+                  ? "var(--color-primary)"
                   : "var(--color-text-secondary)",
               }}
               aria-label={item.label}
@@ -109,10 +107,10 @@ export default function MobileBottomNav() {
                 <Spin
                   size="small"
                   className="mb-1"
-                  style={{ 
-                    color: isActive 
-                      ? "var(--color-primary)" 
-                      : "var(--color-text-secondary)" 
+                  style={{
+                    color: isActive
+                      ? "var(--color-primary)"
+                      : "var(--color-text-secondary)",
                   }}
                 />
               ) : (
@@ -120,8 +118,8 @@ export default function MobileBottomNav() {
                   <IconComponent
                     className="text-xl mb-1 transition-colors duration-200"
                     style={{
-                      color: isActive 
-                        ? "var(--color-primary)" 
+                      color: isActive
+                        ? "var(--color-primary)"
                         : "var(--color-text-secondary)",
                     }}
                   />
@@ -130,8 +128,8 @@ export default function MobileBottomNav() {
               <span
                 className="text-xs font-medium transition-colors duration-200"
                 style={{
-                  color: isActive 
-                    ? "var(--color-primary)" 
+                  color: isActive
+                    ? "var(--color-primary)"
                     : "var(--color-text-secondary)",
                 }}
               >

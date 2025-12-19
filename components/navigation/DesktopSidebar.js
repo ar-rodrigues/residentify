@@ -8,7 +8,7 @@ import {
   RiArrowDownSLine,
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
@@ -32,6 +32,7 @@ export default function DesktopSidebar({
   onMouseLeave,
 }) {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
@@ -89,7 +90,7 @@ export default function DesktopSidebar({
             // Don't navigate if there's an error
             return;
           }
-          const targetPath = `/organizations/${org.id}`;
+          const targetPath = `/${locale}/organizations/${org.id}`;
           startNavigation(targetPath, () => {
             router.push(targetPath);
           });
@@ -111,14 +112,14 @@ export default function DesktopSidebar({
           </Space>
         ),
         onClick: () => {
-          const path = "/organizations/create";
+          const path = `/${locale}/organizations/create`;
           startNavigation(path, () => {
             router.push(path);
           });
         },
       },
     ];
-  }, [organizations, organizationId, router, t, startNavigation]);
+  }, [organizations, organizationId, router, t, startNavigation, locale]);
 
   // Get dynamic menu items based on organization type and role
   // Always show organization menu items (from current/main organization)
@@ -134,9 +135,10 @@ export default function DesktopSidebar({
       organization.organization_type,
       organization.userRole,
       organization.id,
-      t
+      t,
+      locale
     );
-  }, [organization, t]);
+  }, [organization, t, locale]);
 
   // Get role label for badge
   const roleLabel = useMemo(() => {
@@ -158,7 +160,7 @@ export default function DesktopSidebar({
 
   // Handle add organization button click with loading state
   const handleAddOrganizationClick = () => {
-    const path = "/organizations/create";
+    const path = `/${locale}/organizations/create`;
     startNavigation(path, () => {
       router.push(path);
     });
@@ -211,8 +213,8 @@ export default function DesktopSidebar({
           }}
         >
           <Space size="small">
-            <RiRocketLine 
-              className="text-2xl" 
+            <RiRocketLine
+              className="text-2xl"
               style={{ color: "var(--color-primary)" }}
             />
             <Typography.Text
@@ -243,14 +245,14 @@ export default function DesktopSidebar({
           >
             {collapsed ? (
               <div className="flex justify-center">
-                <div 
+                <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
                   style={{
                     backgroundColor: "var(--color-primary-bg)",
                   }}
                 >
-                  <RiBuildingLine 
-                    className="text-xl" 
+                  <RiBuildingLine
+                    className="text-xl"
                     style={{ color: "var(--color-primary)" }}
                   />
                 </div>
@@ -386,7 +388,7 @@ export default function DesktopSidebar({
             <Button
               type="primary"
               icon={
-                loadingPath === "/organizations/create" ? (
+                loadingPath === `/${locale}/organizations/create` ? (
                   <Spin size="small" />
                 ) : (
                   <RiAddLine style={{ color: "var(--color-primary)" }} />
@@ -394,8 +396,10 @@ export default function DesktopSidebar({
               }
               block
               onClick={handleAddOrganizationClick}
-              loading={loadingPath === "/organizations/create"}
-              disabled={isPending && loadingPath !== "/organizations/create"}
+              loading={loadingPath === `/${locale}/organizations/create`}
+              disabled={
+                isPending && loadingPath !== `/${locale}/organizations/create`
+              }
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -420,7 +424,7 @@ export default function DesktopSidebar({
             <Button
               type="primary"
               icon={
-                loadingPath === "/organizations/create" ? (
+                loadingPath === `/${locale}/organizations/create` ? (
                   <Spin size="small" />
                 ) : (
                   <RiAddLine style={{ color: "var(--color-primary)" }} />
@@ -428,8 +432,10 @@ export default function DesktopSidebar({
               }
               shape="circle"
               onClick={handleAddOrganizationClick}
-              loading={loadingPath === "/organizations/create"}
-              disabled={isPending && loadingPath !== "/organizations/create"}
+              loading={loadingPath === `/${locale}/organizations/create`}
+              disabled={
+                isPending && loadingPath !== `/${locale}/organizations/create`
+              }
               aria-label={t("organizations.header.createNew")}
               style={{
                 backgroundColor: "var(--color-primary-bg)",

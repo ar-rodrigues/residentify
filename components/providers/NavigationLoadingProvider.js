@@ -30,12 +30,21 @@ export function NavigationLoadingProvider({ children }) {
   // Set loading path and start transition
   const startNavigation = useCallback(
     (path, navigationCallback) => {
+      // If navigating to the same path, don't show loading state
+      // Still call the navigation callback in case it does something
+      if (path === pathname) {
+        startTransition(() => {
+          navigationCallback();
+        });
+        return;
+      }
+
       setLoadingPath(path);
       startTransition(() => {
         navigationCallback();
       });
     },
-    [startTransition]
+    [startTransition, pathname]
   );
 
   const value = useMemo(
@@ -54,6 +63,18 @@ export function NavigationLoadingProvider({ children }) {
       clearLoading();
     }
   }, [pathname, clearLoading]);
+
+  // Also clear loading if loadingPath matches current pathname (handles same-route clicks)
+  // This ensures loading state clears even when pathname doesn't change
+  useEffect(() => {
+    if (loadingPath && loadingPath === pathname) {
+      // Clear after a brief delay to allow any pending transitions to complete
+      const timer = setTimeout(() => {
+        clearLoading();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [loadingPath, pathname, clearLoading]);
 
   return (
     <NavigationLoadingContext.Provider value={value}>
@@ -74,4 +95,3 @@ export function useNavigationLoading() {
   }
   return context;
 }
-
