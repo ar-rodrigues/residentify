@@ -50,3 +50,52 @@ Use native semantic tags for page structure:
 - Use functional components and hooks.
 - Always destructure props (e.g., `const MyComp = ({ data, loading }) => { ... }`).
 - Prefer modern ES6+ syntax (const, let, arrow functions, optional chaining).
+
+# Performance and LCP Optimization Rules
+
+## Page Development Best Practices
+
+### 1. Font Loading
+- ALWAYS use Next.js font optimization (`next/font`) for custom fonts
+- Use `display: 'swap'` for font-display strategy
+- Prefer system fonts when possible for faster LCP
+- Apply font variable to HTML element and use in body style
+
+### 2. Image Optimization
+- NEVER use `unoptimized` prop on Next.js Image components unless absolutely necessary (e.g., blob URLs that can't be optimized)
+- Add `priority` prop to images that are part of the LCP element (above-the-fold images)
+- Use appropriate `sizes` prop for responsive images
+- Prefer AVIF/WebP formats via Next.js automatic optimization
+- Configure image optimization in `next.config.mjs` with proper device sizes and image sizes
+
+### 3. Rendering Strategy
+- DO NOT block initial render waiting for data fetching
+- Use skeleton loaders or progressive rendering instead of blocking spinners
+- Render page structure immediately, show loading states for dynamic content
+- Prefer Server Components for data fetching when possible
+- When using client components, render structure immediately and fetch data in parallel
+
+### 4. Resource Loading
+- Add `preconnect` hints for external APIs (Supabase, etc.) in layout files
+- Add `dns-prefetch` for external domains
+- Use dynamic imports (`next/dynamic`) for heavy components that aren't immediately visible
+- Lazy load components below the fold
+- Add font preconnect hints in layout
+
+### 5. Client Components
+- Minimize "use client" boundaries - only use when necessary (interactivity, hooks, browser APIs)
+- When using client components, render structure immediately
+- Fetch data in parallel with rendering, don't block on loading states
+- Use loading states within the rendered structure, not as a replacement for it
+
+### 6. Next.js Configuration
+- Always configure image optimization in `next.config.mjs`
+- Use `optimizePackageImports` for large libraries (antd, etc.)
+- Enable compression in production
+- Configure proper image formats (AVIF, WebP) and device sizes
+
+### 7. Performance Metrics
+- Always be aware of LCP (Largest Contentful Paint) when building pages
+- Ensure the LCP element (usually the main heading or hero image) loads quickly
+- Prioritize above-the-fold content loading
+- Test pages with Lighthouse or similar tools to verify performance improvements

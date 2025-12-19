@@ -36,18 +36,6 @@ export default function HomePage() {
     router.push("/organizations");
   };
 
-  // Prevent hydration mismatch by ensuring consistent initial render
-  if (!mounted || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Space orientation="vertical" align="center" size="large">
-          <Spin size="large" />
-          <Paragraph className="text-gray-600">{t("common.loading")}</Paragraph>
-        </Space>
-      </div>
-    );
-  }
-
   return (
     <Layout className="min-h-screen">
       <Header>
@@ -58,7 +46,9 @@ export default function HomePage() {
           </Title>
         </Space>
         <Space size="middle">
-          {user ? (
+          {!mounted || loading ? (
+            <Spin size="small" />
+          ) : user ? (
             <Button type="primary" onClick={handleDashboard}>
               {t("home.goToDashboard")}
             </Button>
@@ -86,7 +76,9 @@ export default function HomePage() {
             <Paragraph className="text-xl text-gray-600">
               {t("home.subtitle")}
             </Paragraph>
-            {!user && (
+            {!mounted || loading ? (
+              <Spin />
+            ) : !user ? (
               <Button
                 type="primary"
                 size="large"
@@ -95,7 +87,7 @@ export default function HomePage() {
               >
                 {t("home.getStarted")}
               </Button>
-            )}
+            ) : null}
           </Space>
 
           <Row gutter={[32, 32]} className="mb-16">
@@ -173,11 +165,13 @@ export default function HomePage() {
               <Paragraph className="text-lg text-gray-600">
                 {t("home.cta.description")}
               </Paragraph>
-              {!user && (
+              {!mounted || loading ? (
+                <Spin />
+              ) : !user ? (
                 <Button type="primary" size="large" onClick={handleLogin}>
                   {t("home.cta.button")}
                 </Button>
-              )}
+              ) : null}
             </Space>
           </Card>
         </div>

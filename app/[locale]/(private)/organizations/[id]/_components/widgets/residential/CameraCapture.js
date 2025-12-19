@@ -288,7 +288,6 @@ export default function CameraCapture({ onCapture, onCancel }) {
             alt={t("qrCodes.camera.photoAlt")}
             fill
             className="object-contain"
-            unoptimized
           />
         </div>
         <div className="p-4 bg-white border-t border-gray-200">

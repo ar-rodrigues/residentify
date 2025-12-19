@@ -524,17 +524,6 @@ export default function ProfilePage() {
     t,
   ]);
 
-  if (userLoading || !user) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Space orientation="vertical" align="center" size="large">
-          <Spin size="large" />
-          <Paragraph className="text-gray-600">{t("profile.loading")}</Paragraph>
-        </Space>
-      </div>
-    );
-  }
-
   return (
     <div>
       <Space orientation="vertical" size="large" className="w-full">
@@ -545,7 +534,7 @@ export default function ProfilePage() {
               {t("profile.subtitle")}
             </Paragraph>
           </div>
-          {hasNoOrganizations && (
+          {!userLoading && hasNoOrganizations && (
             <Button
               icon={<RiArrowLeftLine />}
               onClick={() => router.push("/organizations")}
@@ -556,18 +545,27 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={(key) => {
-            setActiveTab(key);
-            setErrorMessage(null);
-            setShowSuccess(false);
-            setEmailErrorMessage(null);
-            setShowEmailSuccess(false);
-          }}
-          items={tabItems}
-          size="large"
-        />
+        {userLoading || !user ? (
+          <Card>
+            <Space orientation="vertical" align="center" size="large" className="w-full py-8">
+              <Spin size="large" />
+              <Paragraph className="text-gray-600">{t("profile.loading")}</Paragraph>
+            </Space>
+          </Card>
+        ) : (
+          <Tabs
+            activeKey={activeTab}
+            onChange={(key) => {
+              setActiveTab(key);
+              setErrorMessage(null);
+              setShowSuccess(false);
+              setEmailErrorMessage(null);
+              setShowEmailSuccess(false);
+            }}
+            items={tabItems}
+            size="large"
+          />
+        )}
       </Space>
     </div>
   );

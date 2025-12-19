@@ -852,7 +852,6 @@ export default function QRScanner({ onScan, loading = false }) {
                     alt={t("qrCodes.scanner.previewAlt")}
                     fill
                     className="object-contain rounded-lg"
-                    unoptimized
                   />
                 </div>
               </Card>

@@ -156,19 +156,8 @@ export default function OrganizationsPage() {
     router.push("/organizations/create");
   };
 
-  // Show loading while checking redirect or fetching organizations
-  if (checkingRedirect || fetching) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Space orientation="vertical" align="center" size="large">
-          <Spin size="large" />
-          <Paragraph>{t("organizations.loading")}</Paragraph>
-        </Space>
-      </div>
-    );
-  }
-
-  if (error) {
+  // Show error state
+  if (error && !fetching) {
     return (
       <div className="flex items-center justify-center h-full py-6 px-4 sm:py-12">
         <div className="max-w-md w-full">
@@ -191,8 +180,8 @@ export default function OrganizationsPage() {
     );
   }
 
-  // Empty state - no organizations
-  if (!organizations || organizations.length === 0) {
+  // Empty state - no organizations (only show when not loading)
+  if (!fetching && (!organizations || organizations.length === 0)) {
     return (
       <div className="py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
@@ -227,7 +216,7 @@ export default function OrganizationsPage() {
     );
   }
 
-  // Show list of organizations
+  // Show list of organizations or loading skeleton
   return (
     <div className="py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -247,13 +236,33 @@ export default function OrganizationsPage() {
               onClick={handleCreateOrganization}
               size="large"
               className="w-full sm:w-auto"
+              loading={fetching}
             >
               {t("organizations.create")}
             </Button>
           </div>
 
-          <Row gutter={isMobile ? [16, 16] : [24, 24]}>
-            {organizations.map((org) => (
+          {fetching || checkingRedirect ? (
+            <Row gutter={isMobile ? [16, 16] : [24, 24]}>
+              {[1, 2, 3].map((i) => (
+                <Col xs={24} sm={12} lg={8} key={i}>
+                  <Card>
+                    <Space orientation="vertical" size="middle" className="w-full">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-gray-200 rounded-lg animate-pulse" />
+                        <div className="flex-1">
+                          <div className="h-5 bg-gray-200 rounded animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                    </Space>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <Row gutter={isMobile ? [16, 16] : [24, 24]}>
+              {organizations.map((org) => (
               <Col xs={24} sm={12} lg={8} key={org.id}>
                 <Card
                   hoverable={!org.isPendingApproval}
@@ -320,6 +329,7 @@ export default function OrganizationsPage() {
               </Col>
             ))}
           </Row>
+          )}
         </Space>
       </div>
     </div>

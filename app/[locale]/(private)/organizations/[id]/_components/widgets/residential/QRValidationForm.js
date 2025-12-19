@@ -226,7 +226,6 @@ export default function QRValidationForm({
               alt={t("qrCodes.validation.previewAlt")}
               fill
               className="object-contain"
-              unoptimized
             />
             <div
               className="absolute bottom-4 left-1/2 z-10"
