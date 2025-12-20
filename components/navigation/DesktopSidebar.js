@@ -1,23 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  RiRocketLine,
-  RiAddLine,
-} from "react-icons/ri";
+import { RiRocketLine, RiAddLine } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { getOrganizationMenuItems } from "@/utils/menu/organizationMenu";
 import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
-import {
-  Menu,
-  Space,
-  Typography,
-  Button,
-  Spin,
-} from "antd";
+import { Menu, Space, Typography, Button, Spin } from "antd";
 import { Sider } from "@/components/ui/Layout";
 
 export default function DesktopSidebar({
@@ -31,10 +22,7 @@ export default function DesktopSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
-  const {
-    organization,
-    loading: loadingOrg,
-  } = useCurrentOrganization();
+  const { organization, loading: loadingOrg } = useCurrentOrganization();
   const { isPending, loadingPath, startNavigation } = useNavigationLoading();
 
   // Get dynamic menu items based on organization type and role
@@ -104,7 +92,7 @@ export default function DesktopSidebar({
         borderRight: "1px solid var(--color-border)",
         boxShadow: "2px 0 8px rgba(0, 0, 0, 0.1)",
       }}
-      className="ant-layout-sider"
+      className="ant-layout-sider desktop-sidebar-only"
     >
       <div className="flex flex-col h-full">
         {/* Logo Section */}

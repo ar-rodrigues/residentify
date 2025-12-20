@@ -142,3 +142,10 @@ svg, path, circle, rect, line, polygon, ellipse {
 [data-theme="dark"] .ant-btn-primary svg {
   color: var(--color-primary) !important;
 }
+
+/* Hide desktop sidebar on mobile to prevent flicker during initial render */
+@media (max-width: 767px) {
+  .desktop-sidebar-only {
+    display: none !important;
+  }
+}

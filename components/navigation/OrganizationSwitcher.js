@@ -7,6 +7,7 @@ import { useOrganizations } from "@/hooks/useOrganizations";
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
 import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import {
   RiBuildingLine,
   RiAddLine,
@@ -28,6 +29,8 @@ export default function OrganizationSwitcher({ compact = false }) {
   const locale = useLocale();
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
+  const isLightMode = theme === "light";
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
   const {
     organization,
@@ -159,7 +162,7 @@ export default function OrganizationSwitcher({ compact = false }) {
               type="text"
               className="flex items-center gap-2 min-w-0"
               style={{
-                color: "var(--color-text-primary)",
+                color: isLightMode ? "var(--color-text-header)" : "var(--color-text-primary)",
                 height: "auto",
                 padding: "4px 8px",
                 maxWidth: "100%",
@@ -168,12 +171,12 @@ export default function OrganizationSwitcher({ compact = false }) {
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                 style={{
-                  backgroundColor: "var(--color-primary-bg)",
+                  backgroundColor: isLightMode ? "rgba(37, 99, 235, 0.25)" : "var(--color-primary-bg)",
                 }}
               >
                 <RiBuildingLine
                   className="text-lg"
-                  style={{ color: "var(--color-primary)" }}
+                  style={{ color: isLightMode ? "#60a5fa" : "var(--color-primary)" }}
                 />
               </div>
               <div className="flex flex-col items-start min-w-0" style={{ gap: "2px" }}>
@@ -184,7 +187,7 @@ export default function OrganizationSwitcher({ compact = false }) {
                     className="text-sm min-w-0"
                     style={{
                       margin: 0,
-                      color: "var(--color-text-primary)",
+                      color: isLightMode ? "var(--color-text-header)" : "var(--color-text-primary)",
                       whiteSpace: "nowrap",
                       maxWidth: "calc(100vw - 200px)", // Account for icon, arrow, and right side buttons
                       lineHeight: "1.2",
@@ -202,6 +205,11 @@ export default function OrganizationSwitcher({ compact = false }) {
                       padding: "2px 6px",
                       lineHeight: "1.2",
                       height: "auto",
+                      ...(isLightMode && {
+                        backgroundColor: roleConfig.color === "red" ? "rgba(239, 68, 68, 0.3)" : roleConfig.color === "orange" ? "rgba(249, 115, 22, 0.3)" : "rgba(37, 99, 235, 0.3)",
+                        borderColor: roleConfig.color === "red" ? "rgba(239, 68, 68, 0.5)" : roleConfig.color === "orange" ? "rgba(249, 115, 22, 0.5)" : "rgba(37, 99, 235, 0.5)",
+                        color: roleConfig.color === "red" ? "#fca5a5" : roleConfig.color === "orange" ? "#fdba74" : "#93c5fd",
+                      }),
                     }}
                   >
                     {roleLabel}
@@ -210,7 +218,7 @@ export default function OrganizationSwitcher({ compact = false }) {
               </div>
               <RiArrowDownSLine
                 className="text-sm flex-shrink-0"
-                style={{ color: "var(--color-text-secondary)" }}
+                style={{ color: isLightMode ? "rgba(255, 255, 255, 0.8)" : "var(--color-text-secondary)" }}
               />
             </Button>
           </Dropdown>
@@ -227,12 +235,12 @@ export default function OrganizationSwitcher({ compact = false }) {
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{
-              backgroundColor: "var(--color-primary-bg)",
+              backgroundColor: isLightMode ? "rgba(37, 99, 235, 0.25)" : "var(--color-primary-bg)",
             }}
           >
             <RiBuildingLine
               className="text-xl"
-              style={{ color: "var(--color-primary)" }}
+              style={{ color: isLightMode ? "#60a5fa" : "var(--color-primary)" }}
             />
           </div>
           <Spin size="small" />
@@ -242,12 +250,12 @@ export default function OrganizationSwitcher({ compact = false }) {
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{
-              backgroundColor: "var(--color-primary-bg)",
+              backgroundColor: isLightMode ? "rgba(37, 99, 235, 0.25)" : "var(--color-primary-bg)",
             }}
           >
             <RiBuildingLine
               className="text-xl"
-              style={{ color: "var(--color-primary)" }}
+              style={{ color: isLightMode ? "#60a5fa" : "var(--color-primary)" }}
             />
           </div>
           <Dropdown
@@ -259,7 +267,7 @@ export default function OrganizationSwitcher({ compact = false }) {
               type="text"
               className="flex items-center gap-2 min-w-0 px-2"
               style={{
-                color: "var(--color-text-primary)",
+                color: isLightMode ? "var(--color-text-header)" : "var(--color-text-primary)",
                 height: "auto",
                 padding: "4px 8px",
                 maxWidth: "100%",
@@ -273,7 +281,7 @@ export default function OrganizationSwitcher({ compact = false }) {
                     className="text-base min-w-0"
                     style={{
                       margin: 0,
-                      color: "var(--color-text-primary)",
+                      color: isLightMode ? "var(--color-text-header)" : "var(--color-text-primary)",
                       whiteSpace: "nowrap",
                       lineHeight: "1.2",
                     }}
@@ -290,6 +298,11 @@ export default function OrganizationSwitcher({ compact = false }) {
                       padding: "2px 6px",
                       lineHeight: "1.2",
                       height: "auto",
+                      ...(isLightMode && {
+                        backgroundColor: roleConfig.color === "red" ? "rgba(239, 68, 68, 0.3)" : roleConfig.color === "orange" ? "rgba(249, 115, 22, 0.3)" : "rgba(37, 99, 235, 0.3)",
+                        borderColor: roleConfig.color === "red" ? "rgba(239, 68, 68, 0.5)" : roleConfig.color === "orange" ? "rgba(249, 115, 22, 0.5)" : "rgba(37, 99, 235, 0.5)",
+                        color: roleConfig.color === "red" ? "#fca5a5" : roleConfig.color === "orange" ? "#fdba74" : "#93c5fd",
+                      }),
                     }}
                   >
                     {roleLabel}
@@ -298,7 +311,7 @@ export default function OrganizationSwitcher({ compact = false }) {
               </div>
               <RiArrowDownSLine
                 className="text-sm flex-shrink-0"
-                style={{ color: "var(--color-text-secondary)" }}
+                style={{ color: isLightMode ? "rgba(255, 255, 255, 0.8)" : "var(--color-text-secondary)" }}
               />
             </Button>
           </Dropdown>
