@@ -15,6 +15,7 @@ import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvide
 import { OrganizationProvider } from "@/components/providers/OrganizationProvider";
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
+import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
@@ -378,7 +379,7 @@ export default function PrivateLayout({ children }) {
             }}
           >
             <Header
-              className="shadow-sm border-b flex items-center justify-end"
+              className="shadow-sm border-b flex items-center justify-between"
               style={{
                 backgroundColor: "var(--color-bg-header)",
                 color: "var(--color-text-header)",
@@ -388,62 +389,76 @@ export default function PrivateLayout({ children }) {
                 flexShrink: 0,
               }}
             >
-              <Space size="middle">
-                {/* Theme toggle */}
-                <ThemeToggle />
-                {/* Profile icon dropdown */}
-                <Dropdown
-                  open={dropdownOpen}
-                  menu={{
-                    items: profileMenuItems,
-                    onClick: (info) => {
-                      // For language item, the onClick is handled in the item definition
-                      // For other items, close the dropdown
-                      if (
-                        info.key !== "language" &&
-                        !info.key.startsWith("lang-")
-                      ) {
-                        setDropdownOpen(false);
-                      }
-                    },
-                  }}
-                  placement="bottomRight"
-                  trigger={["click"]}
-                  onOpenChange={(open) => {
-                    // Prevent dropdown from closing if we're toggling language
-                    if (!open && isTogglingLanguageRef.current) {
-                      setDropdownOpen(true);
-                      return;
-                    }
-                    setDropdownOpen(open);
-                    if (!open) {
-                      setLanguageExpanded(false);
-                    }
-                  }}
-                  popupRender={(menu) => (
-                    <div
-                      style={{
-                        minWidth: "200px",
-                        maxWidth: "200px",
-                        overflow: "visible",
-                      }}
-                    >
-                      {menu}
-                    </div>
-                  )}
-                >
-                  <Avatar
-                    icon={<RiUserLine style={{ color: "var(--color-primary)" }} />}
-                    style={{
-                      backgroundColor: "var(--color-primary-bg)",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
+              {/* Organization Switcher - Left side - always reserve space */}
+              <div 
+                className="flex items-center min-w-0 flex-1" 
+                style={{ 
+                  height: "100%",
+                  maxWidth: isMobile ? "calc(100% - 120px)" : "none",
+                }}
+              >
+                {hasOrganizations && <OrganizationSwitcher compact={isMobile} />}
+              </div>
+              
+              {/* Right side actions - always on right */}
+              <div style={{ flexShrink: 0 }}>
+                <Space size="middle">
+                  {/* Theme toggle */}
+                  <ThemeToggle />
+                  {/* Profile icon dropdown */}
+                  <Dropdown
+                    open={dropdownOpen}
+                    menu={{
+                      items: profileMenuItems,
+                      onClick: (info) => {
+                        // For language item, the onClick is handled in the item definition
+                        // For other items, close the dropdown
+                        if (
+                          info.key !== "language" &&
+                          !info.key.startsWith("lang-")
+                        ) {
+                          setDropdownOpen(false);
+                        }
+                      },
                     }}
-                    className="hover:opacity-80 hover:scale-110 active:scale-95"
-                    size="default"
-                  />
-                </Dropdown>
-              </Space>
+                    placement="bottomRight"
+                    trigger={["click"]}
+                    onOpenChange={(open) => {
+                      // Prevent dropdown from closing if we're toggling language
+                      if (!open && isTogglingLanguageRef.current) {
+                        setDropdownOpen(true);
+                        return;
+                      }
+                      setDropdownOpen(open);
+                      if (!open) {
+                        setLanguageExpanded(false);
+                      }
+                    }}
+                    popupRender={(menu) => (
+                      <div
+                        style={{
+                          minWidth: "200px",
+                          maxWidth: "200px",
+                          overflow: "visible",
+                        }}
+                      >
+                        {menu}
+                      </div>
+                    )}
+                  >
+                    <Avatar
+                      icon={<RiUserLine style={{ color: "var(--color-primary)" }} />}
+                      style={{
+                        backgroundColor: "var(--color-primary-bg)",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      className="hover:opacity-80 hover:scale-110 active:scale-95"
+                      size="default"
+                    />
+                  </Dropdown>
+                </Space>
+              </div>
             </Header>
             <ContentWithOverlay
               isMobile={isMobile}

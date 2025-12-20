@@ -3,9 +3,7 @@
 import { useMemo } from "react";
 import {
   RiRocketLine,
-  RiBuildingLine,
   RiAddLine,
-  RiArrowDownSLine,
 } from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -19,9 +17,6 @@ import {
   Typography,
   Button,
   Spin,
-  Dropdown,
-  Badge,
-  Tooltip,
 } from "antd";
 import { Sider } from "@/components/ui/Layout";
 
@@ -38,88 +33,9 @@ export default function DesktopSidebar({
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
   const {
     organization,
-    organizationId,
     loading: loadingOrg,
   } = useCurrentOrganization();
   const { isPending, loadingPath, startNavigation } = useNavigationLoading();
-
-  // Build organization selector dropdown items
-  const organizationMenuItems = useMemo(() => {
-    const otherOrganizations = organizations.filter(
-      (org) => org.id !== organizationId
-    );
-
-    return [
-      ...otherOrganizations.map((org) => ({
-        key: org.id,
-        label: org.name,
-        onClick: async () => {
-          // Validate that the organization is still in the user's list
-          // This prevents navigation to organizations the user was removed from
-          const orgStillExists = organizations.some((o) => o.id === org.id);
-          if (!orgStillExists) {
-            // Organization was removed - refetch organizations list
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("organizations:refetch"));
-            }
-            return;
-          }
-
-          // Update main organization
-          try {
-            const response = await fetch("/api/profiles/main-organization", {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ organization_id: org.id }),
-            });
-
-            const result = await response.json();
-
-            // If update fails (e.g., user no longer has access), don't navigate
-            if (!response.ok || result.error) {
-              // Refetch organizations list in case it's stale
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent("organizations:refetch"));
-              }
-              return;
-            }
-          } catch (err) {
-            console.error("Error updating main organization:", err);
-            // Don't navigate if there's an error
-            return;
-          }
-          const targetPath = `/${locale}/organizations/${org.id}`;
-          startNavigation(targetPath, () => {
-            router.push(targetPath);
-          });
-        },
-      })),
-      ...(otherOrganizations.length > 0
-        ? [
-            {
-              type: "divider",
-            },
-          ]
-        : []),
-      {
-        key: "create",
-        label: (
-          <Space>
-            <RiAddLine />
-            <span>{t("organizations.header.createNew")}</span>
-          </Space>
-        ),
-        onClick: () => {
-          const path = `/${locale}/organizations/create`;
-          startNavigation(path, () => {
-            router.push(path);
-          });
-        },
-      },
-    ];
-  }, [organizations, organizationId, router, t, startNavigation, locale]);
 
   // Get dynamic menu items based on organization type and role
   // Always show organization menu items (from current/main organization)
@@ -139,17 +55,6 @@ export default function DesktopSidebar({
       locale
     );
   }, [organization, t, locale]);
-
-  // Get role label for badge
-  const roleLabel = useMemo(() => {
-    if (!organization?.userRole) return null;
-    const roleMap = {
-      admin: t("roles.admin"),
-      resident: t("roles.resident"),
-      security: t("roles.security"),
-    };
-    return roleMap[organization.userRole] || organization.userRole;
-  }, [organization, t]);
 
   // Handle menu item click with loading state
   const handleMenuClick = ({ key }) => {
@@ -234,116 +139,6 @@ export default function DesktopSidebar({
             </Typography.Text>
           </Space>
         </div>
-
-        {/* Organization Selector */}
-        {organization && (
-          <div
-            className="p-4 border-b"
-            style={{
-              borderColor: "var(--color-border)",
-            }}
-          >
-            {collapsed ? (
-              <div className="flex justify-center">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{
-                    backgroundColor: "var(--color-primary-bg)",
-                  }}
-                >
-                  <RiBuildingLine
-                    className="text-xl"
-                    style={{ color: "var(--color-primary)" }}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start gap-3">
-                <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{
-                    backgroundColor: "var(--color-primary-bg)",
-                  }}
-                >
-                  <RiBuildingLine
-                    className="text-2xl"
-                    style={{ color: "var(--color-primary)" }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <Tooltip title={organization.name} placement="top">
-                      <Typography.Text
-                        strong
-                        className="text-base"
-                        style={{
-                          margin: 0,
-                          lineHeight: "1.4",
-                          flex: 1,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          wordBreak: "break-word",
-                          hyphens: "auto",
-                        }}
-                      >
-                        {organization.name}
-                      </Typography.Text>
-                    </Tooltip>
-                    {fetchingOrgs ? (
-                      <Spin
-                        size="small"
-                        style={{ flexShrink: 0, marginTop: "2px" }}
-                      />
-                    ) : (
-                      <Dropdown
-                        menu={{ items: organizationMenuItems }}
-                        placement="bottomRight"
-                        trigger={["click"]}
-                      >
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<RiArrowDownSLine />}
-                          style={{
-                            padding: "4px",
-                            height: "auto",
-                            minWidth: "auto",
-                            flexShrink: 0,
-                            color: "var(--color-text-secondary)",
-                            marginTop: "2px",
-                          }}
-                          aria-label={t(
-                            "organizations.header.changeOrganization"
-                          )}
-                        />
-                      </Dropdown>
-                    )}
-                  </div>
-                  {roleLabel && (
-                    <div>
-                      <span
-                        style={{
-                          backgroundColor: "var(--color-primary-bg)",
-                          color: "var(--color-primary)",
-                          border: "1px solid var(--color-border)",
-                          padding: "2px 8px",
-                          borderRadius: "12px",
-                          fontSize: "11px",
-                          fontWeight: 500,
-                          display: "inline-block",
-                        }}
-                      >
-                        {roleLabel}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Menu Items */}
         <div className="flex-1 overflow-auto">
