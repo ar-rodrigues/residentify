@@ -76,6 +76,7 @@ export default function DesktopSidebar({
       onMouseLeave={onMouseLeave}
       style={{
         overflow: "auto",
+        overflowX: "hidden",
         height: "100vh",
         position: "fixed",
         left: 0,
@@ -129,7 +130,7 @@ export default function DesktopSidebar({
         </div>
 
         {/* Menu Items */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto overflow-x-hidden">
           {loadingOrg ? (
             <div className="flex justify-center py-8">
               <Spin />

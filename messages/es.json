@@ -184,7 +184,8 @@
         "nameMaxLength": "El nombre no puede tener más de 100 caracteres",
         "nameWhitespace": "El nombre no puede estar vacío",
         "typeRequired": "Por favor selecciona un tipo de organización",
-        "noTypesAvailable": "No hay tipos disponibles"
+        "noTypesAvailable": "No hay tipos disponibles",
+        "unexpectedError": "Error inesperado al crear la organización."
       }
     },
     "notFound": {
@@ -236,7 +237,8 @@
         "cannotDetermineType": "No se pudo determinar el tipo de organización.",
         "noRoleAssigned": "No tienes un rol asignado en esta organización.",
         "unknownType": "Tipo de organización no reconocido: {type}",
-        "unknownResidentialRole": "Rol no reconocido para organizaciones residenciales: {role}"
+        "unknownResidentialRole": "Rol no reconocido para organizaciones residenciales: {role}",
+        "cannotDetermineDefaultRoute": "No se pudo determinar la ruta por defecto para tu rol."
       }
     },
     "types": {
@@ -377,7 +379,8 @@
         "nameRequired": "Por favor ingresa el nombre de la organización",
         "nameMinLength": "El nombre debe tener al menos 2 caracteres",
         "nameMaxLength": "El nombre no puede tener más de 100 caracteres",
-        "nameWhitespace": "El nombre no puede estar vacío"
+        "nameWhitespace": "El nombre no puede estar vacío",
+        "unexpectedError": "Error inesperado al actualizar la organización."
       }
     },
     "generalInviteLinks": {

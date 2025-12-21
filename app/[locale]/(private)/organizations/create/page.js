@@ -70,7 +70,7 @@ export default function CreateOrganizationPage() {
       }
     } catch (error) {
       setErrorMessage(
-        error.message || "Error inesperado al crear la organización."
+        error.message || t("organizations.create.errors.unexpectedError")
       );
       setIsSubmitting(false);
     }

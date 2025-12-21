@@ -184,7 +184,8 @@
         "nameMaxLength": "O nome não pode ter mais de 100 caracteres",
         "nameWhitespace": "O nome não pode estar vazio",
         "typeRequired": "Por favor, selecione um tipo de organização",
-        "noTypesAvailable": "Não há tipos disponíveis"
+        "noTypesAvailable": "Não há tipos disponíveis",
+        "unexpectedError": "Erro inesperado ao criar a organização."
       }
     },
     "notFound": {
@@ -236,7 +237,8 @@
         "cannotDetermineType": "Não foi possível determinar o tipo de organização.",
         "noRoleAssigned": "Você não tem uma função atribuída nesta organização.",
         "unknownType": "Tipo de organização não reconhecido: {type}",
-        "unknownResidentialRole": "Função não reconhecida para organizações residenciais: {role}"
+        "unknownResidentialRole": "Função não reconhecida para organizações residenciais: {role}",
+        "cannotDetermineDefaultRoute": "Não foi possível determinar a rota padrão para sua função."
       }
     },
     "types": {
@@ -377,7 +379,8 @@
         "nameRequired": "Por favor, insira o nome da organização",
         "nameMinLength": "O nome deve ter pelo menos 2 caracteres",
         "nameMaxLength": "O nome não pode ter mais de 100 caracteres",
-        "nameWhitespace": "O nome não pode estar vazio"
+        "nameWhitespace": "O nome não pode estar vazio",
+        "unexpectedError": "Erro inesperado ao atualizar a organização."
       }
     },
     "generalInviteLinks": {

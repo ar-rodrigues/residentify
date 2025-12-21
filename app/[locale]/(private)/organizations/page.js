@@ -238,7 +238,7 @@ export default function OrganizationsPage() {
               className="w-full sm:w-auto"
               loading={fetching}
             >
-              {t("organizations.create")}
+              {t("organizations.create.button")}
             </Button>
           </div>
 
@@ -247,7 +247,11 @@ export default function OrganizationsPage() {
               {[1, 2, 3].map((i) => (
                 <Col xs={24} sm={12} lg={8} key={i}>
                   <Card>
-                    <Space orientation="vertical" size="middle" className="w-full">
+                    <Space
+                      orientation="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 bg-gray-200 rounded-lg animate-pulse" />
                         <div className="flex-1">
@@ -263,72 +267,72 @@ export default function OrganizationsPage() {
           ) : (
             <Row gutter={isMobile ? [16, 16] : [24, 24]}>
               {organizations.map((org) => (
-              <Col xs={24} sm={12} lg={8} key={org.id}>
-                <Card
-                  hoverable={!org.isPendingApproval}
-                  className={`h-full transition-all ${
-                    org.isPendingApproval
-                      ? "opacity-75 cursor-not-allowed"
-                      : "cursor-pointer hover:shadow-lg"
-                  }`}
-                  onClick={() => {
-                    if (!org.isPendingApproval) {
-                      handleOrganizationClick(org.id);
-                    }
-                  }}
-                  styles={{ body: { padding: "16px" } }}
-                >
-                  <Space
-                    orientation="vertical"
-                    size="middle"
-                    className="w-full"
+                <Col xs={24} sm={12} lg={8} key={org.id}>
+                  <Card
+                    hoverable={!org.isPendingApproval}
+                    className={`h-full transition-all ${
+                      org.isPendingApproval
+                        ? "opacity-75 cursor-not-allowed"
+                        : "cursor-pointer hover:shadow-lg"
+                    }`}
+                    onClick={() => {
+                      if (!org.isPendingApproval) {
+                        handleOrganizationClick(org.id);
+                      }
+                    }}
+                    styles={{ body: { padding: "16px" } }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex-shrink-0">
-                        <RiBuildingLine className="text-xl sm:text-2xl text-blue-600" />
+                    <Space
+                      orientation="vertical"
+                      size="middle"
+                      className="w-full"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex-shrink-0">
+                          <RiBuildingLine className="text-xl sm:text-2xl text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Title
+                            level={4}
+                            className="!mb-0 truncate text-base sm:text-lg"
+                          >
+                            {org.name}
+                          </Title>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <Title
-                          level={4}
-                          className="!mb-0 truncate text-base sm:text-lg"
-                        >
-                          {org.name}
-                        </Title>
-                      </div>
-                    </div>
 
-                    {org.isPendingApproval && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
-                        <Text className="text-xs sm:text-sm text-yellow-800">
-                          {t("organizations.card.pendingApproval")}
+                      {org.isPendingApproval && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2">
+                          <Text className="text-xs sm:text-sm text-yellow-800">
+                            {t("organizations.card.pendingApproval")}
+                          </Text>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <RiCalendarLine className="text-sm sm:text-base" />
+                        <Text type="secondary" className="text-xs sm:text-sm">
+                          {t("organizations.card.created")}{" "}
+                          {formatDateDDMMYYYY(org.created_at)}
                         </Text>
                       </div>
-                    )}
 
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <RiCalendarLine className="text-sm sm:text-base" />
-                      <Text type="secondary" className="text-xs sm:text-sm">
-                        {t("organizations.card.created")}{" "}
-                        {formatDateDDMMYYYY(org.created_at)}
-                      </Text>
-                    </div>
-
-                    {!org.isPendingApproval && (
-                      <div className="flex items-center justify-end pt-2 border-t min-h-[44px]">
-                        <Text
-                          type="secondary"
-                          className="text-xs sm:text-sm flex items-center gap-1"
-                        >
-                          {t("organizations.card.viewDetails")}
-                          <RiArrowRightLine />
-                        </Text>
-                      </div>
-                    )}
-                  </Space>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                      {!org.isPendingApproval && (
+                        <div className="flex items-center justify-end pt-2 border-t min-h-[44px]">
+                          <Text
+                            type="secondary"
+                            className="text-xs sm:text-sm flex items-center gap-1"
+                          >
+                            {t("organizations.card.viewDetails")}
+                            <RiArrowRightLine />
+                          </Text>
+                        </div>
+                      )}
+                    </Space>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
           )}
         </Space>
       </div>

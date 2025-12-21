@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
 import OrganizationNotFound from "./_components/OrganizationNotFound";
@@ -7,6 +8,7 @@ import { getDefaultRoute } from "@/utils/menu/organizationMenu";
 export default async function OrganizationDetailPage({ params }) {
   const supabase = await createClient();
   const { id, locale } = await params;
+  const t = await getTranslations({ locale });
 
   // Authenticate user
   const {
@@ -108,6 +110,8 @@ export default async function OrganizationDetailPage({ params }) {
 
   // Fallback: if no default route, show not found
   return (
-    <OrganizationNotFound message="No se pudo determinar la ruta por defecto para tu rol." />
+    <OrganizationNotFound
+      message={t("organizations.typeRouter.errors.cannotDetermineDefaultRoute")}
+    />
   );
 }

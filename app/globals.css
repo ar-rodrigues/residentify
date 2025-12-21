@@ -149,3 +149,22 @@ svg, path, circle, rect, line, polygon, ellipse {
     display: none !important;
   }
 }
+
+/* Hide scrollbars globally while maintaining scroll functionality */
+* {
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  /* Chrome, Safari, Edge */
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* Ensure scrolling still works */
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+}

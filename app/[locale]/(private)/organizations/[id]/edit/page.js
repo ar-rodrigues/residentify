@@ -117,7 +117,7 @@ export default function EditOrganizationPage() {
       }
     } catch (error) {
       setErrorMessage(
-        error.message || "Error inesperado al actualizar la organización."
+        error.message || t("organizations.edit.errors.unexpectedError")
       );
       setIsSubmitting(false);
     }

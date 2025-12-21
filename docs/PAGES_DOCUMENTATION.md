@@ -350,3 +350,4 @@ Todas las páginas soportan múltiples idiomas (español y portugués) mediante 
 **Última actualización:** Diciembre 2024  
 **Versión del documento:** 1.0
 
+
