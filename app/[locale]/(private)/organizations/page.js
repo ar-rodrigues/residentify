@@ -26,6 +26,10 @@ export default function OrganizationsPage() {
   const [mainOrgFetchCompleted, setMainOrgFetchCompleted] = useState(false);
   const isMobile = useIsMobile();
 
+  // Check if translations are loaded (translation key should not equal the key itself)
+  const createButtonText = t("organizations.create.button");
+  const translationsReady = createButtonText !== "organizations.create.button";
+
   // Refetch organizations when page becomes visible (e.g., after redirect from invitation acceptance)
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -236,9 +240,9 @@ export default function OrganizationsPage() {
               onClick={handleCreateOrganization}
               size="large"
               className="w-full sm:w-auto"
-              loading={fetching}
+              loading={fetching || !translationsReady}
             >
-              {t("organizations.create.button")}
+              {translationsReady ? createButtonText : ""}
             </Button>
           </div>
 
