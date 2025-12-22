@@ -12,17 +12,21 @@ import {
   Badge,
   App,
   Tag,
+  Drawer,
 } from "antd";
 import {
   RiSendPlaneLine,
   RiUserLine,
   RiSearchLine,
   RiArrowLeftLine,
+  RiUserSettingsLine,
 } from "react-icons/ri";
 import { useUser } from "@/hooks/useUser";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useOrganizationAuth } from "@/hooks/useOrganizationAuth";
 import { createClient } from "@/utils/supabase/client";
 import { getRoleConfig } from "@/config/roles";
+import ChatPermissionsSettings from "@/app/[locale]/(private)/organizations/[id]/_components/widgets/residential/ChatPermissionsSettings";
 
 const { TextArea } = Input;
 
@@ -31,6 +35,7 @@ export default function ChatWidget({ organizationId }) {
   const { message } = App.useApp();
   const { data: currentUser } = useUser();
   const isMobile = useIsMobile();
+  const { isAdmin } = useOrganizationAuth();
   const supabase = useMemo(() => createClient(), []);
 
   const [conversations, setConversations] = useState([]);
@@ -45,6 +50,7 @@ export default function ChatWidget({ organizationId }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [temporaryConversation, setTemporaryConversation] = useState(null);
   const [showConversationsList, setShowConversationsList] = useState(!isMobile);
+  const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
 
   const messagesEndRef = useRef(null);
   const channelRef = useRef(null);
@@ -662,13 +668,24 @@ export default function ChatWidget({ organizationId }) {
         >
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold m-0">Conversaciones</h3>
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => setShowMembers(!showMembers)}
-            >
-              {showMembers ? t("common.cancel") : t("chat.newConversation")}
-            </Button>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RiUserSettingsLine className="text-lg" />}
+                  onClick={() => setShowSettingsDrawer(true)}
+                  title={t("chat.permissions.title")}
+                />
+              )}
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => setShowMembers(!showMembers)}
+              >
+                {showMembers ? t("common.cancel") : t("chat.newConversation")}
+              </Button>
+            </div>
           </div>
           {!showMembers && (
             <Input
@@ -894,33 +911,43 @@ export default function ChatWidget({ organizationId }) {
               {(() => {
                 const otherUser = getOtherUser(selectedConversation);
                 return (
-                  <div className="flex items-center gap-3">
-                    {isMobile && (
-                      <Button
-                        type="text"
-                        icon={<RiArrowLeftLine />}
-                        onClick={() => {
-                          setShowConversationsList(true);
-                          setSelectedConversation(null);
-                        }}
-                        className="mr-2"
-                      />
-                    )}
-                    <Avatar
-                      icon={<RiUserLine />}
-                      src={otherUser.avatar}
-                      className="bg-gray-300"
-                    >
-                      {otherUser.name?.[0]?.toUpperCase() || "U"}
-                    </Avatar>
-                    <div>
-                      <div
-                        className="font-medium"
-                        style={{ color: "var(--color-text-primary)" }}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {isMobile && (
+                        <Button
+                          type="text"
+                          icon={<RiArrowLeftLine />}
+                          onClick={() => {
+                            setShowConversationsList(true);
+                            setSelectedConversation(null);
+                          }}
+                          className="mr-2"
+                        />
+                      )}
+                      <Avatar
+                        icon={<RiUserLine />}
+                        src={otherUser.avatar}
+                        className="bg-gray-300"
                       >
-                        {otherUser.name}
+                        {otherUser.name?.[0]?.toUpperCase() || "U"}
+                      </Avatar>
+                      <div>
+                        <div
+                          className="font-medium"
+                          style={{ color: "var(--color-text-primary)" }}
+                        >
+                          {otherUser.name}
+                        </div>
                       </div>
                     </div>
+                    {isAdmin && (
+                      <Button
+                        type="text"
+                        icon={<RiUserSettingsLine className="text-lg" />}
+                        onClick={() => setShowSettingsDrawer(true)}
+                        title={t("chat.permissions.title")}
+                      />
+                    )}
                   </div>
                 );
               })()}
@@ -1039,6 +1066,18 @@ export default function ChatWidget({ organizationId }) {
           </div>
         )}
       </div>
+
+      {/* Settings Drawer */}
+      <Drawer
+        title={t("chat.permissions.title")}
+        placement="right"
+        onClose={() => setShowSettingsDrawer(false)}
+        open={showSettingsDrawer}
+        size={isMobile ? "large" : 600}
+        destroyOnClose={false}
+      >
+        <ChatPermissionsSettings organizationId={organizationId} />
+      </Drawer>
     </div>
   );
 }

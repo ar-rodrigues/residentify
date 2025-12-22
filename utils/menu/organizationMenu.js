@@ -31,12 +31,6 @@ const RESIDENTIAL_MENU_ITEMS = {
       roles: ["admin"],
     },
     {
-      key: "chatPermissions",
-      icon: "RiSettingsLine",
-      path: "/chat-permissions",
-      roles: ["admin"],
-    },
-    {
       key: "chat",
       icon: "RiChat4Line",
       path: "/chat",
