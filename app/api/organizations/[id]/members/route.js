@@ -137,6 +137,49 @@ export async function GET(request, { params }) {
           inviterName = inviterNameData;
         }
 
+        // Get email from accepted invitation for this user
+        let memberEmail = null;
+        
+        // If this is the current user, use their email from auth session (most reliable)
+        if (member.user_id === user.id && user.email) {
+          memberEmail = user.email;
+        } else {
+          // First, try to find invitation by user_id (most reliable)
+          let { data: memberInvitation } = await supabase
+            .from("organization_invitations")
+            .select("email")
+            .eq("organization_id", id)
+            .eq("user_id", member.user_id)
+            .eq("status", "accepted")
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          // If not found by user_id, try to find by matching join time (fallback for older invitations)
+          if (!memberInvitation && member.joined_at) {
+            const memberJoinTime = new Date(member.joined_at).getTime();
+            const timeWindow = 5 * 60 * 1000; // 5 minutes window
+            
+            const { data: timeMatchedInvitations } = await supabase
+              .from("organization_invitations")
+              .select("email, updated_at")
+              .eq("organization_id", id)
+              .eq("status", "accepted")
+              .gte("updated_at", new Date(memberJoinTime - timeWindow).toISOString())
+              .lte("updated_at", new Date(memberJoinTime + timeWindow).toISOString())
+              .order("updated_at", { ascending: false })
+              .limit(1);
+
+            if (timeMatchedInvitations && timeMatchedInvitations.length > 0) {
+              memberInvitation = timeMatchedInvitations[0];
+            }
+          }
+
+          if (memberInvitation && memberInvitation.email) {
+            memberEmail = memberInvitation.email;
+          }
+        }
+
         // Check if member joined via general invite link
         // We need to check if there's an accepted invitation for this user with general_invite_link_id
         // Since we don't have direct email access, we'll check invitations by user_id if possible
@@ -172,7 +215,7 @@ export async function GET(request, { params }) {
           id: member.id,
           user_id: member.user_id,
           name: userName || `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || "Usuario desconocido",
-          email: null, // Email not available from profiles, would need auth.users access
+          email: memberEmail,
           role: {
             id: member.organization_roles.id,
             name: member.organization_roles.name,

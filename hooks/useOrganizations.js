@@ -3,6 +3,9 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
 
+const STORAGE_KEY_ORGS = "orgs_list_cache";
+const CACHE_EXPIRY_ORGS = 2 * 60 * 1000; // 2 minutes
+
 /**
  * Custom hook for organization operations
  * @returns {{ data: Object | null, loading: boolean, error: Error | null, organizations: Array, createOrganization: (name: string) => Promise<{error: boolean, message: string, data?: Object}>, refetch: () => Promise<void> }}
@@ -15,9 +18,56 @@ export function useOrganizations() {
   const [error, setError] = useState(null);
   const supabase = useMemo(() => createClient(), []);
   const channelRef = useRef(null);
+  const cacheLoadedRef = useRef(false);
 
-  const fetchOrganizations = useCallback(async () => {
+  // Save to localStorage cache
+  const saveToCache = useCallback((orgsData) => {
     try {
+      localStorage.setItem(
+        STORAGE_KEY_ORGS,
+        JSON.stringify({
+          data: orgsData,
+          timestamp: Date.now(),
+        })
+      );
+    } catch (err) {
+      // Silently handle cache save errors
+    }
+  }, []);
+
+  // Load from localStorage cache
+  const loadFromCache = useCallback(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY_ORGS);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+
+        // Use cache if less than 2 minutes old
+        if (age < CACHE_EXPIRY_ORGS && data && Array.isArray(data)) {
+          return data;
+        }
+      }
+    } catch (err) {
+      // Silently handle cache parsing errors
+    }
+    return null;
+  }, []);
+
+  const fetchOrganizations = useCallback(async (useCache = true) => {
+    try {
+      // Load from cache first if available and not explicitly bypassing cache
+      if (useCache && !cacheLoadedRef.current) {
+        const cachedOrgs = loadFromCache();
+        if (cachedOrgs && cachedOrgs.length > 0) {
+          setOrganizations(cachedOrgs);
+          setFetching(false);
+          cacheLoadedRef.current = true;
+          // Continue to fetch fresh data in background
+        }
+      }
+
+      // Always fetch fresh data (either immediately or in background)
       setFetching(true);
       setError(null);
 
@@ -28,25 +78,50 @@ export function useOrganizations() {
 
       if (userError || !user) {
         setOrganizations([]);
+        saveToCache([]);
         return;
       }
 
-      // Fetch organizations where user is a member
-      // First get the organization IDs from organization_members
+      // Parallelize all independent queries
+      const [
+        memberDataResult,
+        pendingInvitationsByIdResult,
+        emailInvitationsResult,
+      ] = await Promise.all([
+        // Fetch organization member IDs
+        supabase
+          .from("organization_members")
+          .select("organization_id")
+          .eq("user_id", user.id),
+        // Fetch invitations by user_id (parallel)
+        user.id
+          ? supabase
+              .from("organization_invitations")
+              .select("organization_id")
+              .eq("user_id", user.id)
+              .in("status", ["pending_approval", "pending"])
+          : Promise.resolve({ data: [], error: null }),
+        // Fetch invitations by email (parallel, if user has email)
+        user.email
+          ? supabase
+              .from("organization_invitations")
+              .select("organization_id")
+              .eq("email", user.email.toLowerCase())
+              .in("status", ["pending_approval", "pending"])
+              .is("user_id", null)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      // Process member organizations
       let memberOrgs = [];
-      const { data: memberData, error: memberError } = await supabase
-        .from("organization_members")
-        .select("organization_id")
-        .eq("user_id", user.id);
+      const { data: memberData, error: memberError } = memberDataResult;
 
       if (memberError) {
         console.error("Error fetching member organization IDs:", memberError);
-        memberOrgs = [];
       } else if (memberData && memberData.length > 0) {
-        // Extract organization IDs
         const orgIds = memberData.map((m) => m.organization_id);
 
-        // Now fetch organizations separately (this uses the "Users can view organizations they belong to" policy)
+        // Fetch organizations for members
         const { data: orgsData, error: orgsError } = await supabase
           .from("organizations")
           .select("id, name, created_at")
@@ -55,81 +130,57 @@ export function useOrganizations() {
 
         if (orgsError) {
           console.error("Error fetching organizations:", orgsError);
-          memberOrgs = [];
         } else {
           memberOrgs = orgsData || [];
         }
       }
 
-      // Fetch organizations where user has pending approval invitations
-      // Query by user_id OR email (for cases where user_id might be NULL)
+      // Process pending invitations
       let pendingOrgs = [];
+      const { data: pendingInvitationsById, error: pendingErrorById } =
+        pendingInvitationsByIdResult;
+      const { data: emailInvitations, error: pendingErrorByEmail } =
+        emailInvitationsResult;
 
-      if (user.id) {
-        // First, fetch invitations by user_id (for general invite links where user_id is set)
-        const { data: pendingInvitationsById, error: pendingErrorById } =
-          await supabase
-            .from("organization_invitations")
-            .select("organization_id")
-            .eq("user_id", user.id)
-            .in("status", ["pending_approval", "pending"]);
+      if (pendingErrorById) {
+        console.error(
+          "Error fetching pending invitations by user_id:",
+          pendingErrorById
+        );
+      }
 
-        if (pendingErrorById) {
-          console.error(
-            "Error fetching pending invitations by user_id:",
-            pendingErrorById
-          );
-        }
+      if (pendingErrorByEmail) {
+        console.warn(
+          "Error fetching pending invitations by email:",
+          pendingErrorByEmail
+        );
+      }
 
-        // Also fetch by email if user has email (for admin-created invitations where user_id is NULL)
-        let pendingInvitationsByEmail = [];
-        if (user.email) {
-          const { data: emailInvitations, error: pendingErrorByEmail } =
-            await supabase
-              .from("organization_invitations")
-              .select("organization_id")
-              .eq("email", user.email.toLowerCase())
-              .in("status", ["pending_approval", "pending"])
-              .is("user_id", null);
+      // Combine both invitation results and extract unique organization IDs
+      const allPendingInvitations = [
+        ...(pendingInvitationsById || []),
+        ...(emailInvitations || []),
+      ];
 
-          if (pendingErrorByEmail) {
-            console.warn(
-              "Error fetching pending invitations by email:",
-              pendingErrorByEmail
-            );
-          } else if (emailInvitations) {
-            pendingInvitationsByEmail = emailInvitations;
-          }
-        }
-
-        // Combine both invitation results and extract unique organization IDs
-        const allPendingInvitations = [
-          ...(pendingInvitationsById || []),
-          ...pendingInvitationsByEmail,
+      if (allPendingInvitations.length > 0) {
+        const orgIds = [
+          ...new Set(allPendingInvitations.map((inv) => inv.organization_id)),
         ];
 
-        if (allPendingInvitations.length > 0) {
-          const orgIds = [
-            ...new Set(allPendingInvitations.map((inv) => inv.organization_id)),
-          ];
+        // Fetch organizations for pending invitations
+        const { data: orgsData, error: orgsError } = await supabase
+          .from("organizations")
+          .select("id, name, created_at")
+          .in("id", orgIds);
 
-          // Now fetch organizations separately using the organization IDs
-          // This uses the "Users can view organizations with pending invitations" policy
-          const { data: orgsData, error: orgsError } = await supabase
-            .from("organizations")
-            .select("id, name, created_at")
-            .in("id", orgIds);
-
-          if (orgsError) {
-            console.error("Error fetching pending organizations:", orgsError);
-            pendingOrgs = [];
-          } else if (orgsData) {
-            // Mark all as pending approval
-            pendingOrgs = orgsData.map((org) => ({
-              ...org,
-              isPendingApproval: true,
-            }));
-          }
+        if (orgsError) {
+          console.error("Error fetching pending organizations:", orgsError);
+        } else if (orgsData) {
+          // Mark all as pending approval
+          pendingOrgs = orgsData.map((org) => ({
+            ...org,
+            isPendingApproval: true,
+          }));
         }
       }
 
@@ -144,23 +195,45 @@ export function useOrganizations() {
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
 
+      // Update state and cache
       setOrganizations(uniqueOrgs);
+      saveToCache(uniqueOrgs);
+      cacheLoadedRef.current = true;
     } catch (err) {
       setError(err);
       setOrganizations([]);
+      saveToCache([]);
     } finally {
       setFetching(false);
     }
-  }, [supabase]);
+  }, [supabase, loadFromCache, saveToCache]);
 
+  // Load from cache on mount, then fetch fresh data in background
   useEffect(() => {
-    fetchOrganizations();
-  }, [fetchOrganizations]);
+    const cachedOrgs = loadFromCache();
+    if (cachedOrgs && cachedOrgs.length > 0) {
+      setOrganizations(cachedOrgs);
+      setFetching(false);
+      cacheLoadedRef.current = true;
+      // Fetch fresh data in background
+      fetchOrganizations(false);
+    } else {
+      // No cache, fetch immediately
+      fetchOrganizations(false);
+    }
+  }, [fetchOrganizations, loadFromCache]);
 
   // Listen for events to refetch organizations (e.g., when a member is removed)
   useEffect(() => {
     const handleRefetch = () => {
-      fetchOrganizations();
+      // Clear cache on refetch
+      try {
+        localStorage.removeItem(STORAGE_KEY_ORGS);
+      } catch (err) {
+        // Silently handle cache clear errors
+      }
+      cacheLoadedRef.current = false;
+      fetchOrganizations(false);
     };
 
     if (typeof window !== "undefined") {
@@ -172,12 +245,15 @@ export function useOrganizations() {
   }, [fetchOrganizations]);
 
   // Set up real-time subscription to detect when user is removed from an organization
+  // Defer subscription setup by 1 second to avoid blocking initial render
   useEffect(() => {
     let mounted = true;
     let retryTimeout = null;
+    let subscriptionTimeout = null;
     let retryCount = 0;
     const MAX_RETRIES = 3;
     const RETRY_DELAYS = [1000, 2000, 5000]; // Exponential backoff in ms
+    const SUBSCRIPTION_DELAY = 1000; // 1 second delay
 
     const setupSubscription = async () => {
       try {
@@ -337,11 +413,20 @@ export function useOrganizations() {
       }
     };
 
-    setupSubscription();
+    // Delay subscription setup to avoid blocking initial render
+    subscriptionTimeout = setTimeout(() => {
+      if (mounted) {
+        setupSubscription();
+      }
+    }, SUBSCRIPTION_DELAY);
 
     // Cleanup function
     return () => {
       mounted = false;
+      if (subscriptionTimeout) {
+        clearTimeout(subscriptionTimeout);
+        subscriptionTimeout = null;
+      }
       if (retryTimeout) {
         clearTimeout(retryTimeout);
         retryTimeout = null;
@@ -403,8 +488,14 @@ export function useOrganizations() {
         }
 
         setData(result.data);
-        // Refresh organizations list after creating
-        await fetchOrganizations();
+        // Clear cache and refresh organizations list after creating
+        try {
+          localStorage.removeItem(STORAGE_KEY_ORGS);
+        } catch (err) {
+          // Silently handle cache clear errors
+        }
+        cacheLoadedRef.current = false;
+        await fetchOrganizations(false);
         return {
           error: false,
           message: result.message || "Organización creada exitosamente.",
@@ -524,8 +615,14 @@ export function useOrganizations() {
         }
 
         setData(result.data);
-        // Refresh organizations list after updating
-        await fetchOrganizations();
+        // Clear cache and refresh organizations list after updating
+        try {
+          localStorage.removeItem(STORAGE_KEY_ORGS);
+        } catch (err) {
+          // Silently handle cache clear errors
+        }
+        cacheLoadedRef.current = false;
+        await fetchOrganizations(false);
         return {
           error: false,
           message: result.message || "Organización actualizada exitosamente.",

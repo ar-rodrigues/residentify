@@ -13,11 +13,6 @@ const RESIDENTIAL_MENU_ITEMS = {
       roles: ["admin"],
     },
     {
-      key: "invitations",
-      path: "/invitations",
-      roles: ["admin"],
-    },
-    {
       key: "chatPermissions",
       path: "/chat-permissions",
       roles: ["admin"],

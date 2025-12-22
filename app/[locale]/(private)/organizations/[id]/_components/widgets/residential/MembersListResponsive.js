@@ -16,15 +16,19 @@ import {
   Divider,
   Dropdown,
   Button as AntButton,
+  Tooltip,
 } from "antd";
 import {
   RiUserLine,
   RiDeleteBinLine,
   RiMoreLine,
   RiEditLine,
+  RiLinksLine,
 } from "react-icons/ri";
 import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
 import { formatDateDDMMYYYY } from "@/utils/date";
+import { normalizeName } from "@/utils/name";
+import { getRoleIcon } from "@/config/roles";
 import Button from "@/components/ui/Button";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 
@@ -45,6 +49,7 @@ export default function MembersListResponsive({ organizationId }) {
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
   const [selectValues, setSelectValues] = useState({}); // Track select values by member ID
+  const [openDropdowns, setOpenDropdowns] = useState({}); // Track open dropdowns by member ID
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -112,7 +117,9 @@ export default function MembersListResponsive({ organizationId }) {
   const handleRemoveMember = (member) => {
     modal.confirm({
       title: t("organizations.members.modals.deleteTitle"),
-      content: t("organizations.members.modals.deleteContent", { name: member.name }),
+      content: t("organizations.members.modals.deleteContent", {
+        name: member.name,
+      }),
       okText: t("organizations.members.modals.deleteOk"),
       okButtonProps: { danger: true },
       cancelText: t("organizations.members.modals.deleteCancel"),
@@ -132,7 +139,14 @@ export default function MembersListResponsive({ organizationId }) {
   };
 
   const getRoleDisplayName = (roleName) => {
-    return t(`organizations.members.roles.${roleName}`, { defaultValue: roleName });
+    return t(`organizations.members.roles.${roleName}`, {
+      defaultValue: roleName,
+    });
+  };
+
+  const getRoleIconComponent = (roleName) => {
+    const IconComponent = getRoleIcon(roleName);
+    return IconComponent || RiUserLine; // Fallback to RiUserLine if no icon found
   };
 
   const columns = [
@@ -142,24 +156,60 @@ export default function MembersListResponsive({ organizationId }) {
       key: "name",
       width: 200,
       ellipsis: true,
-      render: (text, record) => (
-        <Space>
-          <RiUserLine className="text-gray-500" />
-          <Text 
-            strong 
-            style={{ 
-              wordBreak: 'normal', 
-              whiteSpace: 'normal',
-              display: 'inline-block'
+      render: (text, record) => {
+        const RoleIcon = getRoleIconComponent(record.role?.name);
+        const normalizedName = normalizeName(text || "");
+        return (
+          <div
+            style={{
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: "repeat(1, 1fr)",
+              gridTemplateRows: "repeat(2, 1fr)",
             }}
           >
-            {text}
-          </Text>
-          {record.is_from_general_link && (
-            <Tag color="purple">{t("organizations.members.labels.fromGeneralLink")}</Tag>
-          )}
-        </Space>
-      ),
+            {/* First row: Icon and Name */}
+            <Space style={{ width: "100%" }}>
+              <RoleIcon className="text-gray-500" />
+              <Text
+                strong
+                style={{
+                  wordBreak: "normal",
+                  whiteSpace: "normal",
+                  display: "inline-block",
+                }}
+              >
+                {normalizedName}
+              </Text>
+              {record.is_from_general_link && (
+                <Tooltip
+                  title={t("organizations.members.labels.fromGeneralLink")}
+                >
+                  <RiLinksLine
+                    className="text-purple-500 ml-1"
+                    style={{ fontSize: "16px" }}
+                  />
+                </Tooltip>
+              )}
+            </Space>
+            {/* Second row: Email */}
+            {record.email && (
+              <div style={{ marginTop: "4px" }}>
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: "12px",
+                    display: "block",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {record.email.toLowerCase()}
+                </Text>
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: t("organizations.members.columns.role"),
@@ -222,7 +272,7 @@ export default function MembersListResponsive({ organizationId }) {
             size="small"
             onClick={() => handleRemoveMember(record)}
             disabled={updatingMemberId !== null}
-            style={{ whiteSpace: 'nowrap' }}
+            style={{ whiteSpace: "nowrap" }}
           >
             {t("organizations.members.actions.delete")}
           </Button>
@@ -277,6 +327,8 @@ export default function MembersListResponsive({ organizationId }) {
           updatingMemberId !== null ||
           (updatingMemberId === member.id && loadingRoles),
         onClick: async () => {
+          // Close the dropdown
+          setOpenDropdowns((prev) => ({ ...prev, [member.id]: false }));
           if (role.id !== member.role.id) {
             // Optimistically update the UI
             setSelectValues((prev) => ({ ...prev, [member.id]: role.id }));
@@ -293,7 +345,10 @@ export default function MembersListResponsive({ organizationId }) {
     };
 
     return (
-      <Card title={t("organizations.members.title")} styles={{ body: { padding: "12px" } }}>
+      <Card
+        title={t("organizations.members.title")}
+        styles={{ body: { padding: "12px" } }}
+      >
         <Space orientation="vertical" size="small" className="w-full">
           {members.map((member) => (
             <Card
@@ -308,16 +363,48 @@ export default function MembersListResponsive({ organizationId }) {
               }}
             >
               {/* Name - First row */}
-              <div className="flex items-center mb-2">
-                <RiUserLine className="text-gray-500 text-base mr-2 flex-shrink-0" />
-                <div className="flex-1 break-words">
-                  <Text strong className="text-base">
-                    {member.name}
-                  </Text>
-                  {member.is_from_general_link && (
-                    <Tag color="purple" className="ml-2">
-                      {t("organizations.members.labels.fromGeneralLink")}
-                    </Tag>
+              <div className="mb-2">
+                <div className="grid grid-cols-1 grid-rows-2 mb-0.5">
+                  {/* First row: Icon and Name */}
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const RoleIcon = getRoleIconComponent(member.role?.name);
+                      return (
+                        <RoleIcon className="text-gray-500 text-base flex-shrink-0" />
+                      );
+                    })()}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Text strong className="text-base">
+                        {normalizeName(member.name || "")}
+                      </Text>
+                      {member.is_from_general_link && (
+                        <Tooltip
+                          title={t(
+                            "organizations.members.labels.fromGeneralLink"
+                          )}
+                        >
+                          <RiLinksLine
+                            className="text-purple-500 flex-shrink-0"
+                            style={{ fontSize: "16px" }}
+                          />
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                  {/* Second row: Email */}
+                  {member.email && (
+                    <div
+                      className="text-xs"
+                      style={{
+                        lineHeight: "1.5",
+                        color: "rgba(0, 0, 0, 0.45)",
+                        padding: 0,
+                        margin: 0,
+                        textIndent: 0,
+                      }}
+                    >
+                      {member.email.toLowerCase()}
+                    </div>
                   )}
                 </div>
               </div>
@@ -334,6 +421,13 @@ export default function MembersListResponsive({ organizationId }) {
                     }}
                     trigger={["click"]}
                     disabled={updatingMemberId !== null}
+                    open={openDropdowns[member.id] || false}
+                    onOpenChange={(open) => {
+                      setOpenDropdowns((prev) => ({
+                        ...prev,
+                        [member.id]: open,
+                      }));
+                    }}
                   >
                     <AntButton
                       type="text"
@@ -391,20 +485,23 @@ export default function MembersListResponsive({ organizationId }) {
 
   // Desktop: Table layout
   return (
-    <Card title={t("organizations.members.title")} style={{ overflow: 'hidden' }}>
+    <Card
+      title={t("organizations.members.title")}
+      style={{ overflow: "hidden" }}
+    >
       <Table
         columns={columns}
         dataSource={members}
         rowKey="id"
         loading={loading}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
-          showTotal: (total) => t("organizations.members.pagination.total", { total }),
+          showTotal: (total) =>
+            t("organizations.members.pagination.total", { total }),
         }}
       />
     </Card>
   );
 }
-

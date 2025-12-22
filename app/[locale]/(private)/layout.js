@@ -9,22 +9,87 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { useUser } from "@/hooks/useUser";
-import { Avatar, Space, Dropdown } from "antd";
+import { Avatar, Space, Dropdown, Spin } from "antd";
 import { Layout, Header, Content } from "@/components/ui/Layout";
 import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvider";
 import { OrganizationProvider } from "@/components/providers/OrganizationProvider";
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
+import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useOrganizations } from "@/hooks/useOrganizations";
+import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 
 const languages = [
   { value: "es", label: "Español", abbreviation: "ES" },
   { value: "pt", label: "Português (BR)", abbreviation: "PT-BR" },
 ];
+
+// Inner component that uses the navigation loading hook
+function ContentWithOverlay({
+  children,
+  isMobile,
+  hasOrganizations,
+  collapsed,
+}) {
+  const { isPending } = useNavigationLoading();
+
+  return (
+    <Content
+      className="p-2 overflow-x-hidden"
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
+        backgroundColor: "var(--color-bg-secondary)",
+      }}
+    >
+      <div
+        className="rounded-lg shadow-sm p-6 overflow-x-hidden"
+        style={{
+          height: "100%",
+          minHeight: "100%",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          backgroundColor: "var(--color-bg-elevated)",
+          border: "1px solid var(--color-border)",
+        }}
+      >
+        {children}
+        {/* Loading Overlay */}
+        {isPending && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "var(--color-bg-primary)",
+              opacity: 0.8,
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              pointerEvents: "all",
+              transition: "opacity 0.2s ease-in-out",
+            }}
+          >
+            <Spin size="large" />
+          </div>
+        )}
+      </div>
+    </Content>
+  );
+}
 
 export default function PrivateLayout({ children }) {
   const t = useTranslations();
@@ -265,8 +330,13 @@ export default function PrivateLayout({ children }) {
       <OrganizationProvider>
         <NavigationLoadingProvider>
           <Layout
-            className="min-h-screen overflow-x-hidden"
-            style={{ maxWidth: "100vw" }}
+            className="overflow-x-hidden"
+            style={{
+              height: "100vh",
+              maxWidth: "100vw",
+              display: "flex",
+              flexDirection: "row",
+            }}
           >
             {hasOrganizations && (
               <AppNavigation
@@ -276,94 +346,119 @@ export default function PrivateLayout({ children }) {
                 onMouseLeave={handleMouseLeave}
               />
             )}
-          <Layout
-            style={{
-              marginLeft:
-                hasOrganizations && !isMobile ? (collapsed ? 80 : 256) : 0,
-              transition: "margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-              paddingBottom: hasOrganizations && isMobile ? "64px" : 0,
-              width:
-                hasOrganizations && !isMobile
-                  ? `calc(100vw - ${collapsed ? 80 : 256}px)`
-                  : "100%",
-              maxWidth:
-                hasOrganizations && !isMobile
-                  ? `calc(100vw - ${collapsed ? 80 : 256}px)`
-                  : "100%",
-              overflowX: "hidden",
-            }}
-          >
-            <Header
-              className="shadow-sm border-b border-gray-700 flex items-center justify-end"
+            <Layout
               style={{
-                backgroundColor: "#1e1b4b",
-                color: "#ffffff",
-                paddingLeft: isMobile ? "16px" : "24px",
-                paddingRight: isMobile ? "16px" : "24px",
+                marginLeft:
+                  hasOrganizations && !isMobile ? (collapsed ? 80 : 256) : 0,
+                transition:
+                  "margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                paddingBottom: hasOrganizations && isMobile ? "64px" : 0,
+                width:
+                  hasOrganizations && !isMobile
+                    ? `calc(100vw - ${collapsed ? 80 : 256}px)`
+                    : "100%",
+                maxWidth:
+                  hasOrganizations && !isMobile
+                    ? `calc(100vw - ${collapsed ? 80 : 256}px)`
+                    : "100%",
+                overflowX: "hidden",
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                height: "100vh",
               }}
             >
-              <Space size="middle">
-                {/* Profile icon dropdown */}
-                <Dropdown
-                  open={dropdownOpen}
-                  menu={{
-                    items: profileMenuItems,
-                    onClick: (info) => {
-                      // For language item, the onClick is handled in the item definition
-                      // For other items, close the dropdown
-                      if (
-                        info.key !== "language" &&
-                        !info.key.startsWith("lang-")
-                      ) {
-                        setDropdownOpen(false);
-                      }
-                    },
+              <Header
+                className="shadow-sm border-b flex items-center justify-between"
+                style={{
+                  backgroundColor: "var(--color-bg-header)",
+                  color: "var(--color-text-header)",
+                  borderColor: "var(--color-border)",
+                  paddingLeft: isMobile ? "16px" : "24px",
+                  paddingRight: isMobile ? "16px" : "24px",
+                  flexShrink: 0,
+                }}
+              >
+                {/* Organization Switcher - Left side - always reserve space */}
+                <div
+                  className="flex items-center min-w-0 flex-1"
+                  style={{
+                    height: "100%",
+                    maxWidth: isMobile ? "calc(100% - 120px)" : "none",
                   }}
-                  placement="bottomRight"
-                  trigger={["click"]}
-                  onOpenChange={(open) => {
-                    // Prevent dropdown from closing if we're toggling language
-                    if (!open && isTogglingLanguageRef.current) {
-                      setDropdownOpen(true);
-                      return;
-                    }
-                    setDropdownOpen(open);
-                    if (!open) {
-                      setLanguageExpanded(false);
-                    }
-                  }}
-                  popupRender={(menu) => (
-                    <div
-                      style={{
-                        minWidth: "200px",
-                        maxWidth: "200px",
-                        overflow: "visible",
-                      }}
-                    >
-                      {menu}
-                    </div>
-                  )}
                 >
-                  <Avatar
-                    icon={<RiUserLine />}
-                    style={{
-                      backgroundColor: "#2563eb",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                    className="hover:opacity-80 hover:scale-110 active:scale-95"
-                    size="default"
-                  />
-                </Dropdown>
-              </Space>
-            </Header>
-            <Content className="p-2 bg-gray-50 overflow-x-hidden">
-              <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden">
+                  {hasOrganizations && (
+                    <OrganizationSwitcher compact={isMobile} />
+                  )}
+                </div>
+
+                {/* Right side actions - always on right */}
+                <div style={{ flexShrink: 0 }}>
+                  <Space size="middle">
+                    {/* Profile icon dropdown */}
+                    <Dropdown
+                      open={dropdownOpen}
+                      menu={{
+                        items: profileMenuItems,
+                        onClick: (info) => {
+                          // For language item, the onClick is handled in the item definition
+                          // For other items, close the dropdown
+                          if (
+                            info.key !== "language" &&
+                            !info.key.startsWith("lang-")
+                          ) {
+                            setDropdownOpen(false);
+                          }
+                        },
+                      }}
+                      placement="bottomRight"
+                      trigger={["click"]}
+                      onOpenChange={(open) => {
+                        // Prevent dropdown from closing if we're toggling language
+                        if (!open && isTogglingLanguageRef.current) {
+                          setDropdownOpen(true);
+                          return;
+                        }
+                        setDropdownOpen(open);
+                        if (!open) {
+                          setLanguageExpanded(false);
+                        }
+                      }}
+                      popupRender={(menu) => (
+                        <div
+                          style={{
+                            minWidth: "200px",
+                            maxWidth: "200px",
+                            overflow: "visible",
+                          }}
+                        >
+                          {menu}
+                        </div>
+                      )}
+                    >
+                      <Avatar
+                        icon={<RiUserLine />}
+                        style={{
+                          backgroundColor: "#2563eb",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                        className="hover:opacity-80 hover:scale-110 active:scale-95"
+                        size="default"
+                      />
+                    </Dropdown>
+                  </Space>
+                </div>
+              </Header>
+              <ContentWithOverlay
+                isMobile={isMobile}
+                hasOrganizations={hasOrganizations}
+                collapsed={collapsed}
+              >
                 {children}
-              </div>
-            </Content>
+              </ContentWithOverlay>
+            </Layout>
           </Layout>
-        </Layout>
         </NavigationLoadingProvider>
       </OrganizationProvider>
     </FeatureFlagsProvider>
