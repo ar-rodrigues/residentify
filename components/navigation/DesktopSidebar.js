@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { RiRocketLine, RiAddLine } from "react-icons/ri";
+import {
+  RiRocketLine,
+  RiAddLine,
+  RiMenuFoldLine,
+  RiMenuUnfoldLine,
+} from "react-icons/ri";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useOrganizations } from "@/hooks/useOrganizations";
@@ -11,12 +16,7 @@ import { useNavigationLoading } from "@/components/providers/NavigationLoadingPr
 import { Menu, Space, Typography, Button, Spin } from "antd";
 import { Sider } from "@/components/ui/Layout";
 
-export default function DesktopSidebar({
-  collapsed,
-  onCollapse,
-  onMouseEnter,
-  onMouseLeave,
-}) {
+export default function DesktopSidebar({ collapsed, onCollapse }) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -59,6 +59,11 @@ export default function DesktopSidebar({
     });
   };
 
+  // Handle toggle button click
+  const handleToggleClick = () => {
+    onCollapse(!collapsed);
+  };
+
   // If user has no organizations, don't render sidebar
   if (!fetchingOrgs && organizations.length === 0) {
     return null;
@@ -72,8 +77,6 @@ export default function DesktopSidebar({
       theme="light"
       width={256}
       trigger={null}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       style={{
         overflow: "auto",
         overflowX: "hidden",
@@ -83,7 +86,7 @@ export default function DesktopSidebar({
         top: 0,
         bottom: 0,
         zIndex: 100,
-        transition: "width 2s cubic-bezier(0.16, 1, 0.3, 1)",
+        transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
         willChange: "width",
         display: "flex",
         flexDirection: "column",
@@ -103,30 +106,76 @@ export default function DesktopSidebar({
             borderColor: "var(--color-border)",
             display: "flex",
             alignItems: "center",
-            justifyContent: collapsed ? "center" : "flex-start",
+            justifyContent: collapsed ? "center" : "space-between",
+            gap: "8px",
+            position: "relative",
           }}
         >
-          <Space size="small">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flex: collapsed ? "0 0 auto" : "1 1 auto",
+              minWidth: 0,
+              overflow: "hidden",
+              opacity: collapsed ? 0 : 1,
+              width: collapsed ? 0 : "auto",
+              maxWidth: collapsed ? 0 : "none",
+              transition:
+                "opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+              pointerEvents: collapsed ? "none" : "auto",
+            }}
+          >
             <RiRocketLine
               className="text-2xl"
-              style={{ color: "var(--color-primary)" }}
-            />
-            <Typography.Text
-              strong
-              className="text-lg"
               style={{
-                opacity: collapsed ? 0 : 1,
-                maxWidth: collapsed ? 0 : "200px",
+                color: "var(--color-primary)",
+                flexShrink: 0,
+              }}
+            />
+            <div
+              style={{
+                width: collapsed ? 0 : "120px",
                 overflow: "hidden",
-                transition:
-                  "opacity 2s cubic-bezier(0.16, 1, 0.3, 1), max-width 2s cubic-bezier(0.16, 1, 0.3, 1)",
+                transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
                 whiteSpace: "nowrap",
-                display: "inline-block",
               }}
             >
-              Residentify
-            </Typography.Text>
-          </Space>
+              <Typography.Text
+                strong
+                className="text-lg"
+                style={{
+                  display: "inline-block",
+                }}
+              >
+                Residentify
+              </Typography.Text>
+            </div>
+          </div>
+          <Button
+            type="text"
+            icon={
+              collapsed ? (
+                <RiMenuUnfoldLine style={{ color: "var(--color-primary)" }} />
+              ) : (
+                <RiMenuFoldLine style={{ color: "var(--color-primary)" }} />
+              )
+            }
+            onClick={handleToggleClick}
+            aria-label={
+              collapsed ? "Expandir barra lateral" : "Colapsar barra lateral"
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "32px",
+              height: "32px",
+              padding: "0",
+              flexShrink: 0,
+            }}
+          />
         </div>
 
         {/* Menu Items */}
@@ -155,7 +204,7 @@ export default function DesktopSidebar({
               onClick={handleMenuClick}
               style={{
                 borderRight: 0,
-                transition: "all 2s cubic-bezier(0.16, 1, 0.3, 1)",
+                transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
               }}
             />
           )}

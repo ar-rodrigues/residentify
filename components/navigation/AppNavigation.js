@@ -7,8 +7,6 @@ import MobileBottomNav from "./MobileBottomNav";
 export default function AppNavigation({
   collapsed,
   onCollapse,
-  onMouseEnter,
-  onMouseLeave,
 }) {
   const isMobile = useIsMobile();
 
@@ -22,8 +20,6 @@ export default function AppNavigation({
     <DesktopSidebar
       collapsed={collapsed}
       onCollapse={onCollapse}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     />
   );
 }

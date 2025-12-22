@@ -9,83 +9,22 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { useUser } from "@/hooks/useUser";
-import { Avatar, Space, Dropdown, Spin } from "antd";
+import { Avatar, Space, Dropdown } from "antd";
 import { Layout, Header, Content } from "@/components/ui/Layout";
 import { FeatureFlagsProvider } from "@/components/providers/FeatureFlagsProvider";
 import { OrganizationProvider } from "@/components/providers/OrganizationProvider";
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
-import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useOrganizations } from "@/hooks/useOrganizations";
-import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 
 const languages = [
   { value: "es", label: "Español", abbreviation: "ES" },
   { value: "pt", label: "Português (BR)", abbreviation: "PT-BR" },
 ];
-
-// Inner component that uses the navigation loading hook
-function ContentWithOverlay({ children, isMobile, hasOrganizations, collapsed }) {
-  const { isPending } = useNavigationLoading();
-
-  return (
-    <Content
-      className="p-2 overflow-x-hidden"
-      style={{
-        flex: 1,
-        overflowY: "auto",
-        display: "flex",
-        flexDirection: "column",
-        position: "relative",
-        backgroundColor: "var(--color-bg-secondary)",
-      }}
-    >
-      <div
-        className="rounded-lg shadow-sm p-6 overflow-x-hidden"
-        style={{
-          height: "100%",
-          minHeight: "100%",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          backgroundColor: "var(--color-bg-elevated)",
-          border: "1px solid var(--color-border)",
-        }}
-      >
-        {children}
-        {/* Loading Overlay */}
-        {isPending && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "var(--color-bg-primary)",
-              opacity: 0.8,
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-              pointerEvents: "all",
-              transition: "opacity 0.2s ease-in-out",
-            }}
-          >
-            <Spin size="large" />
-          </div>
-        )}
-      </div>
-    </Content>
-  );
-}
 
 export default function PrivateLayout({ children }) {
   const t = useTranslations();
@@ -100,7 +39,6 @@ export default function PrivateLayout({ children }) {
   const [languageExpanded, setLanguageExpanded] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const collapseTimeoutRef = useRef(null);
-  const expandTimeoutRef = useRef(null);
   const isTogglingLanguageRef = useRef(false);
 
   // Check if user has organizations
@@ -122,9 +60,6 @@ export default function PrivateLayout({ children }) {
       if (collapseTimeoutRef.current) {
         clearTimeout(collapseTimeoutRef.current);
       }
-      if (expandTimeoutRef.current) {
-        clearTimeout(expandTimeoutRef.current);
-      }
     };
   }, [isMobile]);
 
@@ -136,17 +71,8 @@ export default function PrivateLayout({ children }) {
       clearTimeout(collapseTimeoutRef.current);
       collapseTimeoutRef.current = null;
     }
-
-    // Clear any existing expand timeout
-    if (expandTimeoutRef.current) {
-      clearTimeout(expandTimeoutRef.current);
-    }
-
-    // Wait 0.2 seconds before expanding to avoid accidental hovers
-    expandTimeoutRef.current = setTimeout(() => {
-      setCollapsed(false);
-      expandTimeoutRef.current = null;
-    }, 200);
+    // Expand sidebar on hover
+    setCollapsed(false);
   };
 
   const handleMouseLeave = () => {
@@ -212,15 +138,15 @@ export default function PrivateLayout({ children }) {
               paddingTop: "8px",
               paddingBottom: "8px",
               backgroundColor: isCurrent
-                ? "var(--color-primary-bg)"
-                : "transparent",
+                ? "rgba(37, 99, 235, 0.1)"
+                : "rgba(0, 0, 0, 0.02)",
               margin: "0",
               marginTop: "0",
               marginBottom: "0",
               marginLeft: "-12px",
               marginRight: "-12px",
               borderLeft: "3px solid",
-              borderColor: isCurrent ? "var(--color-primary)" : "transparent",
+              borderColor: isCurrent ? "#2563eb" : "transparent",
               borderRadius: "8px",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -230,7 +156,7 @@ export default function PrivateLayout({ children }) {
           >
             <span
               style={{
-                color: isCurrent ? "var(--color-primary)" : "var(--color-text-primary)",
+                color: isCurrent ? "#2563eb" : "inherit",
                 fontWeight: isCurrent ? 500 : 400,
               }}
             >
@@ -244,7 +170,7 @@ export default function PrivateLayout({ children }) {
               >
                 <RiCheckLine
                   style={{
-                    color: "var(--color-primary)",
+                    color: "#2563eb",
                     fontSize: "16px",
                     marginLeft: "8px",
                   }}
@@ -283,7 +209,7 @@ export default function PrivateLayout({ children }) {
             <span
               style={{
                 fontSize: "12px",
-                color: "var(--color-text-secondary)",
+                color: "#8b8b8b",
                 fontWeight: "normal",
               }}
             >
@@ -339,29 +265,22 @@ export default function PrivateLayout({ children }) {
       <OrganizationProvider>
         <NavigationLoadingProvider>
           <Layout
-          className="overflow-x-hidden"
-          style={{
-            height: "100vh",
-            maxWidth: "100vw",
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
-          {hasOrganizations && (
-            <AppNavigation
-              collapsed={collapsed}
-              onCollapse={setCollapsed}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            />
-          )}
+            className="min-h-screen overflow-x-hidden"
+            style={{ maxWidth: "100vw" }}
+          >
+            {hasOrganizations && (
+              <AppNavigation
+                collapsed={collapsed}
+                onCollapse={setCollapsed}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
           <Layout
             style={{
               marginLeft:
                 hasOrganizations && !isMobile ? (collapsed ? 80 : 256) : 0,
-              transition:
-                "margin-left 2s cubic-bezier(0.16, 1, 0.3, 1), width 2s cubic-bezier(0.16, 1, 0.3, 1), max-width 2s cubic-bezier(0.16, 1, 0.3, 1)",
-              willChange: "margin-left, width, max-width",
+              transition: "margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
               paddingBottom: hasOrganizations && isMobile ? "64px" : 0,
               width:
                 hasOrganizations && !isMobile
@@ -372,101 +291,77 @@ export default function PrivateLayout({ children }) {
                   ? `calc(100vw - ${collapsed ? 80 : 256}px)`
                   : "100%",
               overflowX: "hidden",
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              height: "100vh",
             }}
           >
             <Header
-              className="shadow-sm border-b flex items-center justify-between"
+              className="shadow-sm border-b border-gray-700 flex items-center justify-end"
               style={{
-                backgroundColor: "var(--color-bg-header)",
-                color: "var(--color-text-header)",
-                borderColor: "var(--color-border)",
+                backgroundColor: "#1e1b4b",
+                color: "#ffffff",
                 paddingLeft: isMobile ? "16px" : "24px",
                 paddingRight: isMobile ? "16px" : "24px",
-                flexShrink: 0,
               }}
             >
-              {/* Organization Switcher - Left side - always reserve space */}
-              <div 
-                className="flex items-center min-w-0 flex-1" 
-                style={{ 
-                  height: "100%",
-                  maxWidth: isMobile ? "calc(100% - 120px)" : "none",
-                }}
-              >
-                {hasOrganizations && <OrganizationSwitcher compact={isMobile} />}
-              </div>
-              
-              {/* Right side actions - always on right */}
-              <div style={{ flexShrink: 0 }}>
-                <Space size="middle">
-                  {/* Theme toggle */}
-                  <ThemeToggle />
-                  {/* Profile icon dropdown */}
-                  <Dropdown
-                    open={dropdownOpen}
-                    menu={{
-                      items: profileMenuItems,
-                      onClick: (info) => {
-                        // For language item, the onClick is handled in the item definition
-                        // For other items, close the dropdown
-                        if (
-                          info.key !== "language" &&
-                          !info.key.startsWith("lang-")
-                        ) {
-                          setDropdownOpen(false);
-                        }
-                      },
-                    }}
-                    placement="bottomRight"
-                    trigger={["click"]}
-                    onOpenChange={(open) => {
-                      // Prevent dropdown from closing if we're toggling language
-                      if (!open && isTogglingLanguageRef.current) {
-                        setDropdownOpen(true);
-                        return;
+              <Space size="middle">
+                {/* Profile icon dropdown */}
+                <Dropdown
+                  open={dropdownOpen}
+                  menu={{
+                    items: profileMenuItems,
+                    onClick: (info) => {
+                      // For language item, the onClick is handled in the item definition
+                      // For other items, close the dropdown
+                      if (
+                        info.key !== "language" &&
+                        !info.key.startsWith("lang-")
+                      ) {
+                        setDropdownOpen(false);
                       }
-                      setDropdownOpen(open);
-                      if (!open) {
-                        setLanguageExpanded(false);
-                      }
-                    }}
-                    popupRender={(menu) => (
-                      <div
-                        style={{
-                          minWidth: "200px",
-                          maxWidth: "200px",
-                          overflow: "visible",
-                        }}
-                      >
-                        {menu}
-                      </div>
-                    )}
-                  >
-                    <Avatar
-                      icon={<RiUserLine style={{ color: "var(--color-primary)" }} />}
+                    },
+                  }}
+                  placement="bottomRight"
+                  trigger={["click"]}
+                  onOpenChange={(open) => {
+                    // Prevent dropdown from closing if we're toggling language
+                    if (!open && isTogglingLanguageRef.current) {
+                      setDropdownOpen(true);
+                      return;
+                    }
+                    setDropdownOpen(open);
+                    if (!open) {
+                      setLanguageExpanded(false);
+                    }
+                  }}
+                  popupRender={(menu) => (
+                    <div
                       style={{
-                        backgroundColor: "var(--color-primary-bg)",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
+                        minWidth: "200px",
+                        maxWidth: "200px",
+                        overflow: "visible",
                       }}
-                      className="hover:opacity-80 hover:scale-110 active:scale-95"
-                      size="default"
-                    />
-                  </Dropdown>
-                </Space>
-              </div>
+                    >
+                      {menu}
+                    </div>
+                  )}
+                >
+                  <Avatar
+                    icon={<RiUserLine />}
+                    style={{
+                      backgroundColor: "#2563eb",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    className="hover:opacity-80 hover:scale-110 active:scale-95"
+                    size="default"
+                  />
+                </Dropdown>
+              </Space>
             </Header>
-            <ContentWithOverlay
-              isMobile={isMobile}
-              hasOrganizations={hasOrganizations}
-              collapsed={collapsed}
-            >
-              {children}
-            </ContentWithOverlay>
+            <Content className="p-2 bg-gray-50 overflow-x-hidden">
+              <div className="bg-white rounded-lg shadow-sm p-6 overflow-x-hidden">
+                {children}
+              </div>
+            </Content>
           </Layout>
         </Layout>
         </NavigationLoadingProvider>
