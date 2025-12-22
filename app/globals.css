@@ -55,9 +55,9 @@
   --color-border: #1a1a1a;
   --color-border-subtle: #0f0f0f;
 
-  /* 3. Accent Color (Neutral Gray for delete/danger actions) */
-  --color-error: #6b7280;
-  --color-error-bg: rgba(107, 114, 128, 0.15);
+  /* 3. Accent Color (Vibrant Red for notifications/alerts) */
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.15);
 
   /* Header */
   --color-bg-header: #000000;

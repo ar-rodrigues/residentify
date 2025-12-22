@@ -165,6 +165,46 @@ export default function ChatWidget({ organizationId }) {
     [organizationId, currentUser?.id, supabase, message, scrollToBottom]
   );
 
+  // Mark all unread messages in a conversation as read
+  const markConversationAsRead = useCallback(
+    async (conversationId) => {
+      if (!conversationId || !organizationId || !currentUser?.id) return;
+
+      try {
+        const response = await fetch(
+          `/api/organizations/${organizationId}/chat/conversations/${conversationId}/read`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || result.error) {
+          // Silently fail - don't show error for background operation
+          console.error("Error marking conversation as read:", result.message);
+          return;
+        }
+
+        // Update local conversations state to set unreadCount to 0
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === conversationId
+              ? { ...conv, unreadCount: 0 }
+              : conv
+          )
+        );
+      } catch (error) {
+        // Silently fail - don't show error for background operation
+        console.error("Error marking conversation as read:", error);
+      }
+    },
+    [organizationId, currentUser?.id]
+  );
+
   // Send message
   const sendMessage = useCallback(async () => {
     if (!messageContent.trim() || !selectedConversation || sending) return;
@@ -452,6 +492,29 @@ export default function ChatWidget({ organizationId }) {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "chat_messages",
+          filter: `organization_id=eq.${organizationId}`,
+        },
+        (payload) => {
+          const updatedMessage = payload.new;
+          const oldMessage = payload.old;
+          // If a message was marked as read (is_read changed from false to true)
+          // and the current user is the recipient, update the unread count
+          if (
+            updatedMessage.recipient_id === currentUser.id &&
+            oldMessage.is_read === false &&
+            updatedMessage.is_read === true
+          ) {
+            // Silently refetch conversations to get updated unread counts
+            fetchConversationsSilently();
+          }
+        }
+      )
       .subscribe();
 
     conversationsChannelRef.current = channel;
@@ -476,6 +539,8 @@ export default function ChatWidget({ organizationId }) {
   useEffect(() => {
     if (selectedConversation?.id && !selectedConversation?.isTemporary) {
       fetchMessages(selectedConversation.id);
+      // Mark all unread messages as read when conversation is opened
+      markConversationAsRead(selectedConversation.id);
     } else if (selectedConversation?.isTemporary) {
       setMessages([]);
     } else {
@@ -485,6 +550,7 @@ export default function ChatWidget({ organizationId }) {
     selectedConversation?.id,
     selectedConversation?.isTemporary,
     fetchMessages,
+    markConversationAsRead,
   ]);
 
   // Clean up temporary conversation when user is deselected
@@ -527,7 +593,8 @@ export default function ChatWidget({ organizationId }) {
         (conv) => conv.otherUserId === temporaryConversation.otherUserId
       );
       if (!exists) {
-        allConvs.push(temporaryConversation);
+        // Add temporary conversation at the top of the list
+        allConvs.unshift(temporaryConversation);
       }
     }
     return allConvs;
@@ -576,9 +643,6 @@ export default function ChatWidget({ organizationId }) {
       className="flex flex-row h-full w-full rounded-lg overflow-hidden"
       style={{
         backgroundColor: "var(--ant-color-bg-blur)",
-        borderWidth: "1px",
-        borderColor: "rgba(0, 0, 0, 1)",
-        borderStyle: "solid",
       }}
     >
       {/* Conversations List */}
@@ -620,7 +684,7 @@ export default function ChatWidget({ organizationId }) {
         <div className="flex-1 overflow-y-auto">
           {showMembers ? (
             <div
-              className="divide-y pb-4"
+              className="pb-4"
               style={{ borderColor: "var(--color-border)" }}
             >
               {members.length === 0 ? (
@@ -699,7 +763,7 @@ export default function ChatWidget({ organizationId }) {
             </div>
           ) : (
             <div
-              className="divide-y pb-4"
+              className="pb-4"
               style={{ borderColor: "var(--color-border)" }}
             >
               {filteredConversations.length === 0 ? (
@@ -781,6 +845,9 @@ export default function ChatWidget({ organizationId }) {
                               <Badge
                                 count={conversation.unreadCount}
                                 size="small"
+                                style={{
+                                  backgroundColor: "var(--color-error)",
+                                }}
                               />
                             )}
                         </div>
@@ -945,9 +1012,8 @@ export default function ChatWidget({ organizationId }) {
                   icon={<RiSendPlaneLine />}
                   onClick={sendMessage}
                   disabled={!messageContent.trim() || sending}
-                >
-                  {t("chat.send")}
-                </Button>
+                  className="!w-12"
+                />
               </div>
             </div>
           </>

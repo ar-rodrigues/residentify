@@ -106,20 +106,34 @@ export default function PrivateLayout({ children }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const collapseTimeoutRef = useRef(null);
   const isTogglingLanguageRef = useRef(false);
+  const userPreferenceRef = useRef(null); // Track if user has manually set a preference
 
   // Check if user has organizations
   const hasOrganizations = !fetchingOrgs && organizations.length > 0;
 
-  // Initialize: auto-collapse after 3 seconds on mount (desktop only)
+  // Load sidebar preference from localStorage on mount
   useEffect(() => {
     if (isMobile) {
       setCollapsed(false);
       return;
     }
 
-    collapseTimeoutRef.current = setTimeout(() => {
-      setCollapsed(true);
-    }, 3000);
+    try {
+      const savedPreference = localStorage.getItem("sidebar-collapsed");
+      if (savedPreference !== null) {
+        const isCollapsed = savedPreference === "true";
+        setCollapsed(isCollapsed);
+        userPreferenceRef.current = true; // User has a saved preference
+      } else {
+        // First visit: start expanded by default
+        setCollapsed(false);
+        userPreferenceRef.current = null; // No preference set yet
+      }
+    } catch (err) {
+      console.error("Error loading sidebar preference:", err);
+      // On error, default to expanded
+      setCollapsed(false);
+    }
 
     // Cleanup on unmount
     return () => {
@@ -131,27 +145,38 @@ export default function PrivateLayout({ children }) {
 
   const handleMouseEnter = () => {
     if (isMobile) return;
-
-    // Clear timeout when hovering to prevent collapse
-    if (collapseTimeoutRef.current) {
-      clearTimeout(collapseTimeoutRef.current);
-      collapseTimeoutRef.current = null;
+    // Only expand on hover if user hasn't manually set a preference
+    if (userPreferenceRef.current !== true) {
+      // Expand sidebar on hover
+      setCollapsed(false);
     }
-    // Expand sidebar on hover
-    setCollapsed(false);
   };
 
   const handleMouseLeave = () => {
     if (isMobile) return;
+    // Don't auto-collapse - respect user's preference or default to expanded
+    // Only collapse on hover leave if user hasn't set a preference (optional behavior)
+    // For now, we keep it expanded by default
+  };
 
-    // Set timeout to collapse after 3 seconds when leaving
+  // Handle manual sidebar toggle - save preference
+  const handleCollapse = useCallback((newCollapsed) => {
+    setCollapsed(newCollapsed);
+    userPreferenceRef.current = true; // Mark that user has set a preference
+
+    // Save preference to localStorage
+    try {
+      localStorage.setItem("sidebar-collapsed", String(newCollapsed));
+    } catch (err) {
+      console.error("Error saving sidebar preference:", err);
+    }
+
+    // Clear any pending auto-collapse timeout
     if (collapseTimeoutRef.current) {
       clearTimeout(collapseTimeoutRef.current);
+      collapseTimeoutRef.current = null;
     }
-    collapseTimeoutRef.current = setTimeout(() => {
-      setCollapsed(true);
-    }, 3000);
-  };
+  }, []);
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -342,7 +367,7 @@ export default function PrivateLayout({ children }) {
             {hasOrganizations && (
               <AppNavigation
                 collapsed={collapsed}
-                onCollapse={setCollapsed}
+                onCollapse={handleCollapse}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               />
