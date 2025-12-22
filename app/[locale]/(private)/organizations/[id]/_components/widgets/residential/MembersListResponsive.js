@@ -170,7 +170,12 @@ export default function MembersListResponsive({ organizationId }) {
           >
             {/* First row: Icon and Name */}
             <Space style={{ width: "100%" }}>
-              <RoleIcon className="text-gray-500" />
+              <RoleIcon
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontSize: "16px",
+                }}
+              />
               <Text
                 strong
                 style={{
@@ -201,6 +206,7 @@ export default function MembersListResponsive({ organizationId }) {
                     fontSize: "12px",
                     display: "block",
                     lineHeight: "1.5",
+                    color: "var(--color-text-secondary)",
                   }}
                 >
                   {record.email.toLowerCase()}
@@ -370,7 +376,13 @@ export default function MembersListResponsive({ organizationId }) {
                     {(() => {
                       const RoleIcon = getRoleIconComponent(member.role?.name);
                       return (
-                        <RoleIcon className="text-gray-500 text-base flex-shrink-0" />
+                        <RoleIcon
+                          className="flex-shrink-0"
+                          style={{
+                            color: "var(--color-text-secondary)",
+                            fontSize: "16px",
+                          }}
+                        />
                       );
                     })()}
                     <div className="flex items-center gap-1 flex-wrap">
@@ -397,7 +409,7 @@ export default function MembersListResponsive({ organizationId }) {
                       className="text-xs"
                       style={{
                         lineHeight: "1.5",
-                        color: "rgba(0, 0, 0, 0.45)",
+                        color: "var(--color-text-secondary)",
                         padding: 0,
                         margin: 0,
                         textIndent: 0,

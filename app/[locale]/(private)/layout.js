@@ -16,6 +16,7 @@ import { OrganizationProvider } from "@/components/providers/OrganizationProvide
 import { NavigationLoadingProvider } from "@/components/providers/NavigationLoadingProvider";
 import AppNavigation from "@/components/navigation/AppNavigation";
 import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -395,6 +396,8 @@ export default function PrivateLayout({ children }) {
                 {/* Right side actions - always on right */}
                 <div style={{ flexShrink: 0 }}>
                   <Space size="middle">
+                    {/* Theme toggle */}
+                    <ThemeToggle />
                     {/* Profile icon dropdown */}
                     <Dropdown
                       open={dropdownOpen}

@@ -127,7 +127,12 @@ export default function ChatPermissionsSettings({ organizationId }) {
               key={senderRole.key}
               size="small"
               title={
-                <div className="font-semibold text-base">
+                <div
+                  className="font-semibold text-base"
+                  style={{
+                    color: "var(--color-text-primary)",
+                  }}
+                >
                   {senderRole.senderRoleName}
                 </div>
               }
@@ -146,9 +151,17 @@ export default function ChatPermissionsSettings({ organizationId }) {
                   return (
                     <div
                       key={recipientRole.id}
-                      className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                      className="flex items-center justify-between py-2 border-b last:border-0"
+                      style={{
+                        borderColor: "var(--color-border)",
+                      }}
                     >
-                      <span className="text-sm text-gray-700 flex-1">
+                      <span
+                        className="text-sm flex-1"
+                        style={{
+                          color: "var(--color-text-primary)",
+                        }}
+                      >
                         {getRoleDisplayName(recipientRole.name)}
                       </span>
                       <Switch

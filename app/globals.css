@@ -191,3 +191,67 @@ ellipse {
 * {
   -ms-overflow-style: none; /* IE and Edge */
 }
+
+/* Ant Design Card - Dark Mode Text Visibility */
+[data-theme="dark"] .ant-card {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .ant-card-head {
+  border-bottom-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .ant-card-head-title {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ant-card-body {
+  color: var(--color-text-primary) !important;
+}
+
+/* Ant Design Table - Dark Mode Text Visibility */
+[data-theme="dark"] .ant-table {
+  background: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ant-table-thead > tr > th {
+  background: var(--color-bg-secondary) !important;
+  border-bottom-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .ant-table-tbody > tr > td {
+  border-bottom-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+[data-theme="dark"] .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: var(--color-primary-bg) !important;
+}
+
+/* Ant Design Alert - Dark Mode Text Visibility */
+[data-theme="dark"] .ant-alert {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] .ant-alert-info {
+  background: var(--color-primary-bg) !important;
+  border-color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .ant-alert-message,
+[data-theme="dark"] .ant-alert-description {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .ant-alert-icon {
+  color: var(--color-primary) !important;
+}

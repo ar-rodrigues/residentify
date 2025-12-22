@@ -63,6 +63,12 @@ export default function AntdProvider({ children, locale = "es" }) {
 
     const errorColor = computedStyle.getPropertyValue("--color-error").trim() || (theme === "dark" ? "#6b7280" : "#dc2626");
     
+    const textPrimary = computedStyle.getPropertyValue("--color-text-primary").trim() || (theme === "dark" ? "#e0e0e0" : "#1a1a1a");
+    const textSecondary = computedStyle.getPropertyValue("--color-text-secondary").trim() || (theme === "dark" ? "#a0a0a0" : "#6b7280");
+    const bgElevated = computedStyle.getPropertyValue("--color-bg-elevated").trim() || (theme === "dark" ? "#000000" : "#ffffff");
+    const borderColor = computedStyle.getPropertyValue("--color-border").trim() || (theme === "dark" ? "#1a1a1a" : "#e5e7eb");
+    const primaryBg = computedStyle.getPropertyValue("--color-primary-bg").trim() || (theme === "dark" ? "rgba(91, 141, 239, 0.15)" : "#eff6ff");
+
     return {
       algorithm: theme === "dark" ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
       token: {
@@ -70,6 +76,10 @@ export default function AntdProvider({ children, locale = "es" }) {
         colorError: errorColor,
         borderRadius: 8,
         fontFamily: computedStyle.getPropertyValue("--font-sans").trim() || "system-ui, -apple-system, sans-serif",
+        colorText: textPrimary,
+        colorTextSecondary: textSecondary,
+        colorBgContainer: bgElevated,
+        colorBorder: borderColor,
       },
       components: {
         Button: {
@@ -81,6 +91,23 @@ export default function AntdProvider({ children, locale = "es" }) {
         },
         Card: {
           borderRadius: 12,
+          colorText: textPrimary,
+          colorTextHeading: textPrimary,
+          colorBgContainer: bgElevated,
+          colorBorderSecondary: borderColor,
+        },
+        Table: {
+          colorText: textPrimary,
+          colorTextHeading: textPrimary,
+          colorBgContainer: bgElevated,
+          colorBorderSecondary: borderColor,
+          headerBg: theme === "dark" ? computedStyle.getPropertyValue("--color-bg-secondary").trim() || "#000000" : "#f8f9fa",
+        },
+        Alert: {
+          colorText: textPrimary,
+          colorInfo: computedStyle.getPropertyValue("--color-primary").trim() || "#2563eb",
+          colorInfoBg: primaryBg,
+          colorInfoBorder: computedStyle.getPropertyValue("--color-primary").trim() || "#2563eb",
         },
         Input: {
           borderRadius: 8,
@@ -90,7 +117,7 @@ export default function AntdProvider({ children, locale = "es" }) {
           itemActiveBg: "transparent",
           itemHoverBg: "rgba(255, 255, 255, 0.05)",
           itemSelectedColor: computedStyle.getPropertyValue("--color-primary").trim() || "#2563eb",
-          itemHoverColor: computedStyle.getPropertyValue("--color-text-primary").trim() || "#1a1a1a",
+          itemHoverColor: textPrimary,
         },
       },
     };
