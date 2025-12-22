@@ -2,13 +2,13 @@
 
 :root {
   /* Simplified Color Palette - 3 Main Colors */
-  
+
   /* 1. Primary Color (Blue) - for accents, buttons, active states */
   --color-primary: #2563eb;
   --color-primary-light: #3b82f6;
   --color-primary-dark: #1d4ed8;
   --color-primary-bg: #eff6ff;
-  
+
   /* 2. Neutral Gray Scale - for backgrounds and text */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8f9fa;
@@ -17,19 +17,19 @@
   --color-text-secondary: #6b7280;
   --color-border: #e5e7eb;
   --color-border-subtle: #f3f4f6;
-  
+
   /* 3. Accent Color (Error/Alert) - minimal use */
   --color-error: #dc2626;
   --color-error-bg: #fef2f2;
-  
+
   /* Header (kept for consistency) */
   --color-bg-header: #1e1b4b;
   --color-text-header: #ffffff;
-  
+
   /* Fonts */
   --font-sans: system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, monospace;
-  
+
   /* Border radius */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -39,13 +39,13 @@
 
 [data-theme="dark"] {
   /* Dark Mode - Simplified Palette - Consistent Black Backgrounds */
-  
+
   /* 1. Primary Color (Desaturated Blue) */
   --color-primary: #5b8def;
   --color-primary-light: #7ba3f0;
   --color-primary-dark: #4a7ae0;
   --color-primary-bg: rgba(91, 141, 239, 0.15);
-  
+
   /* 2. Neutral Gray Scale - All backgrounds consistently black */
   --color-bg-primary: #000000;
   --color-bg-secondary: #000000;
@@ -54,11 +54,11 @@
   --color-text-secondary: #a0a0a0;
   --color-border: #1a1a1a;
   --color-border-subtle: #0f0f0f;
-  
+
   /* 3. Accent Color (Neutral Gray for delete/danger actions) */
   --color-error: #6b7280;
   --color-error-bg: rgba(107, 114, 128, 0.15);
-  
+
   /* Header */
   --color-bg-header: #000000;
   --color-text-header: #e0e0e0;
@@ -72,19 +72,42 @@ body {
   height: 100%;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Smooth transitions for theme switching - optimized for performance */
-div, section, article, aside, header, footer, nav, main, button, a, span, p, h1, h2, h3, h4, h5, h6 {
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+div,
+section,
+article,
+aside,
+header,
+footer,
+nav,
+main,
+button,
+a,
+span,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Exclude SVG and icon elements from transitions */
-svg, path, circle, rect, line, polygon, ellipse {
+svg,
+path,
+circle,
+rect,
+line,
+polygon,
+ellipse {
   transition: none;
 }
 
