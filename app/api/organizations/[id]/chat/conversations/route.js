@@ -48,7 +48,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Use the function to get conversations with metadata
+    // Get user-to-user conversations
     const { data: conversations, error: conversationsError } =
       await supabase.rpc("get_user_conversations_with_metadata", {
         p_user_id: user.id,
@@ -68,6 +68,32 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Get role conversations where user is the initiator
+    const { data: roleConversationsAsInitiator, error: roleConvError } =
+      await supabase
+        .from("chat_conversations")
+        .select(
+          `
+          id,
+          role_id,
+          status,
+          updated_at,
+          organization_roles!inner(name)
+        `
+        )
+        .eq("organization_id", id)
+        .eq("user1_id", user.id)
+        .is("user2_id", null)
+        .not("role_id", "is", null)
+        .eq("status", "active")
+        .order("updated_at", { ascending: false })
+        .limit(limit);
+
+    if (roleConvError) {
+      console.error("Error fetching role conversations as initiator:", roleConvError);
+      // Don't fail, just log the error
+    }
+
     // Get total count of conversations
     const { count, error: countError } = await supabase
       .from("chat_conversations")
@@ -78,6 +104,46 @@ export async function GET(request, { params }) {
     if (countError) {
       console.error("Error counting conversations:", countError);
     }
+
+    // Transform role conversations where user is initiator
+    const transformedRoleConversations = await Promise.all(
+      (roleConversationsAsInitiator || []).map(async (conv) => {
+        // Get last message and unread count for this conversation
+        const { data: messages, error: messagesError } = await supabase
+          .from("chat_messages")
+          .select("content, created_at, sender_id, is_read, recipient_id")
+          .eq("conversation_id", conv.id)
+          .eq("organization_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        const lastMessage = messages && messages.length > 0 ? messages[0] : null;
+
+        // Count unread messages (messages from role members where recipient_id = user.id)
+        const { count: unreadCount } = await supabase
+          .from("chat_messages")
+          .select("*", { count: "exact", head: true })
+          .eq("conversation_id", conv.id)
+          .eq("organization_id", id)
+          .eq("recipient_id", user.id)
+          .eq("is_read", false);
+
+        return {
+          id: conv.id,
+          type: "role",
+          roleId: conv.role_id,
+          roleName: conv.organization_roles?.name,
+          otherUserId: null, // Role conversations don't have a specific other user
+          otherUserName: conv.organization_roles?.name || "Rol",
+          otherUserAvatar: null,
+          lastMessage: lastMessage?.content || null,
+          lastMessageTime: lastMessage?.created_at || null,
+          unreadCount: unreadCount || 0,
+          lastMessageSenderId: lastMessage?.sender_id || null,
+          status: conv.status,
+        };
+      })
+    );
 
     // Transform RPC response from snake_case to camelCase for frontend
     // The RPC returns: conversation_id, other_user_id, other_user_name, last_message_content, last_message_at, unread_count, last_message_sender_id
@@ -133,6 +199,7 @@ export async function GET(request, { params }) {
 
         return {
           id: conversationId,
+          type: "user", // User-to-user conversation
           otherUserId: otherUserId,
           otherUserName: otherUserName,
           otherUserAvatar: conv.other_user_avatar || null,
@@ -144,13 +211,69 @@ export async function GET(request, { params }) {
       })
     );
 
+    // Combine user-to-user and role conversations
+    const allConversations = [...transformedConversations, ...transformedRoleConversations];
+
+    // Filter conversations by permissions - check both directions in parallel for performance
+    // Show conversation if either direction is allowed, but track canSend and canReceive separately
+    // Role conversations are already filtered (user is initiator), so skip permission checks for them
+    const permissionChecks = await Promise.all(
+      allConversations.map(async (conv) => {
+        // Skip permission check for role conversations (already validated)
+        if (conv.type === "role") {
+          return {
+            conv,
+            canSend: true, // Initiator can always send to role
+            canReceive: true, // Can receive from role members
+            canSee: true,
+          };
+        }
+        // Check if current user can message other user (can send)
+        const { data: canSend, error: sendError } = await supabase.rpc(
+          "can_user_message_user",
+          {
+            p_sender_id: user.id,
+            p_recipient_id: conv.otherUserId,
+            p_organization_id: id,
+          }
+        );
+
+        // Check if other user can message current user (can receive)
+        const { data: canReceive, error: receiveError } = await supabase.rpc(
+          "can_user_message_user",
+          {
+            p_sender_id: conv.otherUserId,
+            p_recipient_id: user.id,
+            p_organization_id: id,
+          }
+        );
+
+        return {
+          conv,
+          canSend: !sendError && (canSend || false),
+          canReceive: !receiveError && (canReceive || false),
+          canSee: (!sendError && (canSend || false)) || (!receiveError && (canReceive || false)), // Show if either direction is allowed
+        };
+      })
+    );
+
+    // Filter conversations where at least one direction is allowed
+    const validConversations = permissionChecks
+      .filter(({ canSee }) => canSee)
+      .map(({ conv, canSend, canReceive }) => ({
+        ...conv,
+        canSend,
+        canReceive,
+        isReadOnly: canReceive && !canSend, // Can receive but not send
+      }));
+
     return NextResponse.json(
       {
         error: false,
         data: {
-          conversations: transformedConversations,
-          total: count || 0,
-          hasMore: (count || 0) > offset + limit,
+          conversations: validConversations,
+          total: validConversations.length,
+          hasMore: false, // Note: total count may not be accurate after filtering, so hasMore is set to false
         },
         message: "Conversaciones obtenidas exitosamente.",
       },

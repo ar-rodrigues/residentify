@@ -193,13 +193,35 @@ export async function GET(request, { params }) {
       })
     );
 
+    // Filter members by permissions - check all permissions in parallel for performance
+    const permissionChecks = await Promise.all(
+      formattedMembers.map((member) =>
+        supabase
+          .rpc("can_user_message_user", {
+            p_sender_id: user.id,
+            p_recipient_id: member.userId,
+            p_organization_id: id,
+          })
+          .then(({ data, error }) => ({
+            member,
+            canMessage: !error && (data || false),
+          }))
+          .catch(() => ({ member, canMessage: false }))
+      )
+    );
+
+    // Filter members where permission is granted
+    const validMembers = permissionChecks
+      .filter(({ canMessage }) => canMessage)
+      .map(({ member }) => member);
+
     return NextResponse.json(
       {
         error: false,
         data: {
-          members: formattedMembers,
-          total: count || 0,
-          hasMore: (count || 0) > offset + limit,
+          members: validMembers,
+          total: validMembers.length,
+          hasMore: false, // Note: total count may not be accurate after filtering, so hasMore is set to false
         },
         message: "Miembros obtenidos exitosamente.",
       },

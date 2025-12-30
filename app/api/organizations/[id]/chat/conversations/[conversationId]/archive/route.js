@@ -2,25 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organizations/[id]/chat/permissions/check?userId=[userId]
- * Check if current user can message a specific user
+ * POST /api/organizations/[id]/chat/conversations/[conversationId]/archive
+ * Archive a resolved conversation
  */
-export async function GET(request, { params }) {
+export async function POST(request, { params }) {
   try {
-    const { id } = await params;
+    const { id, conversationId } = await params;
     const supabase = await createClient();
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: true,
-          message: "El parámetro userId es requerido.",
-        },
-        { status: 400 }
-      );
-    }
 
     // Authenticate user
     const {
@@ -56,24 +44,24 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Check permissions using the function
-    const { data: canMessage, error: permissionError } = await supabase.rpc(
-      "can_user_message_user",
+    // Archive conversation
+    const { data: success, error: archiveError } = await supabase.rpc(
+      "archive_conversation",
       {
-        p_sender_id: user.id,
-        p_recipient_id: userId,
-        p_organization_id: id,
+        p_conversation_id: conversationId,
+        p_user_id: user.id,
       }
     );
 
-    if (permissionError) {
-      console.error("Error checking permissions:", permissionError);
+    if (archiveError) {
+      console.error("Error archiving conversation:", archiveError);
       return NextResponse.json(
         {
           error: true,
-          message: "Error al verificar los permisos.",
+          message:
+            archiveError.message || "Error al archivar la conversación.",
         },
-        { status: 500 }
+        { status: 400 }
       );
     }
 
@@ -81,40 +69,20 @@ export async function GET(request, { params }) {
       {
         error: false,
         data: {
-          canMessage: canMessage || false,
+          success,
         },
-        message: "Permisos verificados exitosamente.",
+        message: "Conversación archivada exitosamente.",
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Unexpected error checking permissions:", error);
+    console.error("Unexpected error archiving conversation:", error);
     return NextResponse.json(
       {
         error: true,
-        message: "Error inesperado al verificar los permisos.",
+        message: "Error inesperado al archivar la conversación.",
       },
       { status: 500 }
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organizations/[id]/chat/permissions
- * Get all role-to-role permissions for the organization
+ * GET /api/organizations/[id]/chat/role-permissions
+ * Get all role-to-role permissions for role conversations
  */
 export async function GET(request, { params }) {
   try {
@@ -79,10 +79,10 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Get all disabled permissions for this organization (user-to-user)
-    const { data: disabledPermissions, error: permissionsError } =
+    // Get all enabled permissions for this organization
+    const { data: enabledPermissions, error: permissionsError } =
       await supabase
-        .from("role_chat_permissions")
+        .from("role_chat_role_permissions")
         .select("sender_role_id, recipient_role_id")
         .eq("organization_id", id);
 
@@ -97,35 +97,14 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Get all role-to-role permissions (for role conversations)
-    const { data: roleRolePermissions, error: roleRolePermissionsError } =
-      await supabase
-        .from("role_chat_role_permissions")
-        .select("sender_role_id, recipient_role_id")
-        .eq("organization_id", id);
-
-    if (roleRolePermissionsError) {
-      console.error("Error fetching role-to-role permissions:", roleRolePermissionsError);
-      // Don't fail, just log the error
-    }
-
-    // Create a set of disabled permission pairs for quick lookup (user-to-user)
-    const disabledSet = new Set(
-      (disabledPermissions || []).map(
+    // Create a set of enabled permission pairs for quick lookup
+    const enabledSet = new Set(
+      (enabledPermissions || []).map(
         (p) => `${p.sender_role_id}-${p.recipient_role_id}`
       )
     );
 
-    // Create a set of disabled role-to-role permission pairs
-    // Note: For role-to-role, entries in the table DISABLE permissions (default is allow)
-    // So entries = disabled, no entry = enabled
-    const roleRoleDisabledSet = new Set(
-      (roleRolePermissions || []).map(
-        (p) => `${p.sender_role_id}-${p.recipient_role_id}`
-      )
-    );
-
-    // Build permissions matrix (user-to-user)
+    // Build permissions matrix
     const permissions = [];
     for (const senderRole of roles || []) {
       for (const recipientRole of roles || []) {
@@ -135,23 +114,7 @@ export async function GET(request, { params }) {
           senderRoleName: senderRole.name,
           recipientRoleId: recipientRole.id,
           recipientRoleName: recipientRole.name,
-          disabled: disabledSet.has(key),
-        });
-      }
-    }
-
-    // Build role-to-role permissions matrix
-    // Note: entries in table = disabled, no entry = enabled (default allow)
-    const roleRolePermissionsMatrix = [];
-    for (const senderRole of roles || []) {
-      for (const recipientRole of roles || []) {
-        const key = `${senderRole.id}-${recipientRole.id}`;
-        roleRolePermissionsMatrix.push({
-          senderRoleId: senderRole.id,
-          senderRoleName: senderRole.name,
-          recipientRoleId: recipientRole.id,
-          recipientRoleName: recipientRole.name,
-          enabled: !roleRoleDisabledSet.has(key), // enabled = no entry exists (default allow)
+          enabled: enabledSet.has(key),
         });
       }
     }
@@ -161,19 +124,18 @@ export async function GET(request, { params }) {
         error: false,
         data: {
           permissions,
-          roleRolePermissions: roleRolePermissionsMatrix,
           roles: roles || [],
         },
-        message: "Permisos obtenidos exitosamente.",
+        message: "Permisos de rol obtenidos exitosamente.",
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Unexpected error fetching permissions:", error);
+    console.error("Unexpected error fetching role permissions:", error);
     return NextResponse.json(
       {
         error: true,
-        message: "Error inesperado al obtener los permisos.",
+        message: "Error inesperado al obtener los permisos de rol.",
       },
       { status: 500 }
     );
@@ -181,8 +143,8 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/organizations/[id]/chat/permissions
- * Update role-to-role permissions (admin only)
+ * PUT /api/organizations/[id]/chat/role-permissions
+ * Update role-to-role permissions for role conversations (admin only)
  */
 export async function PUT(request, { params }) {
   try {
@@ -234,104 +196,28 @@ export async function PUT(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const { senderRoleId, recipientRoleId, disabled, isRoleToRole } = body;
+    const { senderRoleId, recipientRoleId, enabled } = body;
 
     // Validate input
     if (
       typeof senderRoleId !== "number" ||
       typeof recipientRoleId !== "number" ||
-      typeof disabled !== "boolean"
+      typeof enabled !== "boolean"
     ) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "Datos inválidos. Se requieren senderRoleId, recipientRoleId y disabled.",
+            "Datos inválidos. Se requieren senderRoleId, recipientRoleId y enabled.",
         },
         { status: 400 }
       );
     }
 
-    // Handle role-to-role permissions (for role conversations)
-    // Note: Default is ALLOW. Entries in table = DISABLED, no entry = ENABLED
-    if (isRoleToRole) {
-      if (disabled) {
-        // Add entry to disable permission (default is allow, so we insert to block)
-        const { data, error } = await supabase
-          .from("role_chat_role_permissions")
-          .insert({
-            organization_id: id,
-            sender_role_id: senderRoleId,
-            recipient_role_id: recipientRoleId,
-          })
-          .select()
-          .single();
-
-        if (error) {
-          // If entry already exists, that's fine (idempotent)
-          if (error.code === "23505") {
-            return NextResponse.json(
-              {
-                error: false,
-                message: "Permiso de rol a rol deshabilitado exitosamente.",
-              },
-              { status: 200 }
-            );
-          }
-
-          console.error("Error adding role-to-role permission (to disable):", error);
-          return NextResponse.json(
-            {
-              error: true,
-              message: "Error al deshabilitar el permiso de rol a rol.",
-            },
-            { status: 500 }
-          );
-        }
-
-        return NextResponse.json(
-          {
-            error: false,
-            data,
-            message: "Permiso de rol a rol deshabilitado exitosamente.",
-          },
-          { status: 200 }
-        );
-      } else {
-        // Remove entry to enable permission (default is allow, so we delete to unblock)
-        const { error } = await supabase
-          .from("role_chat_role_permissions")
-          .delete()
-          .eq("organization_id", id)
-          .eq("sender_role_id", senderRoleId)
-          .eq("recipient_role_id", recipientRoleId);
-
-        if (error) {
-          console.error("Error removing role-to-role permission (to enable):", error);
-          return NextResponse.json(
-            {
-              error: true,
-              message: "Error al habilitar el permiso de rol a rol.",
-            },
-            { status: 500 }
-          );
-        }
-
-        return NextResponse.json(
-          {
-            error: false,
-            message: "Permiso de rol a rol habilitado exitosamente.",
-          },
-          { status: 200 }
-        );
-      }
-    }
-
-    // Handle user-to-user permissions (existing logic)
-    if (disabled) {
-      // Add entry to disable permission
+    if (enabled) {
+      // Add entry to enable permission
       const { data, error } = await supabase
-        .from("role_chat_permissions")
+        .from("role_chat_role_permissions")
         .insert({
           organization_id: id,
           sender_role_id: senderRoleId,
@@ -346,41 +232,13 @@ export async function PUT(request, { params }) {
           return NextResponse.json(
             {
               error: false,
-              message: "Permiso deshabilitado exitosamente.",
+              message: "Permiso habilitado exitosamente.",
             },
             { status: 200 }
           );
         }
 
         console.error("Error adding permission:", error);
-        return NextResponse.json(
-          {
-            error: true,
-            message: "Error al deshabilitar el permiso.",
-          },
-          { status: 500 }
-        );
-      }
-
-      return NextResponse.json(
-        {
-          error: false,
-          data,
-          message: "Permiso deshabilitado exitosamente.",
-        },
-        { status: 200 }
-      );
-    } else {
-      // Remove entry to enable permission (back to default)
-      const { error } = await supabase
-        .from("role_chat_permissions")
-        .delete()
-        .eq("organization_id", id)
-        .eq("sender_role_id", senderRoleId)
-        .eq("recipient_role_id", recipientRoleId);
-
-      if (error) {
-        console.error("Error removing permission:", error);
         return NextResponse.json(
           {
             error: true,
@@ -393,31 +251,50 @@ export async function PUT(request, { params }) {
       return NextResponse.json(
         {
           error: false,
+          data,
           message: "Permiso habilitado exitosamente.",
+        },
+        { status: 200 }
+      );
+    } else {
+      // Remove entry to disable permission (back to default)
+      const { error } = await supabase
+        .from("role_chat_role_permissions")
+        .delete()
+        .eq("organization_id", id)
+        .eq("sender_role_id", senderRoleId)
+        .eq("recipient_role_id", recipientRoleId);
+
+      if (error) {
+        console.error("Error removing permission:", error);
+        return NextResponse.json(
+          {
+            error: true,
+            message: "Error al deshabilitar el permiso.",
+          },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: false,
+          message: "Permiso deshabilitado exitosamente.",
         },
         { status: 200 }
       );
     }
   } catch (error) {
-    console.error("Unexpected error updating permissions:", error);
+    console.error("Unexpected error updating role permissions:", error);
     return NextResponse.json(
       {
         error: true,
-        message: "Error inesperado al actualizar los permisos.",
+        message: "Error inesperado al actualizar los permisos de rol.",
       },
       { status: 500 }
     );
   }
 }
-
-
-
-
-
-
-
-
-
 
 
 
