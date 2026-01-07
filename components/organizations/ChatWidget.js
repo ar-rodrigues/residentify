@@ -28,8 +28,6 @@ import { useOrganizationAuth } from "@/hooks/useOrganizationAuth";
 import { createClient } from "@/utils/supabase/client";
 import { getRoleConfig } from "@/config/roles";
 import ChatPermissionsSettings from "@/app/[locale]/(private)/organizations/[id]/_components/widgets/residential/ChatPermissionsSettings";
-import ResolutionRequestBanner from "@/components/organizations/chat/ResolutionRequestBanner";
-import ResolutionActions from "@/components/organizations/chat/ResolutionActions";
 import ConversationStatusBadge from "@/components/organizations/chat/ConversationStatusBadge";
 
 const { TextArea } = Input;
@@ -60,8 +58,6 @@ export default function ChatWidget({ organizationId }) {
   const [temporaryConversation, setTemporaryConversation] = useState(null);
   const [showConversationsList, setShowConversationsList] = useState(!isMobile);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
-  const [conversationStatusFilter, setConversationStatusFilter] =
-    useState("active"); // active, resolved, archived
   const [conversationDetails, setConversationDetails] = useState(null); // For role conversations
 
   const messagesEndRef = useRef(null);
@@ -131,7 +127,7 @@ export default function ChatWidget({ organizationId }) {
     try {
       setLoadingRoleConversations(true);
       const response = await fetch(
-        `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0&status=${conversationStatusFilter}`
+        `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0`
       );
       const result = await response.json();
 
@@ -150,7 +146,7 @@ export default function ChatWidget({ organizationId }) {
     } finally {
       setLoadingRoleConversations(false);
     }
-  }, [organizationId, currentUser?.id, conversationStatusFilter, message]);
+  }, [organizationId, currentUser?.id, message]);
 
   // Silent fetch role conversations without loading state (for real-time updates)
   const fetchRoleConversationsSilently = useCallback(async () => {
@@ -158,7 +154,7 @@ export default function ChatWidget({ organizationId }) {
 
     try {
       const response = await fetch(
-        `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0&status=${conversationStatusFilter}`
+        `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0`
       );
       const result = await response.json();
 
@@ -170,7 +166,7 @@ export default function ChatWidget({ organizationId }) {
     } catch (error) {
       console.error("Error silently fetching role conversations:", error);
     }
-  }, [organizationId, currentUser?.id, conversationStatusFilter]);
+  }, [organizationId, currentUser?.id]);
 
   // Fetch members
   const fetchMembers = useCallback(async () => {
@@ -525,7 +521,7 @@ export default function ChatWidget({ organizationId }) {
           setTimeout(async () => {
           if (isRoleConversation) {
             const response = await fetch(
-              `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0&status=${conversationStatusFilter}`
+              `/api/organizations/${organizationId}/chat/role-conversations?limit=50&offset=0`
             );
             const updatedConvs = await response.json();
 
@@ -561,7 +557,6 @@ export default function ChatWidget({ organizationId }) {
     fetchMessages,
     currentUser?.id,
     checkCanMessage,
-    conversationStatusFilter,
   ]);
 
   // Start conversation with a member
@@ -1192,51 +1187,12 @@ export default function ChatWidget({ organizationId }) {
                   style={{ borderColor: "var(--color-border)" }}
                 >
                   <div className="px-4 py-2">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="mb-2">
                       <div
                         className="text-xs font-semibold uppercase tracking-wide"
                         style={{ color: "var(--color-text-secondary)" }}
                       >
                         Conversaciones de Rol
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          type={
-                            conversationStatusFilter === "active"
-                              ? "primary"
-                              : "default"
-                          }
-                          size="small"
-                          onClick={() => setConversationStatusFilter("active")}
-                        >
-                          Activas
-                        </Button>
-                        <Button
-                          type={
-                            conversationStatusFilter === "resolved"
-                              ? "primary"
-                              : "default"
-                          }
-                          size="small"
-                          onClick={() =>
-                            setConversationStatusFilter("resolved")
-                          }
-                        >
-                          Resueltas
-                        </Button>
-                        <Button
-                          type={
-                            conversationStatusFilter === "archived"
-                              ? "primary"
-                              : "default"
-                          }
-                          size="small"
-                          onClick={() =>
-                            setConversationStatusFilter("archived")
-                          }
-                        >
-                          Archivadas
-                        </Button>
                       </div>
                     </div>
                     {roleConversations.map((conversation) => {
@@ -1319,22 +1275,6 @@ export default function ChatWidget({ organizationId }) {
                                     </Tag>
                                   );
                                 })()}
-                              {conversation.status &&
-                                conversation.status !== "active" && (
-                                  <Tag
-                                    color={
-                                      conversation.status === "resolved"
-                                        ? "green"
-                                        : "default"
-                                    }
-                                    className="m-0 text-xs"
-                                    size="small"
-                                  >
-                                    {conversation.status === "resolved"
-                                      ? "Resuelta"
-                                      : "Archivada"}
-                                  </Tag>
-                                )}
                             </div>
                             {conversation.lastMessage && (
                               <div
@@ -1749,64 +1689,10 @@ export default function ChatWidget({ organizationId }) {
                                 </Tag>
                               );
                             })()}
-                          {isRoleConv &&
-                            selectedConversation.status &&
-                            selectedConversation.status !== "active" && (
-                              <Tag
-                                color={
-                                  selectedConversation.status === "resolved"
-                                    ? "green"
-                                    : "default"
-                                }
-                                className="m-0"
-                                size="small"
-                              >
-                                {selectedConversation.status === "resolved"
-                                  ? "Resuelta"
-                                  : "Archivada"}
-                              </Tag>
-                            )}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {isRoleConv && (
-                        <ResolutionActions
-                          conversation={selectedConversation}
-                          organizationId={organizationId}
-                          currentUserId={currentUser?.id}
-                          onUpdate={() => {
-                            // Refresh conversation details and role conversations list
-                            if (selectedConversation.type === "role") {
-                              fetch(
-                                `/api/organizations/${organizationId}/chat/role-conversations/${selectedConversation.id}`
-                              )
-                                .then((res) => res.json())
-                                .then((result) => {
-                                  if (
-                                    !result.error &&
-                                    result.data?.conversation
-                                  ) {
-                                    setConversationDetails(
-                                      result.data.conversation
-                                    );
-                                    setSelectedConversation((prev) => ({
-                                      ...prev,
-                                      status: result.data.conversation.status,
-                                    }));
-                                  }
-                                })
-                                .catch((err) => {
-                                  console.error(
-                                    "Error fetching conversation details:",
-                                    err
-                                  );
-                                });
-                              fetchRoleConversations();
-                            }
-                          }}
-                        />
-                      )}
                       {isAdmin && (
                         <Button
                           type="text"
@@ -1830,46 +1716,6 @@ export default function ChatWidget({ organizationId }) {
                 scrollbarColor: "#cbd5e0 #f7fafc",
               }}
             >
-              {/* Resolution Request Banner */}
-              {conversationDetails?.pendingResolutionRequests?.length > 0 &&
-                conversationDetails.pendingResolutionRequests
-                  .filter((req) => req.status === "pending")
-                  .map((req) => (
-                    <ResolutionRequestBanner
-                      key={req.id}
-                      resolutionRequest={req}
-                      conversationId={selectedConversation.id}
-                      organizationId={organizationId}
-                      currentUserId={currentUser?.id}
-                      onUpdate={() => {
-                        // Refresh conversation details
-                        if (selectedConversation.type === "role") {
-                          fetch(
-                            `/api/organizations/${organizationId}/chat/role-conversations/${selectedConversation.id}`
-                          )
-                            .then((res) => res.json())
-                            .then((result) => {
-                              if (!result.error && result.data?.conversation) {
-                                setConversationDetails(
-                                  result.data.conversation
-                                );
-                                setSelectedConversation((prev) => ({
-                                  ...prev,
-                                  status: result.data.conversation.status,
-                                }));
-                              }
-                            })
-                            .catch((err) => {
-                              console.error(
-                                "Error fetching conversation details:",
-                                err
-                              );
-                            });
-                          fetchRoleConversations();
-                        }
-                      }}
-                    />
-                  ))}
               {loadingMessages ? (
                 <div className="flex justify-center items-center h-full">
                   <Spin />

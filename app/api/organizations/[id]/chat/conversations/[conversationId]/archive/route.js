@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 
 /**
  * POST /api/organizations/[id]/chat/conversations/[conversationId]/archive
- * Archive a resolved conversation
+ * Archive a conversation
  */
 export async function POST(request, { params }) {
   try {

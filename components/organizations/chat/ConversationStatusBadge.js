@@ -8,10 +8,6 @@ export default function ConversationStatusBadge({ status }) {
   }
 
   const statusConfig = {
-    resolved: {
-      color: "green",
-      text: "Resuelta",
-    },
     archived: {
       color: "default",
       text: "Archivada",
@@ -30,6 +26,9 @@ export default function ConversationStatusBadge({ status }) {
     </Tag>
   );
 }
+
+
+
 
 
 

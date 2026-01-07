@@ -14,7 +14,6 @@ export async function GET(request, { params }) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
-    const status = searchParams.get("status") || "active"; // active, resolved, archived
 
     // Authenticate user
     const {
@@ -57,7 +56,6 @@ export async function GET(request, { params }) {
         p_organization_id: id,
         p_limit: limit,
         p_offset: offset,
-        p_status: status,
       });
 
     if (conversationsError) {
@@ -144,15 +142,12 @@ export async function GET(request, { params }) {
           unreadCount: conv.unread_count || 0,
           lastMessageSenderId: conv.last_message_sender_id || null,
           lastMessageSenderName: lastMessageSenderName,
-          status: conv.status || "active",
           canSend: true, // Role members can always send
           canReceive: true,
         };
       })
     );
 
-    // Status filtering is now handled by the database function
-    // No need to filter again here since the function already filters by status
     const filteredConversations = transformedConversations;
 
     return NextResponse.json(
