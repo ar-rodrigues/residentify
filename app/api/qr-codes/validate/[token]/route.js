@@ -1,9 +1,21 @@
+/// <reference path="../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/qr-codes/validate/[token]
- * Get QR code by token (for security to view before validation)
+ * Public endpoint to validate a QR code token and get its details
+ * 
+ * @auth {Session} User must be authenticated and be a security member of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ token: string }> }} context
+ * @response 200 {QrCodes} QR code details if valid
+ * @response 400 {Error} QR code already used or expired
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (security only)
+ * @response 404 {Error} Token not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {
@@ -128,7 +140,18 @@ export async function GET(request, { params }) {
 
 /**
  * POST /api/qr-codes/validate/[token]
- * Validate token, add visitor info, create access log, mark as used
+ * Validate a QR code token, record visitor info, and create an access log
+ * 
+ * @auth {Session} User must be authenticated and be a security member of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ token: string }> }} context
+ * @body {Object} { visitor_name: string, visitor_id?: string, document_photo_url?: string, entry_type?: "entry" | "exit", notes?: string } Validation details
+ * @response 200 {Object} { qr_code: QrCodes, access_log: AccessLogs } Updated QR code and created log
+ * @response 400 {Error} Validation error (missing fields or code already used/expired)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (security only)
+ * @response 404 {Error} Token not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request, { params }) {
   try {

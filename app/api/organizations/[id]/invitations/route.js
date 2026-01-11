@@ -1,3 +1,5 @@
+/// <reference path="../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import crypto from "crypto";
@@ -35,6 +37,18 @@ function getTranslatedMessage(locale, key) {
 /**
  * POST /api/organizations/[id]/invitations
  * Create a new invitation for an organization (admin only)
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { first_name: string, last_name: string, email: string, organization_role_id: number, description?: string } Invitation details
+ * @response 201 {OrganizationInvitations} Created invitation record
+ * @response 400 {Error} Validation error (missing fields or invalid format)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Organization not found
+ * @response 409 {Error} Duplicate invitation (pending invitation already exists)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request, { params }) {
   try {

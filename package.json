@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test-db": "node scripts/test-db-connection.js",
-    "generate-schema": "node scripts/generate-schema.js"
+    "generate-schema": "node scripts/generate-schema.js",
+    "generate-typedef": "node scripts/generate-typedef.js"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

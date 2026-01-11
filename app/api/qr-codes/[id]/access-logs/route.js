@@ -1,9 +1,22 @@
+/// <reference path="../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/qr-codes/[id]/access-logs
  * Get access logs for a specific QR code
+ * 
+ * @auth {Session} User must be authenticated and have access (creator, admin, or security)
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @param {number} [limit=50] - Pagination limit (query param)
+ * @param {number} [offset=0] - Pagination offset (query param)
+ * @response 200 {Array<AccessLogs & { scanned_by_name: string }>} List of access logs
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized
+ * @response 404 {Error} QR code not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 
 /**
- * Page component for API documentation
- * Shows documentation options or redirects to Scalar
+ * Page component for Code API documentation
+ * Redirects to the route handler that renders the documentation
  */
-export default function ApiDocsPage() {
+export default function CodeDocsPage() {
   // Check if running in development mode
   const isDevelopment =
     process.env.DEVELOPMENT === "true" ||
@@ -16,7 +16,7 @@ export default function ApiDocsPage() {
     return null;
   }
 
-  // Redirect to the HTML route handler (Scalar)
-  redirect("/api/docs/html");
+  // Redirect to the route handler
+  redirect("/api/docs/code/html");
   return null;
 }

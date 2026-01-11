@@ -1,3 +1,5 @@
+/// <reference path="../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
@@ -8,6 +10,17 @@ import { getLocaleFromRequest } from "@/utils/i18n/request";
 /**
  * POST /api/organizations/[id]/general-invite-links
  * Create a new general invite link for an organization (admin only)
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { organization_role_id: number, requires_approval: boolean, expires_at?: string } Link details
+ * @response 201 {GeneralInviteLinks & { invite_url: string, role_name: string }} Created link details
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Organization or role not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request, { params }) {
   try {
@@ -225,6 +238,14 @@ export async function POST(request, { params }) {
 /**
  * GET /api/organizations/[id]/general-invite-links
  * List all general invite links for an organization (admin only)
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Array<GeneralInviteLinks & { invite_url: string, usage_count: number }>} List of links with stats
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {

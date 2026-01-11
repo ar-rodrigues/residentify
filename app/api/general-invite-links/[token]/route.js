@@ -1,3 +1,5 @@
+/// <reference path="../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -5,6 +7,15 @@ import { createClient } from "@/utils/supabase/server";
  * GET /api/general-invite-links/[token]
  * Public endpoint to validate and get general invite link details
  * Returns organization name (not ID) for security
+ *
+ * @auth {Public} No authentication required
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ token: string }> }} context
+ * @response 200 {Object} { id: string, organization_name: string, role_name: string, ... } Link details
+ * @response 400 {Error} Invalid token
+ * @response 404 {Error} Invite link not found
+ * @response 410 {Error} Invite link expired
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {
@@ -80,33 +91,3 @@ export async function GET(request, { params }) {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

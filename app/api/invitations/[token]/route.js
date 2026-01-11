@@ -1,9 +1,20 @@
+/// <reference path="../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/invitations/[token]
  * Get invitation details by token (public access for registration page)
+ * 
+ * @auth {Public} No authentication required
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ token: string }> }} context
+ * @response 200 {Object} { id: string, email: string, organization: Object, role: Object, ... } Invitation details
+ * @response 400 {Error} Invalid token
+ * @response 404 {Error} Invitation not found
+ * @response 410 {Error} Invitation expired or already used
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {

@@ -1,9 +1,22 @@
+/// <reference path="../../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * POST /api/organizations/[id]/chat/messages
- * Send a message
+ * Send a message to a user or a role
+ * 
+ * @auth {Session} User must be authenticated and be a member of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { recipientId?: string, conversationId?: string, roleId?: number, content: string } Message details
+ * @response 200 {ChatMessages} Sent message details
+ * @response 400 {Error} Validation error (empty content, missing recipient/role)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not a member or no permission to message role/user
+ * @response 404 {Error} Recipient or conversation not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request, { params }) {
   try {

@@ -1,10 +1,23 @@
+/// <reference path="../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
  * GET /api/admin/user-flags
- * List all user flags (app-level admin only)
+ * List all user-specific feature flag overrides
+ * 
+ * @auth {Session} User must be authenticated and be a system administrator
+ * @param {import('next/server').NextRequest} request
+ * @param {string} [user_id] - Filter by user ID (query param)
+ * @param {string} [flag_id] - Filter by flag ID (query param)
+ * @param {number} [page=1] - Pagination page (query param)
+ * @param {number} [page_size=50] - Pagination size (query param)
+ * @response 200 {Object} { user_flags: Array<UserFlags & { feature_flags: FeatureFlags }>, pagination: Object } List of user flags and pagination
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request) {
   try {
@@ -121,7 +134,16 @@ export async function GET(request) {
 
 /**
  * POST /api/admin/user-flags
- * Create or update user flag (app-level admin only)
+ * Create or update a user-specific feature flag override
+ * 
+ * @auth {Session} User must be authenticated and be a system administrator
+ * @param {import('next/server').NextRequest} request
+ * @body {Object} { user_id: string, feature_flag_id: string, enabled: boolean } Override details
+ * @response 200 {UserFlags & { feature_flags: FeatureFlags }} Created or updated user flag
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request) {
   try {

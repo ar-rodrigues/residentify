@@ -1,10 +1,21 @@
+/// <reference path="../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * GET /api/organizations/[id]/members
- * Get all organization members (organization-level admin only)
+ * Get all organization members with their roles and profiles
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Array<OrganizationMembers & { name: string, email: string, role: OrganizationRoles }>} List of members
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Organization not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {
@@ -252,7 +263,18 @@ export async function GET(request, { params }) {
 
 /**
  * PUT /api/organizations/[id]/members
- * Update member role (organization-level admin only)
+ * Update a member's role within the organization
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { member_id: string, organization_role_id: number } Role update details
+ * @response 200 {OrganizationMembers} Updated member info
+ * @response 400 {Error} Validation error (e.g. last admin role change)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Member not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function PUT(request, { params }) {
   try {
@@ -471,7 +493,18 @@ export async function PUT(request, { params }) {
 
 /**
  * DELETE /api/organizations/[id]/members
- * Remove member from organization (organization-level admin only)
+ * Remove a member from the organization
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @param {string} member_id - Member ID to remove (passed as query param)
+ * @response 200 {Object} Success message
+ * @response 400 {Error} Cannot remove (e.g. self-removal or last admin)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Member not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function DELETE(request, { params }) {
   try {

@@ -1,3 +1,5 @@
+/// <reference path="../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
@@ -5,6 +7,13 @@ import { getOrganizationById } from "@/utils/api/organizations";
 /**
  * GET /api/organizations/[id]
  * Get organization details by ID
+ * 
+ * @auth {Session} User must be authenticated
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Organizations} Organization details
+ * @response 404 {Error} Organization not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {
@@ -34,6 +43,18 @@ export async function GET(request, { params }) {
 /**
  * PUT /api/organizations/[id]
  * Update organization (admin only)
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { name: string } Organization name (2-100 characters)
+ * @response 200 {Organizations} Updated organization
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Organization not found
+ * @response 409 {Error} Organization name already exists
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function PUT(request, { params }) {
   try {
@@ -200,6 +221,15 @@ export async function PUT(request, { params }) {
 /**
  * DELETE /api/organizations/[id]
  * Delete organization (admin only, requires all members to be removed first)
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Object} Success message
+ * @response 400 {Error} Cannot delete (has members or other constraints)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function DELETE(request, { params }) {
   try {

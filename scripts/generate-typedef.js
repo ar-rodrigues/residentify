@@ -1,0 +1,232 @@
+// Load environment variables from .env file
+require('dotenv').config({ path: '.env.local' });
+
+const fs = require('fs');
+const path = require('path');
+
+/**
+ * Convert PostgreSQL data type to JSDoc type
+ */
+function convertPostgresTypeToJSDoc(dataType) {
+  const typeMap = {
+    'uuid': 'string',
+    'text': 'string',
+    'character varying': 'string',
+    'varchar': 'string',
+    'integer': 'number',
+    'bigint': 'number',
+    'smallint': 'number',
+    'numeric': 'number',
+    'real': 'number',
+    'double precision': 'number',
+    'boolean': 'boolean',
+    'timestamp with time zone': 'string',
+    'timestamp without time zone': 'string',
+    'timestamp': 'string',
+    'date': 'string',
+    'time': 'string',
+    'json': 'Object',
+    'jsonb': 'Object',
+    'USER-DEFINED': 'string', // Enums
+  };
+
+  // Check for exact match first
+  if (typeMap[dataType]) {
+    return typeMap[dataType];
+  }
+
+  // Check for partial matches (e.g., "timestamp with time zone")
+  for (const [key, value] of Object.entries(typeMap)) {
+    if (dataType.includes(key)) {
+      return value;
+    }
+  }
+
+  // Default to string for unknown types
+  return 'string';
+}
+
+/**
+ * Convert table name to PascalCase for type name
+ */
+function toPascalCase(str) {
+  return str
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('');
+}
+
+/**
+ * Parse schema.md and extract table information
+ */
+function parseSchemaMarkdown(schemaPath) {
+  const content = fs.readFileSync(schemaPath, 'utf8');
+  const lines = content.split('\n');
+
+  // Find the table schema section
+  let inTableSection = false;
+  const tables = new Map();
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Check if we're entering the table section
+    if (line.includes('| table_name | column_name |')) {
+      inTableSection = true;
+      continue;
+    }
+
+    // Stop at Database Views section
+    if (line.includes('## Database Views')) {
+      break;
+    }
+
+    if (!inTableSection) continue;
+
+    // Skip header separator line
+    if (line.startsWith('|') && line.includes('---')) {
+      continue;
+    }
+
+    // Parse table rows
+    if (line.startsWith('|') && inTableSection) {
+      const parts = line.split('|').map(p => p.trim()).filter(p => p);
+      
+      if (parts.length >= 8) {
+        const tableName = parts[0];
+        const columnName = parts[1];
+        const dataType = parts[2];
+        const isNullable = parts[3];
+        const columnDefault = parts[4];
+        const isPrimaryKey = parts[5] === 'true';
+        const referencedTable = parts[6] !== 'null' ? parts[6] : null;
+        const referencedColumn = parts[7] !== 'null' ? parts[7] : null;
+
+        if (!tables.has(tableName)) {
+          tables.set(tableName, []);
+        }
+
+        tables.get(tableName).push({
+          columnName,
+          dataType,
+          isNullable: isNullable === 'YES',
+          columnDefault,
+          isPrimaryKey,
+          referencedTable,
+          referencedColumn,
+        });
+      }
+    }
+  }
+
+  return tables;
+}
+
+/**
+ * Generate JSDoc typedef for a table
+ */
+function generateTypedef(tableName, columns) {
+  const typeName = toPascalCase(tableName);
+  let typedef = `/**
+ * @typedef {Object} ${typeName}
+`;
+
+  // Sort columns: primary key first, then by name
+  const sortedColumns = [...columns].sort((a, b) => {
+    if (a.isPrimaryKey && !b.isPrimaryKey) return -1;
+    if (!a.isPrimaryKey && b.isPrimaryKey) return 1;
+    return a.columnName.localeCompare(b.columnName);
+  });
+
+  for (const col of sortedColumns) {
+    const jsdocType = convertPostgresTypeToJSDoc(col.dataType);
+    const optional = col.isNullable ? '[' : '';
+    const optionalClose = col.isNullable ? ']' : '';
+    
+    let description = '';
+    if (col.isPrimaryKey) {
+      description = ' - Primary key';
+    } else if (col.referencedTable) {
+      description = ` - Foreign key to ${col.referencedTable}`;
+      if (col.referencedColumn) {
+        description += `.${col.referencedColumn}`;
+      }
+    }
+
+    typedef += ` * @property {${jsdocType}} ${optional}${col.columnName}${optionalClose}${description}\n`;
+  }
+
+  typedef += ' */\n';
+  return typedef;
+}
+
+/**
+ * Generate all typedefs from schema
+ */
+function generateTypedefs() {
+  try {
+    const schemaPath = path.join(__dirname, '..', 'sql', 'schema.md');
+    
+    if (!fs.existsSync(schemaPath)) {
+      console.error('❌ Error: schema.md not found at', schemaPath);
+      console.error('   Please run generate-schema first.');
+      process.exit(1);
+    }
+
+    console.log('📖 Reading schema.md...');
+    const tables = parseSchemaMarkdown(schemaPath);
+    console.log(`   Found ${tables.size} tables\n`);
+
+    // Generate typedefs
+    let output = `/**
+ * @fileoverview Database type definitions generated from schema.md
+ * 
+ * This file is auto-generated by scripts/generate-typedef.js
+ * DO NOT EDIT THIS FILE MANUALLY
+ * 
+ * To regenerate: npm run generate-typedef
+ * 
+ * Generated on: ${new Date().toISOString()}
+ */
+
+`;
+
+    // Sort tables alphabetically
+    const sortedTableNames = Array.from(tables.keys()).sort();
+
+    for (const tableName of sortedTableNames) {
+      const columns = tables.get(tableName);
+      output += generateTypedef(tableName, columns);
+      output += '\n';
+    }
+
+    // Write to file
+    const outputDir = path.join(__dirname, '..', 'types');
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const outputPath = path.join(outputDir, 'database.types.js');
+    fs.writeFileSync(outputPath, output, 'utf8');
+
+    console.log('✅ Typedefs generated successfully!');
+    console.log(`   Output: ${outputPath}`);
+    console.log(`   Tables: ${tables.size} type definitions`);
+    console.log(`   Total columns: ${Array.from(tables.values()).reduce((sum, cols) => sum + cols.length, 0)}`);
+
+  } catch (error) {
+    console.error('\n❌ Error generating typedefs:', error.message);
+    if (error.code) {
+      console.error(`   Error code: ${error.code}`);
+    }
+    console.error(error.stack);
+    process.exit(1);
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  generateTypedefs();
+}
+
+module.exports = { generateTypedefs };

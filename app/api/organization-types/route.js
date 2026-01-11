@@ -1,9 +1,15 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/organization-types
  * Get all available organization types (public read access)
+ *
+ * @auth {Public} No authentication required
+ * @response 200 {Array<OrganizationTypes>} List of organization types
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET() {
   try {
@@ -46,29 +52,3 @@ export async function GET() {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

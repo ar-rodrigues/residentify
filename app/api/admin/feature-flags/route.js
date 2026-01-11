@@ -1,10 +1,18 @@
+/// <reference path="../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
  * GET /api/admin/feature-flags
- * List all feature flags (app-level admin only)
+ * List all feature flags available in the system
+ * 
+ * @auth {Session} User must be authenticated and be a system administrator
+ * @response 200 {Array<FeatureFlags>} List of all feature flags
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET() {
   try {
@@ -78,7 +86,17 @@ export async function GET() {
 
 /**
  * POST /api/admin/feature-flags
- * Create new feature flag (app-level admin only)
+ * Create a new system-wide feature flag
+ * 
+ * @auth {Session} User must be authenticated and be a system administrator
+ * @param {import('next/server').NextRequest} request
+ * @body {Object} { name: string, description?: string } Feature flag details
+ * @response 201 {FeatureFlags} Created feature flag
+ * @response 400 {Error} Validation error (missing name)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 409 {Error} Name already exists
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request) {
   try {

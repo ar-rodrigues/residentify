@@ -1,10 +1,18 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/organization-roles
  * Get organization roles (public read access)
- * Optional query parameter: organization_type_id - filter roles by organization type
+ *
+ * @auth {Public} No authentication required
+ * @param {import('next/server').NextRequest} request
+ * @param {number} [organization_type_id] - Filter roles by organization type (query param)
+ * @response 200 {Array<OrganizationRoles>} List of roles
+ * @response 400 {Error} Invalid organization_type_id
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request) {
   try {

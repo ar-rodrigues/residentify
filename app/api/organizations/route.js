@@ -1,3 +1,5 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { updateMainOrganization } from "@/utils/api/profiles";
@@ -5,6 +7,15 @@ import { updateMainOrganization } from "@/utils/api/profiles";
 /**
  * POST /api/organizations
  * Create a new organization and automatically add the creator as admin
+ *
+ * @auth {Session} User must be authenticated
+ * @param {import('next/server').NextRequest} request
+ * @body {Object} { name: string, organization_type_id?: number } Organization details
+ * @response 201 {Organizations} Newly created organization and member info
+ * @response 400 {Error} Validation error or organization type not found
+ * @response 401 {Error} Not authenticated
+ * @response 409 {Error} Organization name already exists
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request) {
   try {

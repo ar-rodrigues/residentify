@@ -4,6 +4,7 @@ require('dotenv').config({ path: '.env.local' });
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 
 // Get database connection string
 const dbUrl = process.env.DATABASE_URL;
@@ -301,6 +302,11 @@ async function generateSchema() {
     console.log(`   Policies: ${policiesResult.rows.length} policies`);
     console.log(`   Functions: ${functionsResult.rows.length} functions`);
 
+    // Prompt for typedef generation
+    if (require.main === module) {
+      await promptForTypedefGeneration();
+    }
+
   } catch (error) {
     console.error('\n❌ Error generating schema:', error.message);
     if (error.code) {
@@ -310,6 +316,36 @@ async function generateSchema() {
   } finally {
     await client.end();
   }
+}
+
+/**
+ * Prompt user to generate typedefs
+ */
+async function promptForTypedefGeneration() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question('\n📝 Generate typedef? (y/n): ', async (answer) => {
+      rl.close();
+      
+      if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+        try {
+          const { generateTypedefs } = require('./generate-typedef');
+          console.log('\n');
+          generateTypedefs();
+        } catch (error) {
+          console.error('\n❌ Error generating typedefs:', error.message);
+        }
+      } else {
+        console.log('   Skipping typedef generation.');
+      }
+      
+      resolve();
+    });
+  });
 }
 
 generateSchema();

@@ -1,3 +1,5 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
@@ -6,6 +8,14 @@ import { updateMainOrganization } from "@/utils/api/profiles";
 /**
  * PUT /api/profiles/main-organization
  * Update the current user's main organization
+ * 
+ * @auth {Session} User must be authenticated
+ * @param {import('next/server').NextRequest} request
+ * @body {Object} { organization_id: string | null } New main organization ID
+ * @response 200 {Object} Success message
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function PUT(request) {
   try {
@@ -83,6 +93,11 @@ export async function PUT(request) {
 /**
  * GET /api/profiles/main-organization
  * Get the current user's main organization ID
+ * 
+ * @auth {Session} User must be authenticated
+ * @response 200 {string | null} Main organization ID
+ * @response 401 {Error} Not authenticated
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET() {
   try {

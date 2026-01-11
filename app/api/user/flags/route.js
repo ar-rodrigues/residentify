@@ -1,3 +1,5 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getUserFlags } from "@/utils/featureFlags";
@@ -5,7 +7,11 @@ import { getUserFlags } from "@/utils/featureFlags";
 /**
  * GET /api/user/flags
  * Get all feature flags with enabled status for current authenticated user
- * Read-only access - users can only view their own flags
+ * 
+ * @auth {Session} User must be authenticated
+ * @response 200 {Object} { flags: Record<string, boolean> } Feature flags status
+ * @response 401 {Error} Not authenticated
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET() {
   try {

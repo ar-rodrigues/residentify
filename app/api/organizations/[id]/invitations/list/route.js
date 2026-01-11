@@ -1,9 +1,20 @@
+/// <reference path="../../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
  * GET /api/organizations/[id]/invitations/list
- * Get all invitations for organization (organization-level admin only)
+ * List all invitations for a specific organization
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Array<Object>} List of invitations with role and status details
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Organization not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {

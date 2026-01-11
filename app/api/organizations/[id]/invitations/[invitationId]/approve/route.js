@@ -1,3 +1,5 @@
+/// <reference path="../../../../../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
@@ -7,7 +9,17 @@ import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
  * POST /api/organizations/[id]/invitations/[invitationId]/approve
- * Approve a pending invitation that requires approval (admin only)
+ * Approve a pending invitation that requires admin approval
+ * 
+ * @auth {Session} User must be authenticated and be an admin of the organization
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string, invitationId: string }> }} context
+ * @response 200 {OrganizationInvitations} Approved invitation record
+ * @response 400 {Error} Validation error (already processed)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (admin only)
+ * @response 404 {Error} Invitation not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request, { params }) {
   try {

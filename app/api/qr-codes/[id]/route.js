@@ -1,10 +1,20 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
  * GET /api/qr-codes/[id]
- * Get QR code details by ID
+ * Get detailed information about a specific QR code
+ * 
+ * @auth {Session} User must be authenticated and be the creator or have permission
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {QrCodes} QR code details
+ * @response 401 {Error} Not authenticated
+ * @response 404 {Error} QR code not found or access denied
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request, { params }) {
   try {
@@ -116,7 +126,17 @@ export async function GET(request, { params }) {
 
 /**
  * PUT /api/qr-codes/[id]
- * Update QR code (revoke, extend, etc.)
+ * Update QR code metadata (status, notes, identifier)
+ * 
+ * @auth {Session} User must be authenticated and be the creator of the QR code
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @body {Object} { status?: string, notes?: string, identifier?: string } Update details
+ * @response 200 {QrCodes} Updated QR code details
+ * @response 400 {Error} Validation error or cannot update used code
+ * @response 401 {Error} Not authenticated
+ * @response 404 {Error} QR code not found or permission denied
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function PUT(request, { params }) {
   try {
@@ -275,7 +295,17 @@ export async function PUT(request, { params }) {
 
 /**
  * DELETE /api/qr-codes/[id]
- * Delete QR code (only if not validated)
+ * Delete a QR code (only if it hasn't been used yet)
+ * 
+ * @auth {Session} User must be authenticated and be the creator of the QR code
+ * @param {import('next/server').NextRequest} request
+ * @param {{ params: Promise<{ id: string }> }} context
+ * @response 200 {Object} Success message
+ * @response 400 {Error} Cannot delete (already used)
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Permission denied
+ * @response 404 {Error} QR code not found
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function DELETE(request, { params }) {
   try {

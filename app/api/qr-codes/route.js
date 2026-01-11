@@ -1,3 +1,5 @@
+/// <reference path="../../../types/database.types.js" />
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { randomUUID } from "crypto";
@@ -6,7 +8,16 @@ import { generateIdentifier } from "@/utils/identifierGenerator";
 
 /**
  * POST /api/qr-codes
- * Create a new QR code link with unique token
+ * Create a new QR code link for a visitor
+ * 
+ * @auth {Session} User must be authenticated and be a resident of the organization
+ * @param {import('next/server').NextRequest} request
+ * @body {Object} { organization_id: string } Organization ID
+ * @response 201 {QrCodes} Newly created QR code details
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized (resident only)
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function POST(request) {
   try {
@@ -134,6 +145,16 @@ export async function POST(request) {
 /**
  * GET /api/qr-codes
  * Get QR codes for the authenticated user (resident) or unvalidated codes for security
+ * 
+ * @auth {Session} User must be authenticated
+ * @param {import('next/server').NextRequest} request
+ * @param {string} [organization_id] - Filter by organization (query param)
+ * @param {string} [role] - User role ("security" to see all active codes) (query param)
+ * @response 200 {Array<QrCodes>} List of QR codes (filtered by role and user)
+ * @response 400 {Error} Validation error
+ * @response 401 {Error} Not authenticated
+ * @response 403 {Error} Not authorized
+ * @returns {Promise<import('next/server').NextResponse>}
  */
 export async function GET(request) {
   try {
