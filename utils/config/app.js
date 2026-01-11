@@ -26,6 +26,7 @@ export const PUBLIC_ROUTES = [
 export const PUBLIC_PATTERNS = [
   /^\/public\/.*$/, // Todas las rutas que empiecen con /public/
   /^\/api\/public\/.*$/, // Todas las rutas de API públicas
+  /^\/api\/docs\/.*$/, // Rutas de documentación de API (solo desarrollo)
   /^\/blog\/.*$/, // Todas las rutas de blog
 ];
 
