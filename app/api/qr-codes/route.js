@@ -7,17 +7,73 @@ import { randomBytes } from "crypto";
 import { generateIdentifier } from "@/utils/identifierGenerator";
 
 /**
- * POST /api/qr-codes
- * Create a new QR code link for a visitor
- * 
- * @auth {Session} User must be authenticated and be a resident of the organization
- * @param {import('next/server').NextRequest} request
- * @body {Object} { organization_id: string } Organization ID
- * @response 201 {QrCodes} Newly created QR code details
- * @response 400 {Error} Validation error
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (resident only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes:
+ *   post:
+ *     summary: Create a new QR code link for a visitor
+ *     description: Creates a new QR code for visitor access. User must be authenticated and be a resident of the organization.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - organization_id
+ *             properties:
+ *               organization_id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Organization ID where the QR code will be created
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
+ *     responses:
+ *       '201':
+ *         description: QR code created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Enlace generado exitosamente."
+ *                 data:
+ *                   type: object
+ *                   description: QR code details
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     token:
+ *                       type: string
+ *                     organization_id:
+ *                       type: string
+ *                       format: uuid
+ *                     created_by:
+ *                       type: string
+ *                       format: uuid
+ *                     status:
+ *                       type: string
+ *                       enum: [active, inactive]
+ *                     is_used:
+ *                       type: boolean
+ *                     expires_at:
+ *                       type: string
+ *                       format: date-time
+ *                     identifier:
+ *                       type: string
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function POST(request) {
   try {
@@ -143,18 +199,79 @@ export async function POST(request) {
 }
 
 /**
- * GET /api/qr-codes
- * Get QR codes for the authenticated user (resident) or unvalidated codes for security
- * 
- * @auth {Session} User must be authenticated
- * @param {import('next/server').NextRequest} request
- * @param {string} [organization_id] - Filter by organization (query param)
- * @param {string} [role] - User role ("security" to see all active codes) (query param)
- * @response 200 {Array<QrCodes>} List of QR codes (filtered by role and user)
- * @response 400 {Error} Validation error
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes:
+ *   get:
+ *     summary: Get QR codes for the authenticated user or unvalidated codes for security
+ *     description: |
+ *       Returns QR codes based on user role:
+ *       - Residents: Returns QR codes created by the authenticated user
+ *       - Security: Returns unvalidated active QR codes for the organization (requires role=security query param)
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: organization_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter QR codes by organization ID
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [security]
+ *         description: User role. Set to "security" to view all unvalidated active codes for the organization
+ *         example: "security"
+ *     responses:
+ *       '200':
+ *         description: QR codes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Códigos QR obtenidos exitosamente."
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     description: QR code details
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       token:
+ *                         type: string
+ *                       organization_id:
+ *                         type: string
+ *                         format: uuid
+ *                       created_by:
+ *                         type: string
+ *                         format: uuid
+ *                       status:
+ *                         type: string
+ *                         enum: [active, inactive, used, expired]
+ *                       is_used:
+ *                         type: boolean
+ *                       expires_at:
+ *                         type: string
+ *                         format: date-time
+ *                       identifier:
+ *                         type: string
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function GET(request) {
   try {

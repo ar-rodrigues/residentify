@@ -4,17 +4,50 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/invitations/[token]
- * Get invitation details by token (public access for registration page)
- * 
- * @auth {Public} No authentication required
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ token: string }> }} context
- * @response 200 {Object} { id: string, email: string, organization: Object, role: Object, ... } Invitation details
- * @response 400 {Error} Invalid token
- * @response 404 {Error} Invitation not found
- * @response 410 {Error} Invitation expired or already used
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/invitations/{token}:
+ *   get:
+ *     summary: Get invitation details
+ *     description: Public endpoint to get invitation details by token for the registration/join page.
+ *     tags: [Invitations]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     responses:
+ *       200:
+ *         description: Invitation details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         id: { type: string, format: uuid }
+ *                         email: { type: string, format: email }
+ *                         organization:
+ *                           type: object
+ *                           properties:
+ *                             id: { type: string, format: uuid }
+ *                             name: { type: string }
+ *                         role:
+ *                           type: object
+ *                           properties:
+ *                             id: { type: integer }
+ *                             name: { type: string }
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       410:
+ *         description: GONE - Invitation expired or used
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

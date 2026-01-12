@@ -5,14 +5,34 @@ import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
- * GET /api/admin/feature-flags
- * List all feature flags available in the system
- * 
- * @auth {Session} User must be authenticated and be a system administrator
- * @response 200 {Array<FeatureFlags>} List of all feature flags
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/admin/feature-flags:
+ *   get:
+ *     summary: List all feature flags
+ *     description: List all feature flags available in the system. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of feature flags
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/FeatureFlags'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET() {
   try {
@@ -85,18 +105,50 @@ export async function GET() {
 }
 
 /**
- * POST /api/admin/feature-flags
- * Create a new system-wide feature flag
- * 
- * @auth {Session} User must be authenticated and be a system administrator
- * @param {import('next/server').NextRequest} request
- * @body {Object} { name: string, description?: string } Feature flag details
- * @response 201 {FeatureFlags} Created feature flag
- * @response 400 {Error} Validation error (missing name)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 409 {Error} Name already exists
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/admin/feature-flags:
+ *   post:
+ *     summary: Create a new feature flag
+ *     description: Create a new system-wide feature flag. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the feature flag
+ *               description:
+ *                 type: string
+ *                 description: Description of the feature flag
+ *     responses:
+ *       201:
+ *         description: Feature flag created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/FeatureFlags'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       409:
+ *         description: Conflict - Flag name already exists
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request) {
   try {

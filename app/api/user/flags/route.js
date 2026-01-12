@@ -5,13 +5,36 @@ import { createClient } from "@/utils/supabase/server";
 import { getUserFlags } from "@/utils/featureFlags";
 
 /**
- * GET /api/user/flags
- * Get all feature flags with enabled status for current authenticated user
- * 
- * @auth {Session} User must be authenticated
- * @response 200 {Object} { flags: Record<string, boolean> } Feature flags status
- * @response 401 {Error} Not authenticated
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/user/flags:
+ *   get:
+ *     summary: Get user feature flags
+ *     description: Get all feature flags with their enabled status for the current authenticated user.
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Feature flags status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         flags:
+ *                           type: object
+ *                           additionalProperties:
+ *                             type: boolean
+ *                           example: { "chat_enabled": true, "beta_features": false }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET() {
   try {

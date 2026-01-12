@@ -5,17 +5,84 @@ import { createClient } from "@/utils/supabase/server";
 import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
- * POST /api/organizations
- * Create a new organization and automatically add the creator as admin
- *
- * @auth {Session} User must be authenticated
- * @param {import('next/server').NextRequest} request
- * @body {Object} { name: string, organization_type_id?: number } Organization details
- * @response 201 {Organizations} Newly created organization and member info
- * @response 400 {Error} Validation error or organization type not found
- * @response 401 {Error} Not authenticated
- * @response 409 {Error} Organization name already exists
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations:
+ *   post:
+ *     summary: Create a new organization and automatically add the creator as admin
+ *     description: Creates a new organization with the specified name and type. The creator is automatically added as an admin member.
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 description: Organization name (2-100 characters)
+ *                 example: "Mi Organización"
+ *               organization_type_id:
+ *                 type: integer
+ *                 description: Optional organization type ID. Defaults to residential type if not provided.
+ *                 example: 1
+ *     responses:
+ *       '201':
+ *         description: Organization created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Organización creada exitosamente."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       format: uuid
+ *                     name:
+ *                       type: string
+ *                     created_by:
+ *                       type: string
+ *                       format: uuid
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     member:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         role_id:
+ *                           type: integer
+ *                         role_name:
+ *                           type: string
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '409':
+ *         description: Organization name already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               error: true
+ *               message: "Ya existe una organización con ese nombre."
  */
 export async function POST(request) {
   try {

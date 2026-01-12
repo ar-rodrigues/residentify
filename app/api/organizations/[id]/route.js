@@ -5,15 +5,38 @@ import { createClient } from "@/utils/supabase/server";
 import { getOrganizationById } from "@/utils/api/organizations";
 
 /**
- * GET /api/organizations/[id]
- * Get organization details by ID
- * 
- * @auth {Session} User must be authenticated
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {Organizations} Organization details
- * @response 404 {Error} Organization not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}:
+ *   get:
+ *     summary: Get organization details by ID
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     responses:
+ *       '200':
+ *         description: Organization details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
  */
 export async function GET(request, { params }) {
   try {
@@ -41,20 +64,48 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/organizations/[id]
- * Update organization (admin only)
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @body {Object} { name: string } Organization name (2-100 characters)
- * @response 200 {Organizations} Updated organization
- * @response 400 {Error} Validation error
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Organization not found
- * @response 409 {Error} Organization name already exists
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}:
+ *   put:
+ *     summary: Update organization (admin only)
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 description: New organization name
+ *     responses:
+ *       '200':
+ *         description: Organization updated successfully
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
+ *       '409':
+ *         description: Organization name already exists
  */
 export async function PUT(request, { params }) {
   try {
@@ -219,17 +270,31 @@ export async function PUT(request, { params }) {
 }
 
 /**
- * DELETE /api/organizations/[id]
- * Delete organization (admin only, requires all members to be removed first)
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {Object} Success message
- * @response 400 {Error} Cannot delete (has members or other constraints)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}:
+ *   delete:
+ *     summary: Delete organization (admin only)
+ *     description: Delete organization. Requires all members to be removed first.
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     responses:
+ *       '200':
+ *         description: Organization deleted successfully
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function DELETE(request, { params }) {
   try {

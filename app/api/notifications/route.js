@@ -4,18 +4,64 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/notifications
- * Get notifications for the authenticated user
- * 
- * @auth {Session} User must be authenticated
- * @param {import('next/server').NextRequest} request
- * @param {string} [organization_id] - Filter by organization (query param)
- * @param {boolean} [is_read] - Filter by read status (query param)
- * @param {number} [limit=50] - Pagination limit (query param)
- * @param {number} [offset=0] - Pagination offset (query param)
- * @response 200 {Array<Notifications & { from_user_name: string }>} List of notifications and unread count
- * @response 401 {Error} Not authenticated
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/notifications:
+ *   get:
+ *     summary: Get user notifications
+ *     description: Get notifications for the authenticated user.
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: organization_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by organization
+ *       - in: query
+ *         name: is_read
+ *         schema:
+ *           type: boolean
+ *         description: Filter by read status
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Pagination limit
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Pagination offset
+ *     responses:
+ *       200:
+ *         description: List of notifications and unread count
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Notifications'
+ *                           - type: object
+ *                             properties:
+ *                               from_user_name:
+ *                                 type: string
+ *                                 nullable: true
+ *                     unread_count:
+ *                       type: integer
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request) {
   try {
@@ -161,17 +207,61 @@ export async function GET(request) {
 }
 
 /**
- * POST /api/notifications
- * Create a notification (security personnel only)
- * 
- * @auth {Session} User must be authenticated and have security role in the organization
- * @param {import('next/server').NextRequest} request
- * @body {Object} { organization_id: string, to_user_id: string, type: string, message: string, qr_code_id?: string, access_log_id?: string } Notification details
- * @response 201 {Notifications} Created notification
- * @response 400 {Error} Validation error or invalid type
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (security only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/notifications:
+ *   post:
+ *     summary: Create a notification
+ *     description: Create a notification. Requires authenticated user with security role in the organization.
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [organization_id, to_user_id, type, message]
+ *             properties:
+ *               organization_id:
+ *                 type: string
+ *                 format: uuid
+ *               to_user_id:
+ *                 type: string
+ *                 format: uuid
+ *               type:
+ *                 type: string
+ *                 enum: [visitor_arrived, visitor_left, qr_invalid, custom]
+ *               message:
+ *                 type: string
+ *               qr_code_id:
+ *                 type: string
+ *                 format: uuid
+ *                 nullable: true
+ *               access_log_id:
+ *                 type: string
+ *                 format: uuid
+ *                 nullable: true
+ *     responses:
+ *       201:
+ *         description: Notification created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/Notifications'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request) {
   try {

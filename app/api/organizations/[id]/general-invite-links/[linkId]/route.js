@@ -3,8 +3,37 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
- * DELETE /api/organizations/[id]/general-invite-links/[linkId]
- * Delete/revoke a general invite link (admin only)
+ * @swagger
+ * /api/organizations/{id}/general-invite-links/{linkId}:
+ *   delete:
+ *     summary: Delete/revoke a general invite link (admin only)
+ *     tags: [Invitations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: linkId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Invite link ID
+ *     responses:
+ *       '200':
+ *         description: Invite link deleted successfully
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
  */
 export async function DELETE(request, { params }) {
   try {

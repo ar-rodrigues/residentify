@@ -4,19 +4,58 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/qr-codes/[id]/access-logs
- * Get access logs for a specific QR code
- * 
- * @auth {Session} User must be authenticated and have access (creator, admin, or security)
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @param {number} [limit=50] - Pagination limit (query param)
- * @param {number} [offset=0] - Pagination offset (query param)
- * @response 200 {Array<AccessLogs & { scanned_by_name: string }>} List of access logs
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized
- * @response 404 {Error} QR code not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/{id}/access-logs:
+ *   get:
+ *     summary: Get QR code access logs
+ *     description: Get access logs for a specific QR code. Accessible by the creator, organization admins, or security personnel.
+ *     tags: [QR Codes, Access Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: QR code ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Pagination limit
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Pagination offset
+ *     responses:
+ *       200:
+ *         description: List of access logs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           scanned_by_name: { type: string, nullable: true }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

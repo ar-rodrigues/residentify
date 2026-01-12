@@ -5,8 +5,52 @@ import { getErrorMessages } from "@/utils/i18n/errorMessages";
 import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
- * POST /api/invitations/[token]/accept
- * Accept an invitation and register/join the organization
+ * @swagger
+ * /api/invitations/{token}/accept:
+ *   post:
+ *     summary: Accept personal invitation
+ *     description: Accept a personal invitation, create account (if needed), and join the organization.
+ *     tags: [Invitations]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [password, date_of_birth]
+ *             properties:
+ *               password: { type: string, minLength: 6 }
+ *               date_of_birth: { type: string, format: date }
+ *     responses:
+ *       200:
+ *         description: Invitation accepted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user_id: { type: string, format: uuid }
+ *                         organization_name: { type: string }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       410:
+ *         description: GONE - Invitation expired or used
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

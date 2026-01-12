@@ -5,18 +5,47 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
- * POST /api/organizations/[id]/invitations/[invitationId]/reject
- * Reject a pending invitation that requires admin approval
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string, invitationId: string }> }} context
- * @response 200 {OrganizationInvitations} Rejected invitation record
- * @response 400 {Error} Validation error (already processed)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Invitation not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/invitations/{invitationId}/reject:
+ *   post:
+ *     summary: Reject a pending invitation that requires admin approval
+ *     tags: [Invitations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: invitationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Invitation ID
+ *     responses:
+ *       '200':
+ *         description: Invitation rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: { type: 'boolean' }
+ *                 data:
+ *                   $ref: '#/components/schemas/OrganizationInvitations'
+ *       '400':
+ *         description: Invitation not in pending_approval status
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
  */
 export async function POST(request, { params }) {
   try {

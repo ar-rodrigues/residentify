@@ -5,18 +5,39 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
- * DELETE /api/organizations/[id]/invitations/[invitationId]
- * Delete a pending invitation
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string, invitationId: string }> }} context
- * @response 200 {Object} Success message
- * @response 400 {Error} Validation error (already accepted)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Invitation not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/invitations/{invitationId}:
+ *   delete:
+ *     summary: Delete a pending invitation
+ *     tags: [Invitations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: invitationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Invitation ID
+ *     responses:
+ *       '200':
+ *         description: Invitation deleted successfully
+ *       '400':
+ *         description: Cannot delete invitation (e.g., already accepted)
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
  */
 export async function DELETE(request, { params }) {
   try {

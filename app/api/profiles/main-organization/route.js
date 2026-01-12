@@ -6,16 +6,35 @@ import { validateUUID } from "@/utils/validation/uuid";
 import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
- * PUT /api/profiles/main-organization
- * Update the current user's main organization
- * 
- * @auth {Session} User must be authenticated
- * @param {import('next/server').NextRequest} request
- * @body {Object} { organization_id: string | null } New main organization ID
- * @response 200 {Object} Success message
- * @response 400 {Error} Validation error
- * @response 401 {Error} Not authenticated
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/profiles/main-organization:
+ *   put:
+ *     summary: Update main organization
+ *     description: Update the current user's main organization selection.
+ *     tags: [Profiles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organization_id:
+ *                 type: string
+ *                 format: uuid
+ *                 nullable: true
+ *                 description: New main organization ID (null to clear)
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request) {
   try {
@@ -91,13 +110,32 @@ export async function PUT(request) {
 }
 
 /**
- * GET /api/profiles/main-organization
- * Get the current user's main organization ID
- * 
- * @auth {Session} User must be authenticated
- * @response 200 {string | null} Main organization ID
- * @response 401 {Error} Not authenticated
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/profiles/main-organization:
+ *   get:
+ *     summary: Get main organization
+ *     description: Get the current user's main organization ID.
+ *     tags: [Profiles]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Main organization ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: string
+ *                       format: uuid
+ *                       nullable: true
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET() {
   try {

@@ -2,8 +2,39 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/general-invite-links/[token]/check-status
- * Check if user is logged in and if they are already a member of the organization
+ * @swagger
+ * /api/general-invite-links/{token}/check-status:
+ *   get:
+ *     summary: Check link and login status
+ *     description: Check if an invite link is valid and if the current user is already logged in or a member.
+ *     tags: [General Invite Links]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invite link token
+ *     responses:
+ *       200:
+ *         description: Link and user status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         is_logged_in: { type: boolean }
+ *                         is_already_member: { type: boolean }
+ *                         organization_name: { type: string }
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

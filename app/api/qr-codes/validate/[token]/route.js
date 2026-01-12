@@ -4,18 +4,43 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/qr-codes/validate/[token]
- * Public endpoint to validate a QR code token and get its details
- * 
- * @auth {Session} User must be authenticated and be a security member of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ token: string }> }} context
- * @response 200 {QrCodes} QR code details if valid
- * @response 400 {Error} QR code already used or expired
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (security only)
- * @response 404 {Error} Token not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/validate/{token}:
+ *   get:
+ *     summary: Validate QR code token
+ *     description: Public endpoint to validate a QR code token and get its details. Only security members of the organization can perform this action.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: QR code token
+ *     responses:
+ *       200:
+ *         description: QR code is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/QrCodes'
+ *       400:
+ *         description: QR code already used or expired
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
@@ -139,19 +164,59 @@ export async function GET(request, { params }) {
 }
 
 /**
- * POST /api/qr-codes/validate/[token]
- * Validate a QR code token, record visitor info, and create an access log
- * 
- * @auth {Session} User must be authenticated and be a security member of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ token: string }> }} context
- * @body {Object} { visitor_name: string, visitor_id?: string, document_photo_url?: string, entry_type?: "entry" | "exit", notes?: string } Validation details
- * @response 200 {Object} { qr_code: QrCodes, access_log: AccessLogs } Updated QR code and created log
- * @response 400 {Error} Validation error (missing fields or code already used/expired)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (security only)
- * @response 404 {Error} Token not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/validate/{token}:
+ *   post:
+ *     summary: Record QR code validation
+ *     description: Validate a QR code token, record visitor info, and create an access log. Only security members of the organization can perform this action.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: QR code token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [visitor_name]
+ *             properties:
+ *               visitor_name: { type: string }
+ *               visitor_id: { type: string, description: "Required if document_photo_url is missing" }
+ *               document_photo_url: { type: string, description: "Required if visitor_id is missing" }
+ *               entry_type: { type: string, enum: [entry, exit], default: entry }
+ *               notes: { type: string }
+ *     responses:
+ *       200:
+ *         description: Validation recorded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         qr_code: { $ref: '#/components/schemas/QrCodes' }
+ *                         access_log: { type: object }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

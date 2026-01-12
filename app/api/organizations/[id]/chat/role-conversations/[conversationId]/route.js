@@ -3,8 +3,51 @@ import { createClient } from "@/utils/supabase/server";
 import { normalizeFullName } from "@/utils/name";
 
 /**
- * GET /api/organizations/[id]/chat/role-conversations/[conversationId]
- * Get specific role conversation details
+ * @swagger
+ * /api/organizations/{id}/chat/role-conversations/{conversationId}:
+ *   get:
+ *     summary: Get role conversation details
+ *     description: Get details of a specific role conversation.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: conversationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Conversation ID
+ *     responses:
+ *       200:
+ *         description: Conversation details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         conversation: { type: object }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

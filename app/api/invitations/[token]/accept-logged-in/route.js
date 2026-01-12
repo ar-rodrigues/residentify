@@ -4,8 +4,46 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { updateMainOrganization } from "@/utils/api/profiles";
 
 /**
- * POST /api/invitations/[token]/accept-logged-in
- * Accept an invitation for a logged-in user (no password needed)
+ * @swagger
+ * /api/invitations/{token}/accept-logged-in:
+ *   post:
+ *     summary: Accept personal invitation (logged in)
+ *     description: Join an organization via a personal invitation using the current authenticated session.
+ *     tags: [Invitations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     responses:
+ *       200:
+ *         description: Joined organization successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user_id: { type: string, format: uuid }
+ *                         organization_name: { type: string }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       409:
+ *         description: Conflict - Already member
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

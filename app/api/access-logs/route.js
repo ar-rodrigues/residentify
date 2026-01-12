@@ -4,22 +4,129 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/access-logs
- * Get access logs for visitors with filtering and pagination
- * 
- * @auth {Session} User must be authenticated and have access (admin, security, or owner of QR code)
- * @param {import('next/server').NextRequest} request
- * @param {string} [organization_id] - Filter by organization (query param)
- * @param {string} [qr_code_id] - Filter by specific QR code (query param)
- * @param {string} [entry_type] - Filter by "entry" or "exit" (query param)
- * @param {string} [start_date] - Filter by start date (ISO string) (query param)
- * @param {string} [end_date] - Filter by end date (ISO string) (query param)
- * @param {number} [limit=50] - Pagination limit (query param)
- * @param {number} [offset=0] - Pagination offset (query param)
- * @response 200 {Array<AccessLogs & { qr_code: QrCodes, scanned_by_name: string }>} List of access logs
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/access-logs:
+ *   get:
+ *     summary: Get access logs for visitors with filtering and pagination
+ *     description: |
+ *       Retrieves access logs with filtering options. User must be authenticated and have access:
+ *       - Admin or Security: Can view all logs for their organization
+ *       - Resident: Can view logs for QR codes they created
+ *     tags: [Access Logs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: organization_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by organization ID
+ *         example: "123e4567-e89b-12d3-a456-426614174000"
+ *       - in: query
+ *         name: qr_code_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by specific QR code ID
+ *         example: "123e4567-e89b-12d3-a456-426614174001"
+ *       - in: query
+ *         name: entry_type
+ *         schema:
+ *           type: string
+ *           enum: [entry, exit]
+ *         description: Filter by entry type
+ *         example: "entry"
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter by start date (ISO 8601 format)
+ *         example: "2024-01-01T00:00:00Z"
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter by end date (ISO 8601 format)
+ *         example: "2024-12-31T23:59:59Z"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *           minimum: 1
+ *           maximum: 100
+ *         description: "Pagination limit (default: 50, max: 100)"
+ *         example: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *           minimum: 0
+ *         description: "Pagination offset (default: 0)"
+ *         example: 0
+ *     responses:
+ *       '200':
+ *         description: Access logs retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Registros de acceso obtenidos exitosamente."
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     description: Access log entry
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         format: uuid
+ *                       qr_code_id:
+ *                         type: string
+ *                         format: uuid
+ *                       organization_id:
+ *                         type: string
+ *                         format: uuid
+ *                       entry_type:
+ *                         type: string
+ *                         enum: [entry, exit]
+ *                       timestamp:
+ *                         type: string
+ *                         format: date-time
+ *                       scanned_by:
+ *                         type: string
+ *                         format: uuid
+ *                       scanned_by_name:
+ *                         type: string
+ *                         nullable: true
+ *                       qr_code:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                             format: uuid
+ *                           identifier:
+ *                             type: string
+ *                           visitor_name:
+ *                             type: string
+ *                             nullable: true
+ *                           created_by:
+ *                             type: string
+ *                             format: uuid
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function GET(request) {
   try {

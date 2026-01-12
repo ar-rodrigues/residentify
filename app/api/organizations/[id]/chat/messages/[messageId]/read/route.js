@@ -2,8 +2,40 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * PUT /api/organizations/[id]/chat/messages/[messageId]/read
- * Mark message as read
+ * @swagger
+ * /api/organizations/{id}/chat/messages/{messageId}/read:
+ *   put:
+ *     summary: Mark single message as read
+ *     description: Mark a specific message as read. Only the recipient can perform this action.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Message ID
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request, { params }) {
   try {

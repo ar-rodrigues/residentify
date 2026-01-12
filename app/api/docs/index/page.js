@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /**
  * Documentation index page
  * Shows links to different documentation options
@@ -38,8 +40,8 @@ export default function DocsIndexPage() {
           gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
         }}
       >
-        <a
-          href="/api/docs/html"
+        <Link
+          href="/api/docs"
           style={{
             display: "block",
             padding: "30px",
@@ -59,18 +61,18 @@ export default function DocsIndexPage() {
           }}
         >
           <h2 style={{ marginBottom: "10px", color: "#3498db" }}>
-            Scalar API Docs
+            Database API Docs
           </h2>
           <p style={{ color: "#7f8c8d", marginBottom: "10px" }}>
-            Supabase PostgREST API documentation
+            Supabase PostgREST API documentation generated from database schema
           </p>
           <span style={{ color: "#3498db", fontWeight: "500" }}>
             Ver documentación →
           </span>
-        </a>
+        </Link>
 
-        <a
-          href="/api/docs/code"
+        <Link
+          href="/api/docs/api"
           style={{
             display: "block",
             padding: "30px",
@@ -90,15 +92,15 @@ export default function DocsIndexPage() {
           }}
         >
           <h2 style={{ marginBottom: "10px", color: "#49cc90" }}>
-            Code API Docs
+            API Routes Docs
           </h2>
           <p style={{ color: "#7f8c8d", marginBottom: "10px" }}>
-            Next.js API Routes documentation (JSDoc)
+            Next.js API Routes documentation generated from swagger-jsdoc annotations
           </p>
           <span style={{ color: "#49cc90", fontWeight: "500" }}>
             Ver documentación →
           </span>
-        </a>
+        </Link>
       </div>
 
       <div
@@ -114,12 +116,14 @@ export default function DocsIndexPage() {
         </h3>
         <ul style={{ color: "#555", lineHeight: "1.8" }}>
           <li>
-            <strong>Scalar API Docs:</strong> Documentación automática de las
-            APIs de Supabase PostgREST generada desde la base de datos.
+            <strong>Database API Docs:</strong> Documentación automática de las
+            APIs de Supabase PostgREST generada desde la base de datos. Incluye
+            todas las tablas y operaciones disponibles a través de PostgREST.
           </li>
           <li>
-            <strong>Code API Docs:</strong> Documentación de las rutas API de
-            Next.js generada desde comentarios JSDoc en el código.
+            <strong>API Routes Docs:</strong> Documentación de las rutas API de
+            Next.js generada desde anotaciones swagger-jsdoc en el código. Incluye
+            endpoints personalizados, validaciones y lógica de negocio.
           </li>
         </ul>
       </div>

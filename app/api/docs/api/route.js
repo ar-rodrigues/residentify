@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { ApiReference } from "@scalar/nextjs-api-reference";
 
 /**
- * GET /api/docs/html
- * Renders Scalar API Reference as HTML
+ * GET /api/docs/api
+ * Renders Scalar API Reference for API routes documentation (Next.js routes)
  * Only accessible in development mode
  */
 export async function GET() {
@@ -25,7 +25,6 @@ export async function GET() {
     }
 
     // Get the base URL for the OpenAPI endpoint
-    // Use getBaseUrl utility if available, otherwise construct from environment
     let baseUrl = "http://localhost:3000";
     if (process.env.WEBSITE_URL) {
       baseUrl = process.env.WEBSITE_URL;
@@ -35,9 +34,9 @@ export async function GET() {
     ) {
       baseUrl = "http://localhost:3000";
     }
-    const openApiUrl = `${baseUrl}/api/docs/openapi`;
+    const openApiUrl = `${baseUrl}/api/docs/api/openapi`;
 
-    // Create Scalar API Reference handler
+    // Create Scalar API Reference handler for API routes documentation
     const apiReference = ApiReference({
       spec: {
         url: openApiUrl,
@@ -52,11 +51,11 @@ export async function GET() {
     // Call the handler to get the HTML response
     return apiReference();
   } catch (error) {
-    console.error("Unexpected error rendering API documentation:", error);
+    console.error("Unexpected error rendering API routes documentation:", error);
     return NextResponse.json(
       {
         error: true,
-        message: "Error inesperado al renderizar la documentación de la API.",
+        message: "Error inesperado al renderizar la documentación de las rutas API.",
       },
       { status: 500 }
     );

@@ -4,19 +4,78 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * POST /api/organizations/[id]/chat/messages
- * Send a message to a user or a role
- * 
- * @auth {Session} User must be authenticated and be a member of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @body {Object} { recipientId?: string, conversationId?: string, roleId?: number, content: string } Message details
- * @response 200 {ChatMessages} Sent message details
- * @response 400 {Error} Validation error (empty content, missing recipient/role)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not a member or no permission to message role/user
- * @response 404 {Error} Recipient or conversation not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/chat/messages:
+ *   post:
+ *     summary: Send a chat message
+ *     description: Send a message to a specific user or a role within an organization.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [content]
+ *             properties:
+ *               recipientId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Required if conversationId or roleId is not provided
+ *               conversationId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Existing conversation ID
+ *               roleId:
+ *                 type: integer
+ *                 description: Role ID to start a conversation with
+ *               content:
+ *                 type: string
+ *                 maxLength: 5000
+ *     responses:
+ *       200:
+ *         description: Message sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         message:
+ *                           type: object
+ *                           properties:
+ *                             id: { type: string, format: uuid }
+ *                             senderId: { type: string, format: uuid }
+ *                             recipientId: { type: string, format: uuid, nullable: true }
+ *                             content: { type: string }
+ *                             isRead: { type: boolean }
+ *                             createdAt: { type: string, format: date-time }
+ *                         conversationId: { type: string, format: uuid }
+ *                         isRoleConversation: { type: boolean }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

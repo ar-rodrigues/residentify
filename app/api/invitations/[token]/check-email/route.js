@@ -2,8 +2,41 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/invitations/[token]/check-email
- * Check if the invitation email corresponds to an existing user
+ * @swagger
+ * /api/invitations/{token}/check-email:
+ *   get:
+ *     summary: Verify invitation email
+ *     description: Check if the email in the invitation corresponds to an existing user and check their login status.
+ *     tags: [Invitations]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invitation token
+ *     responses:
+ *       200:
+ *         description: Email and user status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         email: { type: string, format: email }
+ *                         user_exists: { type: boolean }
+ *                         is_logged_in: { type: boolean }
+ *                         email_matches: { type: boolean }
+ *                         is_already_member: { type: boolean }
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

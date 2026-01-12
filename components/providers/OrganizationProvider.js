@@ -369,7 +369,7 @@ export function OrganizationProvider({ children }) {
         clearTimeout(backgroundCheckRef.current);
       }
     };
-  }, []); // Only run once on mount
+  }, [fetchMainOrganizationId, fetchOrganization, organizationIdFromUrl]); // Only run once on mount (initializedRef guard prevents re-runs)
 
   // Background check when URL changes (only if different from current org)
   useEffect(() => {

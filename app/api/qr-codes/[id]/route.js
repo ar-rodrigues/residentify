@@ -5,16 +5,40 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
- * GET /api/qr-codes/[id]
- * Get detailed information about a specific QR code
- * 
- * @auth {Session} User must be authenticated and be the creator or have permission
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {QrCodes} QR code details
- * @response 401 {Error} Not authenticated
- * @response 404 {Error} QR code not found or access denied
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/{id}:
+ *   get:
+ *     summary: Get QR code details
+ *     description: Get detailed information about a specific QR code. Only the creator or authorized organization members can access this.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: QR code ID
+ *     responses:
+ *       200:
+ *         description: QR code details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/QrCodes'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
@@ -125,18 +149,52 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/qr-codes/[id]
- * Update QR code metadata (status, notes, identifier)
- * 
- * @auth {Session} User must be authenticated and be the creator of the QR code
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @body {Object} { status?: string, notes?: string, identifier?: string } Update details
- * @response 200 {QrCodes} Updated QR code details
- * @response 400 {Error} Validation error or cannot update used code
- * @response 401 {Error} Not authenticated
- * @response 404 {Error} QR code not found or permission denied
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/{id}:
+ *   put:
+ *     summary: Update QR code
+ *     description: Update QR code metadata (status, notes, identifier). Only the creator can perform this action. Cannot update status if code is already used.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: QR code ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string, enum: [active, expired, revoked, max_uses_reached] }
+ *               notes: { type: string }
+ *               identifier: { type: string, maxLength: 100 }
+ *     responses:
+ *       200:
+ *         description: QR code updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/QrCodes'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request, { params }) {
   try {
@@ -294,18 +352,35 @@ export async function PUT(request, { params }) {
 }
 
 /**
- * DELETE /api/qr-codes/[id]
- * Delete a QR code (only if it hasn't been used yet)
- * 
- * @auth {Session} User must be authenticated and be the creator of the QR code
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {Object} Success message
- * @response 400 {Error} Cannot delete (already used)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Permission denied
- * @response 404 {Error} QR code not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/qr-codes/{id}:
+ *   delete:
+ *     summary: Delete QR code
+ *     description: Delete a QR code if it hasn't been used yet. Only the creator can perform this action.
+ *     tags: [QR Codes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: QR code ID
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Cannot delete - code already used
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function DELETE(request, { params }) {
   try {

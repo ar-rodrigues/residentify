@@ -2,8 +2,43 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organizations/[id]/chat/role-permissions
- * Get all role-to-role permissions for role conversations
+ * @swagger
+ * /api/organizations/{id}/chat/role-permissions:
+ *   get:
+ *     summary: Get role-to-role permissions
+ *     description: Get all role-to-role chat permissions specifically for role conversations.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     responses:
+ *       200:
+ *         description: Role permissions matrix
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         permissions: { type: array, items: { type: object } }
+ *                         roles: { type: array, items: { type: object } }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
@@ -143,8 +178,44 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/organizations/[id]/chat/role-permissions
- * Update role-to-role permissions for role conversations (admin only)
+ * @swagger
+ * /api/organizations/{id}/chat/role-permissions:
+ *   put:
+ *     summary: Update role-to-role permissions
+ *     description: Enable or disable a specific role-to-role chat permission. Only organization administrators can perform this action.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [senderRoleId, recipientRoleId, enabled]
+ *             properties:
+ *               senderRoleId: { type: integer }
+ *               recipientRoleId: { type: integer }
+ *               enabled: { type: boolean }
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request, { params }) {
   try {

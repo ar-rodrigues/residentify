@@ -4,17 +4,48 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organizations/[id]/invitations/list
- * List all invitations for a specific organization
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {Array<Object>} List of invitations with role and status details
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Organization not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/invitations/list:
+ *   get:
+ *     summary: List all invitations for a specific organization
+ *     tags: [Organizations, Invitations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     responses:
+ *       '200':
+ *         description: List of invitations retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error: { type: 'boolean' }
+ *                 message: { type: 'string' }
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/OrganizationInvitations'
+ *                       - type: object
+ *                         properties:
+ *                           full_name: { type: 'string' }
+ *                           role:
+ *                             $ref: '#/components/schemas/OrganizationRoles'
+ *                           is_expired: { type: 'boolean' }
+ *                           invited_by_name: { type: 'string', nullable: true }
+ *                           is_from_general_link: { type: 'boolean' }
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function GET(request, { params }) {
   try {

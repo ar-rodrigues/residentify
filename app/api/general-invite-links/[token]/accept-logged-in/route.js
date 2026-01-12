@@ -4,8 +4,47 @@ import { updateMainOrganization } from "@/utils/api/profiles";
 import crypto from "crypto";
 
 /**
- * POST /api/general-invite-links/[token]/accept-logged-in
- * Accept a general invite link for a logged-in user (no password needed)
+ * @swagger
+ * /api/general-invite-links/{token}/accept-logged-in:
+ *   post:
+ *     summary: Accept general invite link (logged in)
+ *     description: Join an organization via a general invite link using the current authenticated session.
+ *     tags: [General Invite Links]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invite link token
+ *     responses:
+ *       200:
+ *         description: Joined organization successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user_id: { type: string, format: uuid }
+ *                         invitation_id: { type: string, format: uuid }
+ *                         status: { type: string }
+ *                         requires_approval: { type: boolean }
+ *                         organization_name: { type: string }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       409:
+ *         description: Conflict - Already member or pending request
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

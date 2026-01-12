@@ -3,8 +3,42 @@ import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
- * GET /api/admin/feature-flags/[id]
- * Get specific feature flag (app-level admin only)
+ * @swagger
+ * /api/admin/feature-flags/{id}:
+ *   get:
+ *     summary: Get a feature flag
+ *     description: Get details of a specific feature flag. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Feature flag ID
+ *     responses:
+ *       200:
+ *         description: Feature flag details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/FeatureFlags'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
@@ -100,8 +134,57 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/admin/feature-flags/[id]
- * Update feature flag (app-level admin only)
+ * @swagger
+ * /api/admin/feature-flags/{id}:
+ *   put:
+ *     summary: Update a feature flag
+ *     description: Update details of a specific feature flag. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Feature flag ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Feature flag updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/FeatureFlags'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       409:
+ *         description: Conflict - Flag name already exists
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request, { params }) {
   try {
@@ -231,8 +314,33 @@ export async function PUT(request, { params }) {
 }
 
 /**
- * DELETE /api/admin/feature-flags/[id]
- * Delete feature flag (app-level admin only)
+ * @swagger
+ * /api/admin/feature-flags/{id}:
+ *   delete:
+ *     summary: Delete a feature flag
+ *     description: Delete a specific feature flag. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Feature flag ID
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function DELETE(request, { params }) {
   try {

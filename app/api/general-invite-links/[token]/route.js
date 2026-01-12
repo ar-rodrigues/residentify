@@ -4,18 +4,48 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/general-invite-links/[token]
- * Public endpoint to validate and get general invite link details
- * Returns organization name (not ID) for security
- *
- * @auth {Public} No authentication required
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ token: string }> }} context
- * @response 200 {Object} { id: string, organization_name: string, role_name: string, ... } Link details
- * @response 400 {Error} Invalid token
- * @response 404 {Error} Invite link not found
- * @response 410 {Error} Invite link expired
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/general-invite-links/{token}:
+ *   get:
+ *     summary: Validate general invite link
+ *     description: Public endpoint to validate and get general invite link details. Does not expose organization ID for security.
+ *     tags: [General Invite Links]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invite link token
+ *     responses:
+ *       200:
+ *         description: Link details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         id: { type: string, format: uuid }
+ *                         organization_name: { type: string }
+ *                         organization_role_id: { type: integer }
+ *                         role_name: { type: string }
+ *                         role_description: { type: string, nullable: true }
+ *                         requires_approval: { type: boolean }
+ *                         expires_at: { type: string, format: date-time, nullable: true }
+ *                         is_expired: { type: boolean }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       410:
+ *         description: GONE - Invite link expired
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

@@ -2,8 +2,49 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * POST /api/organizations/[id]/chat/conversations/[conversationId]/archive
- * Archive a conversation
+ * @swagger
+ * /api/organizations/{id}/chat/conversations/{conversationId}/archive:
+ *   post:
+ *     summary: Archive a conversation
+ *     description: Archive a specific chat conversation.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: path
+ *         name: conversationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Conversation ID
+ *     responses:
+ *       200:
+ *         description: Conversation archived
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         success: { type: boolean }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

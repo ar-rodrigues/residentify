@@ -557,6 +557,8 @@ export default function ChatWidget({ organizationId }) {
     fetchMessages,
     currentUser?.id,
     checkCanMessage,
+    fetchConversationsSilently,
+    fetchRoleConversationsSilently,
   ]);
 
   // Start conversation with a member
@@ -634,7 +636,7 @@ export default function ChatWidget({ organizationId }) {
       setMessages([]);
       setShowMembers(false);
     },
-    [roleConversations, fetchMessages, currentUser?.id]
+    [roleConversations, fetchMessages, currentUser?.id, currentUser?.fullName]
   );
 
   // Set up realtime subscription for messages
@@ -739,7 +741,7 @@ export default function ChatWidget({ organizationId }) {
     currentUser?.id,
     organizationId,
     supabase,
-    // scrollToBottom removed to avoid unnecessary re-subscriptions
+    scrollToBottom,
   ]);
 
   // Set up organization-level realtime subscription for conversations list

@@ -4,12 +4,32 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organization-types
- * Get all available organization types (public read access)
- *
- * @auth {Public} No authentication required
- * @response 200 {Array<OrganizationTypes>} List of organization types
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organization-types:
+ *   get:
+ *     summary: List organization types
+ *     description: Public endpoint to get all available organization types.
+ *     tags: [Organizations]
+ *     responses:
+ *       200:
+ *         description: List of types
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id: { type: integer }
+ *                           name: { type: string }
+ *                           description: { type: string, nullable: true }
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET() {
   try {

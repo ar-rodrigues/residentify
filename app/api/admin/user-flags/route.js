@@ -5,19 +5,69 @@ import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
- * GET /api/admin/user-flags
- * List all user-specific feature flag overrides
- * 
- * @auth {Session} User must be authenticated and be a system administrator
- * @param {import('next/server').NextRequest} request
- * @param {string} [user_id] - Filter by user ID (query param)
- * @param {string} [flag_id] - Filter by flag ID (query param)
- * @param {number} [page=1] - Pagination page (query param)
- * @param {number} [page_size=50] - Pagination size (query param)
- * @response 200 {Object} { user_flags: Array<UserFlags & { feature_flags: FeatureFlags }>, pagination: Object } List of user flags and pagination
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/admin/user-flags:
+ *   get:
+ *     summary: List user flag overrides
+ *     description: List all user-specific feature flag overrides. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: user_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by user ID
+ *       - in: query
+ *         name: flag_id
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by feature flag ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Pagination page
+ *       - in: query
+ *         name: page_size
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Pagination size
+ *     responses:
+ *       200:
+ *         description: List of user flag overrides
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user_flags:
+ *                           type: array
+ *                           items:
+ *                             $ref: '#/components/schemas/UserFeatureFlags'
+ *                         pagination:
+ *                           type: object
+ *                           properties:
+ *                             page: { type: integer }
+ *                             page_size: { type: integer }
+ *                             total: { type: integer }
+ *                             total_pages: { type: integer }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request) {
   try {
@@ -133,17 +183,50 @@ export async function GET(request) {
 }
 
 /**
- * POST /api/admin/user-flags
- * Create or update a user-specific feature flag override
- * 
- * @auth {Session} User must be authenticated and be a system administrator
- * @param {import('next/server').NextRequest} request
- * @body {Object} { user_id: string, feature_flag_id: string, enabled: boolean } Override details
- * @response 200 {UserFlags & { feature_flags: FeatureFlags }} Created or updated user flag
- * @response 400 {Error} Validation error
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/admin/user-flags:
+ *   post:
+ *     summary: Create or update user flag override
+ *     description: Create or update a user-specific feature flag override. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [user_id, feature_flag_id, enabled]
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 format: uuid
+ *               feature_flag_id:
+ *                 type: string
+ *                 format: uuid
+ *               enabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User flag override created or updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/UserFeatureFlags'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request) {
   try {

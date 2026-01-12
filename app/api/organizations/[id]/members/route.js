@@ -5,17 +5,59 @@ import { createClient } from "@/utils/supabase/server";
 import { validateUUID } from "@/utils/validation/uuid";
 
 /**
- * GET /api/organizations/[id]/members
- * Get all organization members with their roles and profiles
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @response 200 {Array<OrganizationMembers & { name: string, email: string, role: OrganizationRoles }>} List of members
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Organization not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/members:
+ *   get:
+ *     summary: Get all organization members with their roles and profiles
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     responses:
+ *       '200':
+ *         description: List of members retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/OrganizationMembers'
+ *                       - type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                             nullable: true
+ *                           role:
+ *                             $ref: '#/components/schemas/OrganizationRoles'
+ *                           invited_by_name:
+ *                             type: string
+ *                             nullable: true
+ *                           is_from_general_link:
+ *                             type: boolean
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         $ref: '#/components/responses/NotFoundError'
  */
 export async function GET(request, { params }) {
   try {
@@ -262,19 +304,60 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/organizations/[id]/members
- * Update a member's role within the organization
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @body {Object} { member_id: string, organization_role_id: number } Role update details
- * @response 200 {OrganizationMembers} Updated member info
- * @response 400 {Error} Validation error (e.g. last admin role change)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Member not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/members:
+ *   put:
+ *     summary: Update a member's role within the organization
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - member_id
+ *               - organization_role_id
+ *             properties:
+ *               member_id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID of the member to update
+ *               organization_role_id:
+ *                 type: integer
+ *                 description: New role ID for the member
+ *     responses:
+ *       '200':
+ *         description: Member role updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/OrganizationMembers'
+ *       '400':
+ *         $ref: '#/components/responses/ValidationError'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       '404':
+ *         description: Member not found
  */
 export async function PUT(request, { params }) {
   try {
@@ -492,19 +575,37 @@ export async function PUT(request, { params }) {
 }
 
 /**
- * DELETE /api/organizations/[id]/members
- * Remove a member from the organization
- * 
- * @auth {Session} User must be authenticated and be an admin of the organization
- * @param {import('next/server').NextRequest} request
- * @param {{ params: Promise<{ id: string }> }} context
- * @param {string} member_id - Member ID to remove (passed as query param)
- * @response 200 {Object} Success message
- * @response 400 {Error} Cannot remove (e.g. self-removal or last admin)
- * @response 401 {Error} Not authenticated
- * @response 403 {Error} Not authorized (admin only)
- * @response 404 {Error} Member not found
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organizations/{id}/members:
+ *   delete:
+ *     summary: Remove a member from the organization
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: query
+ *         name: member_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID of the member to remove
+ *     responses:
+ *       '200':
+ *         description: Member removed successfully
+ *       '400':
+ *         description: Cannot remove member (e.g., self-removal or last admin)
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '403':
+ *         $ref: '#/components/responses/ForbiddenError'
  */
 export async function DELETE(request, { params }) {
   try {

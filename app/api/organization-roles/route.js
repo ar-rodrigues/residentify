@@ -4,15 +4,36 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 /**
- * GET /api/organization-roles
- * Get organization roles (public read access)
- *
- * @auth {Public} No authentication required
- * @param {import('next/server').NextRequest} request
- * @param {number} [organization_type_id] - Filter roles by organization type (query param)
- * @response 200 {Array<OrganizationRoles>} List of roles
- * @response 400 {Error} Invalid organization_type_id
- * @returns {Promise<import('next/server').NextResponse>}
+ * @swagger
+ * /api/organization-roles:
+ *   get:
+ *     summary: List organization roles
+ *     description: Public endpoint to get available organization roles. Can be filtered by organization type.
+ *     tags: [Organizations]
+ *     parameters:
+ *       - in: query
+ *         name: organization_type_id
+ *         schema:
+ *           type: integer
+ *         description: Filter roles by organization type ID
+ *     responses:
+ *       200:
+ *         description: List of roles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/OrganizationRoles'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request) {
   try {

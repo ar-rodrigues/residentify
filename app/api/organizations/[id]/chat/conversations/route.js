@@ -3,8 +3,70 @@ import { createClient } from "@/utils/supabase/server";
 import { normalizeFullName } from "@/utils/name";
 
 /**
- * GET /api/organizations/[id]/chat/conversations
- * Get conversations for current user in organization with pagination
+ * @swagger
+ * /api/organizations/{id}/chat/conversations:
+ *   get:
+ *     summary: Get chat conversations
+ *     description: Get chat conversations for the current user in an organization. Includes both user-to-user and user-to-role conversations.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Pagination limit
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Pagination offset
+ *     responses:
+ *       200:
+ *         description: List of conversations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         conversations:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               id: { type: string, format: uuid }
+ *                               type: { type: string, enum: [user, role] }
+ *                               otherUserId: { type: string, format: uuid, nullable: true }
+ *                               otherUserName: { type: string, nullable: true }
+ *                               otherUserAvatar: { type: string, nullable: true }
+ *                               lastMessage: { type: string, nullable: true }
+ *                               lastMessageTime: { type: string, format: date-time, nullable: true }
+ *                               unreadCount: { type: integer }
+ *                               lastMessageSenderId: { type: string, format: uuid, nullable: true }
+ *                               isReadOnly: { type: boolean }
+ *                         total: { type: integer }
+ *                         hasMore: { type: boolean }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {

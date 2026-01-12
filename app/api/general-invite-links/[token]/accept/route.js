@@ -5,9 +5,58 @@ import { updateMainOrganization } from "@/utils/api/profiles";
 import crypto from "crypto";
 
 /**
- * POST /api/general-invite-links/[token]/accept
- * Accept a general invite link (creates account and adds user to organization)
- * Public endpoint - organization ID is retrieved from database using token
+ * @swagger
+ * /api/general-invite-links/{token}/accept:
+ *   post:
+ *     summary: Accept general invite link
+ *     description: Create a new account (if needed) and join an organization via a general invite link.
+ *     tags: [General Invite Links]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Invite link token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, first_name, last_name, password, date_of_birth]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               first_name: { type: string }
+ *               last_name: { type: string }
+ *               password: { type: string, minLength: 6 }
+ *               date_of_birth: { type: string, format: date }
+ *     responses:
+ *       201:
+ *         description: Account created or joined successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         user_id: { type: string, format: uuid }
+ *                         invitation_id: { type: string, format: uuid }
+ *                         status: { type: string }
+ *                         requires_approval: { type: boolean }
+ *                         organization_name: { type: string }
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       409:
+ *         description: Conflict - Already member or pending request
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function POST(request, { params }) {
   try {

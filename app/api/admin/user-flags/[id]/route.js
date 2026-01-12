@@ -3,8 +3,42 @@ import { createClient } from "@/utils/supabase/server";
 import { checkIsAdmin } from "@/utils/auth/admin";
 
 /**
- * GET /api/admin/user-flags/[id]
- * Get specific user flag (app-level admin only)
+ * @swagger
+ * /api/admin/user-flags/{id}:
+ *   get:
+ *     summary: Get a user flag override
+ *     description: Get details of a specific user feature flag override. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User flag ID
+ *     responses:
+ *       200:
+ *         description: User flag details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/UserFeatureFlags'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
@@ -114,8 +148,54 @@ export async function GET(request, { params }) {
 }
 
 /**
- * PUT /api/admin/user-flags/[id]
- * Update user flag enabled status (app-level admin only)
+ * @swagger
+ * /api/admin/user-flags/{id}:
+ *   put:
+ *     summary: Update a user flag override
+ *     description: Update the enabled status of a specific user feature flag override. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User flag ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [enabled]
+ *             properties:
+ *               enabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User flag updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/UserFeatureFlags'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function PUT(request, { params }) {
   try {
@@ -240,8 +320,33 @@ export async function PUT(request, { params }) {
 }
 
 /**
- * DELETE /api/admin/user-flags/[id]
- * Delete user flag (app-level admin only)
+ * @swagger
+ * /api/admin/user-flags/{id}:
+ *   delete:
+ *     summary: Delete a user flag override
+ *     description: Delete a specific user feature flag override. Requires app-level administrator permissions.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User flag ID
+ *     responses:
+ *       200:
+ *         $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function DELETE(request, { params }) {
   try {

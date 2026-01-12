@@ -3,8 +3,65 @@ import { createClient } from "@/utils/supabase/server";
 import { normalizeFullName, normalizeName } from "@/utils/name";
 
 /**
- * GET /api/organizations/[id]/chat/members
- * Get list of all organization members with pagination
+ * @swagger
+ * /api/organizations/{id}/chat/members:
+ *   get:
+ *     summary: List members available for chat
+ *     description: Get a list of organization members the current user has permission to message.
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Organization ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Pagination limit
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Pagination offset
+ *     responses:
+ *       200:
+ *         description: List of members
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         members:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               id: { type: string, format: uuid }
+ *                               userId: { type: string, format: uuid }
+ *                               roleId: { type: integer }
+ *                               roleName: { type: string }
+ *                               fullName: { type: string }
+ *                         total: { type: integer }
+ *                         hasMore: { type: boolean }
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 export async function GET(request, { params }) {
   try {
