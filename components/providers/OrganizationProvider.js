@@ -505,6 +505,16 @@ export function OrganizationProvider({ children }) {
     }
   }, [organizationIdFromUrl, organization?.id, fetchOrganization]);
 
+  // Helper to check if current user has a specific permission
+  const hasPermission = useCallback(
+    (permissionCode) => {
+      if (!organization || !organization.permissions) return false;
+      if (organization.is_frozen) return false; // Frozen seats block all permissions
+      return organization.permissions.includes(permissionCode);
+    },
+    [organization]
+  );
+
   const value = {
     organization,
     organizationId: organizationIdFromUrl || organization?.id || null,
@@ -513,6 +523,7 @@ export function OrganizationProvider({ children }) {
     refetch,
     updateOrganization,
     clearCache,
+    hasPermission,
   };
 
   return (

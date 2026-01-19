@@ -180,28 +180,20 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to edit the organization
+    const { data: hasPermission, error: permissionError } = await supabase
+      .rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "org:update",
+      });
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para editar esta organización. Solo los administradores pueden editar organizaciones.",
+            "No tienes permisos para editar esta organización.",
         },
         { status: 403 }
       );
@@ -330,28 +322,20 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to delete the organization
+    const { data: hasDeletePermission, error: deletePermissionError } =
+      await supabase.rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "org:delete",
+      });
 
-    if (memberError || !memberCheck) {
+    if (deletePermissionError || !hasDeletePermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para eliminar esta organización. Solo los administradores pueden eliminar organizaciones.",
+            "No tienes permisos para eliminar esta organización.",
         },
         { status: 403 }
       );

@@ -97,7 +97,7 @@ export async function POST(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const { first_name, last_name, email, organization_role_id, description } =
+    const { first_name, last_name, email, seat_type_id, description } =
       body;
 
     // Validate required fields
@@ -143,39 +143,30 @@ export async function POST(request, { params }) {
       );
     }
 
-    if (!organization_role_id || typeof organization_role_id !== "number") {
+    if (!seat_type_id || typeof seat_type_id !== "number") {
       return NextResponse.json(
         {
           error: true,
-          message: "El rol de organización es requerido.",
+          message: "El tipo de asiento es requerido.",
         },
         { status: 400 }
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          id,
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to invite users
+    const { data: hasPermission, error: permissionError } = await supabase
+      .rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "invites:create",
+      });
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para invitar usuarios. Solo los administradores pueden invitar usuarios.",
+            "No tienes permisos para invitar usuarios.",
         },
         { status: 403 }
       );
@@ -198,18 +189,18 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Verify organization role exists
-    const { data: orgRole, error: roleError } = await supabase
-      .from("organization_roles")
+    // Verify seat type exists
+    const { data: seatType, error: seatTypeError } = await supabase
+      .from("seat_types")
       .select("id, name, description")
-      .eq("id", organization_role_id)
+      .eq("id", seat_type_id)
       .single();
 
-    if (roleError || !orgRole) {
+    if (seatTypeError || !seatType) {
       return NextResponse.json(
         {
           error: true,
-          message: "El rol de organización especificado no existe.",
+          message: "El tipo de asiento especificado no existe.",
         },
         { status: 400 }
       );
@@ -223,14 +214,13 @@ export async function POST(request, { params }) {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     // Create invitation record using RPC function to bypass RLS issues
-    // The function handles duplicate checking and creation atomically
     const { data: invitationData, error: inviteError } = await supabase.rpc(
       "create_organization_invitation",
       {
         p_organization_id: id,
         p_email: email.trim(),
         p_token: token,
-        p_organization_role_id: organization_role_id,
+        p_seat_type_id: seat_type_id,
         p_invited_by: user.id,
         p_expires_at: expiresAt.toISOString(),
         p_first_name: first_name.trim(),
@@ -308,7 +298,7 @@ export async function POST(request, { params }) {
         first_name.trim(),
         last_name.trim(),
         organization.name,
-        orgRole.name,
+        seatType.name,
         inviterName,
         invitationLink,
         locale

@@ -6,7 +6,7 @@
  * 
  * To regenerate: npm run generate-typedef
  * 
- * Generated on: 2026-01-14T22:53:37.163Z
+ * Generated on: 2026-01-19T09:05:02.062Z
  */
 
 /**
@@ -107,6 +107,7 @@
  * @property {string} last_name
  * @property {string} organization_id - Foreign key to organizations.id
  * @property {number} organization_role_id - Foreign key to organization_roles.id
+ * @property {number} [seat_type_id] - Foreign key to seat_types.id
  * @property {string} [status]
  * @property {string} token
  * @property {string} [updated_at]
@@ -119,8 +120,10 @@
  * @property {string} [created_at]
  * @property {string} [invited_by]
  * @property {string} [joined_at]
+ * @property {string} [last_assigned_at]
  * @property {string} organization_id - Foreign key to organizations.id
  * @property {number} organization_role_id - Foreign key to organization_roles.id
+ * @property {string} [seat_id] - Foreign key to seats.id
  * @property {string} [updated_at]
  * @property {string} user_id
  */
@@ -133,6 +136,13 @@
  * @property {string} name
  * @property {number} organization_type_id - Foreign key to organization_types.id
  * @property {string} [updated_at]
+ */
+
+/**
+ * @typedef {Object} OrganizationSeatTypeSettings
+ * @property {string} organization_id - Primary key
+ * @property {number} seat_type_id - Primary key
+ * @property {boolean} [is_active]
  */
 
 /**
@@ -152,6 +162,15 @@
  * @property {string} name
  * @property {number} organization_type_id - Foreign key to organization_types.id
  * @property {string} [updated_at]
+ */
+
+/**
+ * @typedef {Object} Permissions
+ * @property {string} id - Primary key
+ * @property {string} code
+ * @property {string} [created_at]
+ * @property {string} [description]
+ * @property {string} name
  */
 
 /**
@@ -209,6 +228,59 @@
  * @property {string} [created_at]
  * @property {string} [description]
  * @property {string} name
+ * @property {string} [updated_at]
+ */
+
+/**
+ * @typedef {Object} SeatAssignmentHistory
+ * @property {string} id - Primary key
+ * @property {string} [assigned_at]
+ * @property {string} organization_id - Foreign key to organizations.id
+ * @property {string} seat_id - Foreign key to seats.id
+ * @property {string} [unassigned_at]
+ * @property {string} user_id
+ */
+
+/**
+ * @typedef {Object} SeatPackages
+ * @property {string} id - Primary key
+ * @property {string} [created_at]
+ * @property {string} [expires_at]
+ * @property {string} name
+ * @property {string} organization_id - Foreign key to organizations.id
+ * @property {number} seat_count
+ * @property {string} [status]
+ * @property {string} [updated_at]
+ */
+
+/**
+ * @typedef {Object} SeatTypePermissions
+ * @property {string} permission_id - Primary key
+ * @property {number} seat_type_id - Primary key
+ */
+
+/**
+ * @typedef {Object} SeatTypes
+ * @property {number} id - Primary key
+ * @property {string} [created_at]
+ * @property {number} [default_capacity]
+ * @property {string} [description]
+ * @property {boolean} [is_chargeable]
+ * @property {boolean} [is_system_type]
+ * @property {string} name
+ * @property {number} [organization_type_id] - Foreign key to organization_types.id
+ * @property {string} [updated_at]
+ */
+
+/**
+ * @typedef {Object} Seats
+ * @property {string} id - Primary key
+ * @property {number} capacity
+ * @property {string} [created_at]
+ * @property {boolean} [is_active]
+ * @property {string} name
+ * @property {string} organization_id - Foreign key to organizations.id
+ * @property {number} seat_type_id - Foreign key to seat_types.id
  * @property {string} [updated_at]
  */
 

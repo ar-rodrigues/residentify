@@ -136,20 +136,24 @@ export default function OrganizationSwitcher({ compact = false }) {
     ];
   }, [organizations, organizationId, router, t, startNavigation, locale]);
 
-  // Get role label and config for badge
-  const roleLabel = useMemo(() => {
-    if (!displayOrg?.userRole) return null;
-    const roleMap = {
+  // Get seat label and config for badge
+  const seatLabel = useMemo(() => {
+    if (!displayOrg?.seat_type) return null;
+    const typeMap = {
       admin: t("roles.admin"),
       resident: t("roles.resident"),
       security: t("roles.security"),
     };
-    return roleMap[displayOrg.userRole] || displayOrg.userRole;
+    let label = typeMap[displayOrg.seat_type] || displayOrg.seat_type;
+    if (displayOrg.is_frozen) {
+      label += ` (${t("organizations.seats.frozen") || "Congelado"})`;
+    }
+    return label;
   }, [displayOrg, t]);
 
   const roleConfig = useMemo(() => {
-    if (!displayOrg?.userRole) return null;
-    return getRoleConfig(displayOrg.userRole);
+    if (!displayOrg?.seat_type) return null;
+    return getRoleConfig(displayOrg.seat_type);
   }, [displayOrg]);
 
   // Skeleton component for loading state
@@ -201,16 +205,16 @@ export default function OrganizationSwitcher({ compact = false }) {
                   {displayOrg.name}
                 </Text>
               </Tooltip>
-              {displayOrg.userRole && roleConfig && (
+              {displayOrg.seat_type && roleConfig && (
                 <Tag
-                  color={roleConfig.color}
+                  color={displayOrg.is_frozen ? "default" : roleConfig.color}
                   style={{
                     margin: 0,
                     fontSize: isCompact ? "9px" : "10px",
                     padding: "2px 6px",
                     lineHeight: "1.2",
                     height: "auto",
-                    ...(isLightMode && {
+                    ...(isLightMode && !displayOrg.is_frozen && {
                       backgroundColor:
                         roleConfig.color === "red"
                           ? "rgba(239, 68, 68, 0.3)"
@@ -232,13 +236,7 @@ export default function OrganizationSwitcher({ compact = false }) {
                     }),
                   }}
                 >
-                  {displayOrg.userRole === "admin"
-                    ? t("roles.admin")
-                    : displayOrg.userRole === "resident"
-                    ? t("roles.resident")
-                    : displayOrg.userRole === "security"
-                    ? t("roles.security")
-                    : displayOrg.userRole}
+                  {seatLabel}
                 </Tag>
               )}
             </>
@@ -366,16 +364,16 @@ export default function OrganizationSwitcher({ compact = false }) {
                     {displayOrg.name}
                   </Text>
                 </Tooltip>
-                {roleLabel && roleConfig && (
+                {seatLabel && roleConfig && (
                   <Tag
-                    color={roleConfig.color}
+                    color={displayOrg.is_frozen ? "default" : roleConfig.color}
                     style={{
                       margin: 0,
                       fontSize: "9px",
                       padding: "2px 6px",
                       lineHeight: "1.2",
                       height: "auto",
-                      ...(isLightMode && {
+                      ...(isLightMode && !displayOrg.is_frozen && {
                         backgroundColor:
                           roleConfig.color === "red"
                             ? "rgba(239, 68, 68, 0.3)"
@@ -397,7 +395,7 @@ export default function OrganizationSwitcher({ compact = false }) {
                       }),
                     }}
                   >
-                    {roleLabel}
+                    {seatLabel}
                   </Tag>
                 )}
               </div>
@@ -476,16 +474,16 @@ export default function OrganizationSwitcher({ compact = false }) {
                     {displayOrg.name}
                   </Text>
                 </Tooltip>
-                {roleLabel && roleConfig && (
+                {seatLabel && roleConfig && (
                   <Tag
-                    color={roleConfig.color}
+                    color={displayOrg.is_frozen ? "default" : roleConfig.color}
                     style={{
                       margin: 0,
                       fontSize: "10px",
                       padding: "2px 6px",
                       lineHeight: "1.2",
                       height: "auto",
-                      ...(isLightMode && {
+                      ...(isLightMode && !displayOrg.is_frozen && {
                         backgroundColor:
                           roleConfig.color === "red"
                             ? "rgba(239, 68, 68, 0.3)"
@@ -507,7 +505,7 @@ export default function OrganizationSwitcher({ compact = false }) {
                       }),
                     }}
                   >
-                    {roleLabel}
+                    {seatLabel}
                   </Tag>
                 )}
               </div>

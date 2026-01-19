@@ -92,28 +92,20 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to view members
+    const { data: hasPermission, error: permissionError } = await supabase
+      .rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:view",
+      });
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para ver los miembros. Solo los administradores pueden ver los miembros.",
+            "No tienes permisos para ver los miembros.",
         },
         { status: 403 }
       );
@@ -126,14 +118,19 @@ export async function GET(request, { params }) {
         `
         id,
         user_id,
-        organization_role_id,
+        seat_id,
         joined_at,
         created_at,
         invited_by,
-        organization_roles(
+        seats(
           id,
           name,
-          description
+          capacity,
+          seat_types(
+            id,
+            name,
+            description
+          )
         )
       `
       )
@@ -269,11 +266,16 @@ export async function GET(request, { params }) {
           user_id: member.user_id,
           name: userName || `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || "Usuario desconocido",
           email: memberEmail,
-          role: {
-            id: member.organization_roles.id,
-            name: member.organization_roles.name,
-            description: member.organization_roles.description,
-          },
+          seat: member.seats ? {
+            id: member.seats.id,
+            name: member.seats.name,
+            capacity: member.seats.capacity,
+            type: {
+              id: member.seats.seat_types.id,
+              name: member.seats.seat_types.name,
+              description: member.seats.seat_types.description,
+            }
+          } : null,
           joined_at: member.joined_at,
           created_at: member.created_at,
           invited_by: member.invited_by,
@@ -394,7 +396,7 @@ export async function PUT(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const { member_id, organization_role_id } = body;
+    const { member_id, seat_id } = body;
 
     if (!member_id || typeof member_id !== "string") {
       return NextResponse.json(
@@ -406,73 +408,39 @@ export async function PUT(request, { params }) {
       );
     }
 
-    if (!organization_role_id || typeof organization_role_id !== "number") {
+    if (!seat_id || typeof seat_id !== "string") {
       return NextResponse.json(
         {
           error: true,
-          message: "ID de rol de organización inválido.",
+          message: "ID de asiento inválido.",
         },
         { status: 400 }
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to manage members
+    const { data: hasPermission, error: permissionError } = await supabase
+      .rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:manage",
+      });
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para actualizar miembros. Solo los administradores pueden actualizar miembros.",
+            "No tienes permisos para actualizar miembros.",
         },
         { status: 403 }
       );
     }
 
-    // Verify the role exists
-    const { data: roleCheck, error: roleError } = await supabase
-      .from("organization_roles")
-      .select("id, name")
-      .eq("id", organization_role_id)
-      .single();
-
-    if (roleError || !roleCheck) {
-      return NextResponse.json(
-        {
-          error: true,
-          message: "El rol especificado no existe.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Verify the member belongs to this organization and get their current role
+    // Verify the member belongs to this organization
     const { data: memberVerify, error: memberVerifyError } = await supabase
       .from("organization_members")
-      .select(
-        `
-        id,
-        organization_id,
-        organization_role_id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
+      .select("user_id, organization_id")
       .eq("id", member_id)
       .eq("organization_id", id)
       .single();
@@ -487,78 +455,79 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Check if member is currently an admin and new role is not admin
-    const isCurrentlyAdmin = memberVerify.organization_roles?.name === "admin";
-    const newRoleIsAdmin = roleCheck.name === "admin";
+    // Check if member is the last admin and we're moving them to a non-admin seat
+    const { data: isLastAdmin, error: lastAdminError } = await supabase.rpc(
+      "is_last_admin_in_organization",
+      {
+        p_user_id: memberVerify.user_id,
+        p_organization_id: id,
+      }
+    );
 
-    if (isCurrentlyAdmin && !newRoleIsAdmin) {
-      // Check if there are other admins in the organization
-      const { data: adminCount, error: adminCountError } = await supabase.rpc(
-        "count_admins_in_organization",
-        {
-          p_organization_id: id,
+    if (isLastAdmin) {
+        // Verify if the target seat is an admin seat
+        const { data: targetSeat, error: targetSeatError } = await supabase
+            .from("seats")
+            .select("seat_types!inner(name)")
+            .eq("id", seat_id)
+            .single();
+        
+        if (targetSeat?.seat_types?.name !== 'admin') {
+            return NextResponse.json(
+                {
+                  error: true,
+                  message:
+                    "No puedes cambiar el asiento del último administrador a uno que no sea de administrador.",
+                },
+                { status: 400 }
+              );
         }
-      );
-
-      if (adminCountError) {
-        console.error("Error counting admins:", adminCountError);
-        return NextResponse.json(
-          {
-            error: true,
-            message: "Error al verificar administradores.",
-          },
-          { status: 500 }
-        );
-      }
-
-      // If there's only 1 admin (this member), prevent the role change
-      if (adminCount === 1) {
-        return NextResponse.json(
-          {
-            error: true,
-            message:
-              "No puedes cambiar tu rol de administrador. Debe haber al menos un administrador en la organización.",
-          },
-          { status: 400 }
-        );
-      }
     }
 
-    // Update member role
-    const { data: updatedMember, error: updateError } = await supabase
+    // Assign user to seat using RPC (handles capacity and cooldown)
+    const { error: assignError } = await supabase.rpc("assign_user_to_seat", {
+      p_user_id: memberVerify.user_id,
+      p_seat_id: seat_id,
+    });
+
+    if (assignError) {
+      console.error("Error assigning seat:", assignError);
+      return NextResponse.json(
+        {
+          error: true,
+          message: assignError.message || "Error al asignar el asiento.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Fetch updated member data
+    const { data: updatedMember, error: fetchError } = await supabase
       .from("organization_members")
-      .update({ organization_role_id })
-      .eq("id", member_id)
       .select(
         `
         id,
         user_id,
-        organization_role_id,
-        organization_roles(
+        seat_id,
+        seats(
           id,
           name,
-          description
+          seat_types(
+            id,
+            name,
+            description
+          )
         )
       `
       )
+      .eq("id", member_id)
       .single();
-
-    if (updateError) {
-      console.error("Error updating member:", updateError);
-      return NextResponse.json(
-        {
-          error: true,
-          message: "Error al actualizar el miembro.",
-        },
-        { status: 500 }
-      );
-    }
 
     return NextResponse.json(
       {
         error: false,
         data: updatedMember,
-        message: "Rol de miembro actualizado exitosamente.",
+        message: "Asiento del miembro actualizado exitosamente.",
       },
       { status: 200 }
     );
@@ -654,28 +623,20 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to manage members
+    const { data: hasPermission, error: permissionError } = await supabase
+      .rpc("has_permission", {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:manage",
+      });
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para eliminar miembros. Solo los administradores pueden eliminar miembros.",
+            "No tienes permisos para eliminar miembros.",
         },
         { status: 403 }
       );
@@ -689,9 +650,11 @@ export async function DELETE(request, { params }) {
         id,
         user_id,
         organization_id,
-        organization_role_id,
-        organization_roles!inner(
-          name
+        seat_id,
+        seats!inner(
+          seat_types!inner(
+            name
+          )
         )
       `
       )
@@ -721,19 +684,20 @@ export async function DELETE(request, { params }) {
     }
 
     // Check if member is an admin
-    const isAdmin = memberVerify.organization_roles?.name === "admin";
+    const isAdmin = memberVerify.seats?.seat_types?.name === "admin";
 
     if (isAdmin) {
       // Check if there are other admins in the organization
-      const { data: adminCount, error: adminCountError } = await supabase.rpc(
-        "count_admins_in_organization",
+      const { data: isLastAdmin, error: lastAdminError } = await supabase.rpc(
+        "is_last_admin_in_organization",
         {
+          p_user_id: memberVerify.user_id,
           p_organization_id: id,
         }
       );
 
-      if (adminCountError) {
-        console.error("Error counting admins:", adminCountError);
+      if (lastAdminError) {
+        console.error("Error checking last admin:", lastAdminError);
         return NextResponse.json(
           {
             error: true,
@@ -744,7 +708,7 @@ export async function DELETE(request, { params }) {
       }
 
       // If there's only 1 admin (this member), prevent deletion
-      if (adminCount === 1) {
+      if (isLastAdmin) {
         return NextResponse.json(
           {
             error: true,

@@ -21,103 +21,68 @@ const iconMap = {
   RiFileListLine,
 };
 
-// Menu items for residential organizations
-const RESIDENTIAL_MENU_ITEMS = {
-  admin: [
-    {
-      key: "members",
-      icon: "RiUserLine",
-      path: "/members",
-      roles: ["admin"],
-    },
-    {
-      key: "chat",
-      icon: "RiChat4Line",
-      path: "/chat",
-      roles: ["admin", "resident", "security"],
-    },
-  ],
-  resident: [
-    {
-      key: "invites",
-      icon: "RiQrCodeLine",
-      path: "/invites",
-      roles: ["resident"],
-    },
-    {
-      key: "chat",
-      icon: "RiChat4Line",
-      path: "/chat",
-      roles: ["admin", "resident", "security"],
-    },
-  ],
-  security: [
-    {
-      key: "validate",
-      icon: "RiQrScanLine",
-      path: "/validate",
-      roles: ["security"],
-    },
-    {
-      key: "history",
-      icon: "RiHistoryLine",
-      path: "/history",
-      roles: ["security"],
-    },
-    {
-      key: "pending",
-      icon: "RiFileListLine",
-      path: "/pending",
-      roles: ["security"],
-    },
-    {
-      key: "chat",
-      icon: "RiChat4Line",
-      path: "/chat",
-      roles: ["admin", "resident", "security"],
-    },
-  ],
-};
+// Menu items with required permissions
+const MENU_ITEMS = [
+  {
+    key: "members",
+    icon: "RiUserLine",
+    path: "/members",
+    permission: "members:view",
+  },
+  {
+    key: "invites",
+    icon: "RiQrCodeLine",
+    path: "/invites",
+    permission: "invites:create",
+  },
+  {
+    key: "validate",
+    icon: "RiQrScanLine",
+    path: "/validate",
+    permission: "qr:validate",
+  },
+  {
+    key: "history",
+    icon: "RiHistoryLine",
+    path: "/history",
+    permission: "qr:view_history",
+  },
+  {
+    key: "pending",
+    icon: "RiFileListLine",
+    path: "/pending",
+    permission: "qr:validate",
+  },
+  {
+    key: "chat",
+    icon: "RiChat4Line",
+    path: "/chat",
+    permission: "chat:read",
+  },
+];
 
 /**
- * Get menu items for an organization based on type and role
- * @param {string} organizationType - The organization type (e.g., 'residential', 'commercial')
- * @param {string} role - The user's role in the organization (e.g., 'admin', 'resident', 'security')
+ * Get menu items for an organization based on permissions
  * @param {string} organizationId - The organization ID
+ * @param {Array} permissions - Array of permission codes the user has
  * @param {Function} t - Translation function
  * @param {string} locale - The locale code (e.g., 'es', 'pt')
  * @returns {Array} Array of menu items with full paths and icons
  */
 export function getOrganizationMenuItems(
-  organizationType,
-  role,
   organizationId,
+  permissions,
   t,
   locale
 ) {
-  // Handle no organization case
-  if (!organizationType || !role || !organizationId) {
-    return []; // No menu items when no organization context
+  // Handle no organization or permissions case
+  if (!organizationId || !permissions) {
+    return [];
   }
 
-  let menuItems = [];
-
-  switch (organizationType) {
-    case "residential":
-      menuItems = RESIDENTIAL_MENU_ITEMS[role] || [];
-      break;
-    // Future organization types can be added here:
-    // case "commercial":
-    //   menuItems = COMMERCIAL_MENU_ITEMS[role] || [];
-    //   break;
-    default:
-      menuItems = [];
-  }
-
-  // Filter by role permissions and build full paths with translations
-  return menuItems
-    .filter((item) => !item.roles || item.roles.includes(role))
-    .map((item) => {
+  // Filter by permissions and build full paths with translations
+  return MENU_ITEMS.filter((item) => !item.permission || permissions.includes(item.permission)).map(
+    (item) => {
       const IconComponent = iconMap[item.icon];
       return {
         key: item.key,
@@ -125,26 +90,25 @@ export function getOrganizationMenuItems(
         icon: IconComponent || null,
         path: `/${locale}/organizations/${organizationId}${item.path}`,
       };
-    });
+    }
+  );
 }
 
 /**
- * Get the default route for a role in an organization type
- * @param {string} organizationType - The organization type
- * @param {string} role - The user's role
+ * Get the default route for a user in an organization
  * @param {string} organizationId - The organization ID
+ * @param {Array} permissions - Array of permission codes the user has
  * @param {string} locale - The locale code (e.g., 'es', 'pt')
  * @returns {string|null} Default route path or null
  */
-export function getDefaultRoute(organizationType, role, organizationId, locale) {
-  if (!organizationType || !role || !organizationId) {
+export function getDefaultRoute(organizationId, permissions, locale) {
+  if (!organizationId || !permissions) {
     return null;
   }
 
   const menuItems = getOrganizationMenuItems(
-    organizationType,
-    role,
     organizationId,
+    permissions,
     () => "",
     locale
   );

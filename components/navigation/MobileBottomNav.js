@@ -22,19 +22,14 @@ export default function MobileBottomNav() {
   } = useCurrentOrganization();
   const { isPending, loadingPath, startNavigation } = useNavigationLoading();
 
-  // Get dynamic menu items based on organization type and role
+  // Get dynamic menu items based on organization permissions
   const orgMenuItems = useMemo(() => {
-    if (
-      !organization ||
-      !organization.organization_type ||
-      !organization.userRole
-    ) {
+    if (!organization || !organization.permissions) {
       return [];
     }
     return getOrganizationMenuItems(
-      organization.organization_type,
-      organization.userRole,
       organization.id,
+      organization.permissions,
       t,
       locale
     );
