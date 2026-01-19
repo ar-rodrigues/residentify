@@ -76,8 +76,8 @@ export function useOrganizationMembers() {
     }
   }, []);
 
-  const updateMemberRole = useCallback(
-    async (organizationId, memberId, newRoleId) => {
+  const updateMemberSeat = useCallback(
+    async (organizationId, memberId, seatId) => {
       try {
         // Don't set global loading/error states for role updates
         // These should be handled locally in the component
@@ -90,8 +90,8 @@ export function useOrganizationMembers() {
           throw new Error("ID de miembro inválido.");
         }
 
-        if (!newRoleId || typeof newRoleId !== "number") {
-          throw new Error("ID de rol inválido.");
+        if (!seatId || typeof seatId !== "string") {
+          throw new Error("ID de asiento inválido.");
         }
 
         const response = await fetch(
@@ -103,7 +103,7 @@ export function useOrganizationMembers() {
             },
             body: JSON.stringify({
               member_id: memberId,
-              organization_role_id: newRoleId,
+              seat_id: seatId,
             }),
           }
         );
@@ -111,11 +111,11 @@ export function useOrganizationMembers() {
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.message || "Error al actualizar el rol.");
+          throw new Error(result.message || "Error al actualizar el asiento.");
         }
 
         if (result.error) {
-          throw new Error(result.message || "Error al actualizar el rol.");
+          throw new Error(result.message || "Error al actualizar el asiento.");
         }
 
         // Only refetch members on success
@@ -124,8 +124,8 @@ export function useOrganizationMembers() {
         }
 
         // Dispatch event to invalidate organization cache
-        // This ensures that when a role is changed, the organization data is refetched
-        // to reflect the updated role for the affected user
+        // This ensures that when a role/seat is changed, the organization data is refetched
+        // to reflect the updated permissions for the affected user
         if (typeof window !== "undefined") {
           window.dispatchEvent(
             new CustomEvent("organization:updated", {
@@ -136,12 +136,12 @@ export function useOrganizationMembers() {
 
         return {
           error: false,
-          message: result.message || "Rol actualizado exitosamente.",
+          message: result.message || "Asiento actualizado exitosamente.",
           data: result.data,
         };
       } catch (err) {
         const errorMessage =
-          err.message || "Error inesperado al actualizar el rol.";
+          err.message || "Error inesperado al actualizar el asiento.";
         // Don't set global error state - let component handle it
         return {
           error: true,
@@ -227,7 +227,7 @@ export function useOrganizationMembers() {
     loading,
     error,
     getMembers,
-    updateMemberRole,
+    updateMemberSeat,
     removeMember,
     refetch,
   };

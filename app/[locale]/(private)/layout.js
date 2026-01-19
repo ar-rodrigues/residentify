@@ -17,6 +17,7 @@ import { NavigationLoadingProvider } from "@/components/providers/NavigationLoad
 import AppNavigation from "@/components/navigation/AppNavigation";
 import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import FrozenBanner from "@/components/ui/FrozenBanner";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -62,6 +63,7 @@ function ContentWithOverlay({
           border: "1px solid var(--color-border)",
         }}
       >
+        <FrozenBanner />
         {children}
         {/* Loading Overlay */}
         {isPending && (

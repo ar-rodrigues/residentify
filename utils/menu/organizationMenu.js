@@ -7,6 +7,8 @@ import {
   RiQrScanLine,
   RiHistoryLine,
   RiFileListLine,
+  RiLayoutMasonryLine,
+  RiMoneyDollarBoxLine,
 } from "react-icons/ri";
 
 // Icon mapping for menu items
@@ -19,6 +21,8 @@ const iconMap = {
   RiQrScanLine,
   RiHistoryLine,
   RiFileListLine,
+  RiLayoutMasonryLine,
+  RiMoneyDollarBoxLine,
 };
 
 // Menu items with required permissions
@@ -58,6 +62,18 @@ const MENU_ITEMS = [
     icon: "RiChat4Line",
     path: "/chat",
     permission: "chat:read",
+  },
+  {
+    key: "seats",
+    icon: "RiLayoutMasonryLine",
+    path: "/seats",
+    permission: "members:manage",
+  },
+  {
+    key: "billing",
+    icon: "RiMoneyDollarBoxLine",
+    path: "/billing",
+    permission: "org:update",
   },
 ];
 

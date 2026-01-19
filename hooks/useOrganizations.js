@@ -117,9 +117,17 @@ export function useOrganizations() {
       const { data: memberData, error: memberError } = memberDataResult;
 
       if (memberError) {
-        console.error("Error fetching member organization IDs:", memberError);
-      } else if (memberData && memberData.length > 0) {
-        const orgIds = memberData.map((m) => m.organization_id);
+        console.error("Error fetching member organization IDs:", {
+          code: memberError?.code,
+          message: memberError?.message,
+          details: memberError?.details,
+          hint: memberError?.hint,
+          error: memberError,
+        });
+      } else if (memberData && Array.isArray(memberData) && memberData.length > 0) {
+        const orgIds = memberData
+          .map((m) => m?.organization_id)
+          .filter(Boolean);
 
         // Fetch organizations for members
         const { data: orgsData, error: orgsError } = await supabase
@@ -129,9 +137,15 @@ export function useOrganizations() {
           .order("created_at", { ascending: false });
 
         if (orgsError) {
-          console.error("Error fetching organizations:", orgsError);
+          console.error("Error fetching organizations:", {
+            code: orgsError?.code,
+            message: orgsError?.message,
+            details: orgsError?.details,
+            hint: orgsError?.hint,
+            error: orgsError,
+          });
         } else {
-          memberOrgs = orgsData || [];
+          memberOrgs = Array.isArray(orgsData) ? orgsData : [];
         }
       }
 
@@ -145,42 +159,66 @@ export function useOrganizations() {
       if (pendingErrorById) {
         console.error(
           "Error fetching pending invitations by user_id:",
-          pendingErrorById
+          {
+            code: pendingErrorById?.code,
+            message: pendingErrorById?.message,
+            details: pendingErrorById?.details,
+            hint: pendingErrorById?.hint,
+            error: pendingErrorById,
+          }
         );
       }
 
       if (pendingErrorByEmail) {
         console.warn(
           "Error fetching pending invitations by email:",
-          pendingErrorByEmail
+          {
+            code: pendingErrorByEmail.code,
+            message: pendingErrorByEmail.message,
+            details: pendingErrorByEmail.details,
+            hint: pendingErrorByEmail.hint,
+            error: pendingErrorByEmail,
+          }
         );
       }
 
       // Combine both invitation results and extract unique organization IDs
       const allPendingInvitations = [
-        ...(pendingInvitationsById || []),
-        ...(emailInvitations || []),
+        ...(Array.isArray(pendingInvitationsById) ? pendingInvitationsById : []),
+        ...(Array.isArray(emailInvitations) ? emailInvitations : []),
       ];
 
       if (allPendingInvitations.length > 0) {
         const orgIds = [
-          ...new Set(allPendingInvitations.map((inv) => inv.organization_id)),
+          ...new Set(
+            allPendingInvitations
+              .map((inv) => inv?.organization_id)
+              .filter(Boolean)
+          ),
         ];
 
-        // Fetch organizations for pending invitations
-        const { data: orgsData, error: orgsError } = await supabase
-          .from("organizations")
-          .select("id, name, created_at")
-          .in("id", orgIds);
+        if (orgIds.length > 0) {
+          // Fetch organizations for pending invitations
+          const { data: orgsData, error: orgsError } = await supabase
+            .from("organizations")
+            .select("id, name, created_at")
+            .in("id", orgIds);
 
-        if (orgsError) {
-          console.error("Error fetching pending organizations:", orgsError);
-        } else if (orgsData) {
-          // Mark all as pending approval
-          pendingOrgs = orgsData.map((org) => ({
-            ...org,
-            isPendingApproval: true,
-          }));
+          if (orgsError) {
+            console.error("Error fetching pending organizations:", {
+              code: orgsError?.code,
+              message: orgsError?.message,
+              details: orgsError?.details,
+              hint: orgsError?.hint,
+              error: orgsError,
+            });
+          } else if (Array.isArray(orgsData) && orgsData.length > 0) {
+            // Mark all as pending approval
+            pendingOrgs = orgsData.map((org) => ({
+              ...org,
+              isPendingApproval: true,
+            }));
+          }
         }
       }
 

@@ -11,6 +11,7 @@ import {
 } from "react-icons/ri";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useOrganizations } from "@/hooks/useOrganizations";
+import { useSeatTypes } from "@/hooks/useSeatTypes";
 import {
   Form,
   Card,
@@ -34,10 +35,9 @@ export default function InviteUserPage() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [inviteForm] = Form.useForm();
-  const [organizationRoles, setOrganizationRoles] = useState([]);
-  const [loadingRoles, setLoadingRoles] = useState(true);
   const { createInvitation, loading } = useInvitations();
   const { getOrganization, data: organization } = useOrganizations();
+  const { data: seatTypes, loading: loadingSeatTypes } = useSeatTypes(organization?.organization_type_id);
 
   useEffect(() => {
     if (id) {
@@ -54,31 +54,6 @@ export default function InviteUserPage() {
     }
   }, [id, getOrganization, t]);
 
-  useEffect(() => {
-    // Fetch organization roles
-    const fetchRoles = async () => {
-      try {
-        setLoadingRoles(true);
-        const response = await fetch("/api/organization-roles");
-        const result = await response.json();
-
-        if (result.error) {
-          setErrorMessage(t("organizations.invite.errors.loadRolesError"));
-          return;
-        }
-
-        setOrganizationRoles(result.data || []);
-      } catch (error) {
-        console.error("Error fetching organization roles:", error);
-        setErrorMessage(t("organizations.invite.errors.loadRolesError"));
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
-
-    fetchRoles();
-  }, [t]);
-
   const handleInvite = async (values) => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -87,7 +62,7 @@ export default function InviteUserPage() {
       first_name: values.first_name,
       last_name: values.last_name,
       email: values.email,
-      organization_role_id: values.organization_role_id,
+      seat_type_id: values.seat_type_id,
       description: values.description || null,
     });
 
@@ -298,7 +273,7 @@ export default function InviteUserPage() {
                 </Form.Item>
 
                 <Form.Item
-                  name="organization_role_id"
+                  name="seat_type_id"
                   label={
                     <span className="text-sm sm:text-base">
                       {t("organizations.invite.role")}
@@ -315,12 +290,12 @@ export default function InviteUserPage() {
                   <Select
                     placeholder={t("organizations.invite.rolePlaceholder")}
                     size="large"
-                    loading={loadingRoles}
+                    loading={loadingSeatTypes}
                     className="w-full"
-                    options={organizationRoles.map((role) => ({
-                      value: role.id,
-                      label: getRoleDisplayName(role.name),
-                      description: role.description,
+                    options={seatTypes.map((type) => ({
+                      value: type.id,
+                      label: getRoleDisplayName(type.name),
+                      description: type.description,
                     }))}
                   />
                 </Form.Item>

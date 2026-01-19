@@ -9,12 +9,15 @@ import { useIsMobile } from "@/hooks/useMediaQuery";
 import Button from "@/components/ui/Button";
 import CreateGeneralInviteLinkForm from "./CreateGeneralInviteLinkForm";
 
+import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+
 export default function AddMemberFAB({
   organizationId,
   onSwitchToInvitations = null,
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const { organization } = useCurrentOrganization();
   const isMobile = useIsMobile();
   const [modalOpen, setModalOpen] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);

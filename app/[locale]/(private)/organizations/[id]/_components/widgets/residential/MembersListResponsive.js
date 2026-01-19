@@ -24,8 +24,10 @@ import {
   RiMoreLine,
   RiEditLine,
   RiLinksLine,
+  RiLayoutMasonryLine,
 } from "react-icons/ri";
 import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
+import { useSeats } from "@/hooks/useSeats";
 import { formatDateDDMMYYYY } from "@/utils/date";
 import { normalizeName } from "@/utils/name";
 import { getRoleIcon } from "@/config/roles";
@@ -42,11 +44,11 @@ export default function MembersListResponsive({ organizationId }) {
     loading,
     error,
     getMembers,
-    updateMemberRole,
+    updateMemberSeat,
     removeMember,
   } = useOrganizationMembers();
-  const [roles, setRoles] = useState([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
+  
+  const { data: seats, loading: loadingSeats } = useSeats(organizationId);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
   const [selectValues, setSelectValues] = useState({}); // Track select values by member ID
   const [openDropdowns, setOpenDropdowns] = useState({}); // Track open dropdowns by member ID
@@ -55,7 +57,6 @@ export default function MembersListResponsive({ organizationId }) {
   useEffect(() => {
     if (organizationId) {
       getMembers(organizationId);
-      fetchRoles();
     }
   }, [organizationId, getMembers]);
 
@@ -64,40 +65,25 @@ export default function MembersListResponsive({ organizationId }) {
     if (members && members.length > 0) {
       const newSelectValues = {};
       members.forEach((member) => {
-        newSelectValues[member.id] = member.role.id;
+        newSelectValues[member.id] = member.seat?.id;
       });
       setSelectValues(newSelectValues);
     }
   }, [members]);
 
-  const fetchRoles = async () => {
-    try {
-      setLoadingRoles(true);
-      const response = await fetch("/api/organization-roles");
-      const result = await response.json();
-      if (!result.error && result.data) {
-        setRoles(result.data);
-      }
-    } catch (err) {
-      console.error("Error fetching roles:", err);
-    } finally {
-      setLoadingRoles(false);
-    }
-  };
-
-  const handleRoleChange = async (memberId, newRoleId, currentRoleId) => {
+  const handleSeatChange = async (memberId, newSeatId, currentSeatId) => {
     try {
       setUpdatingMemberId(memberId);
-      const result = await updateMemberRole(
+      const result = await updateMemberSeat(
         organizationId,
         memberId,
-        newRoleId
+        newSeatId
       );
       if (result.error) {
         // Show warning message without blocking the UI
         message.warning(result.message);
-        // Reset the Select to the original role value
-        setSelectValues((prev) => ({ ...prev, [memberId]: currentRoleId }));
+        // Reset the Select to the original seat value
+        setSelectValues((prev) => ({ ...prev, [memberId]: currentSeatId }));
         return false; // Indicate failure
       } else {
         // Show success message briefly
@@ -105,9 +91,9 @@ export default function MembersListResponsive({ organizationId }) {
         return true; // Indicate success
       }
     } catch (err) {
-      message.warning(t("organizations.members.errors.updateRoleError"));
-      // Reset the Select to the original role value
-      setSelectValues((prev) => ({ ...prev, [memberId]: currentRoleId }));
+      message.warning("Error al actualizar el asiento");
+      // Reset the Select to the original seat value
+      setSelectValues((prev) => ({ ...prev, [memberId]: currentSeatId }));
       return false; // Indicate failure
     } finally {
       setUpdatingMemberId(null);
@@ -157,7 +143,7 @@ export default function MembersListResponsive({ organizationId }) {
       width: 200,
       ellipsis: true,
       render: (text, record) => {
-        const RoleIcon = getRoleIconComponent(record.role?.name);
+        const RoleIcon = getRoleIconComponent(record.seat?.type?.name);
         const normalizedName = normalizeName(text || "");
         return (
           <div
@@ -218,21 +204,27 @@ export default function MembersListResponsive({ organizationId }) {
       },
     },
     {
-      title: t("organizations.members.columns.role"),
-      dataIndex: ["role", "name"],
-      key: "role",
+      title: "Asiento",
+      dataIndex: ["seat", "name"],
+      key: "seat",
       width: 150,
-      render: (roleName) => (
-        <Badge
-          status={
-            roleName === "admin"
-              ? "error"
-              : roleName === "security"
-              ? "warning"
-              : "default"
-          }
-          text={getRoleDisplayName(roleName)}
-        />
+      render: (seatName, record) => (
+        <Space orientation="vertical" size={0}>
+          <Text strong>{seatName || "Sin asiento"}</Text>
+          {record.seat?.type && (
+            <Badge
+              status={
+                record.seat.type.name === "admin"
+                  ? "error"
+                  : record.seat.type.name === "security"
+                  ? "warning"
+                  : "default"
+              }
+              text={getRoleDisplayName(record.seat.type.name)}
+              size="small"
+            />
+          )}
+        </Space>
       ),
     },
     {
@@ -257,20 +249,21 @@ export default function MembersListResponsive({ organizationId }) {
       render: (_, record) => (
         <Space size="small" wrap={false}>
           <Select
-            value={selectValues[record.id] ?? record.role.id}
+            value={selectValues[record.id] ?? record.seat?.id}
             onChange={async (value) => {
               // Optimistically update the UI
               setSelectValues((prev) => ({ ...prev, [record.id]: value }));
-              await handleRoleChange(record.id, value, record.role.id);
+              await handleSeatChange(record.id, value, record.seat?.id);
             }}
             loading={updatingMemberId === record.id}
-            disabled={updatingMemberId !== null}
+            disabled={updatingMemberId !== null || loadingSeats}
             style={{ width: 160 }}
             size="small"
-            options={roles.map((role) => ({
-              value: role.id,
-              label: getRoleDisplayName(role.name),
-            }))}
+            options={seats?.map((seat) => ({
+              value: seat.id,
+              label: `${seat.name} (${getRoleDisplayName(seat.seat_types?.name || 'unknown')})`,
+              disabled: seat.member_count >= seat.capacity && seat.id !== record.seat?.id,
+            })) || []}
           />
           <Button
             danger
@@ -325,28 +318,29 @@ export default function MembersListResponsive({ organizationId }) {
 
   // Mobile: Card layout
   if (isMobile) {
-    const getRoleMenuItems = (member) => {
-      return roles.map((role) => ({
-        key: role.id,
-        label: getRoleDisplayName(role.name),
+    const getSeatMenuItems = (member) => {
+      return seats.map((seat) => ({
+        key: seat.id,
+        label: `${seat.name} (${getRoleDisplayName(seat.seat_types.name)})`,
         disabled:
           updatingMemberId !== null ||
-          (updatingMemberId === member.id && loadingRoles),
+          (updatingMemberId === member.id && loadingSeats) ||
+          (seat.member_count >= seat.capacity && seat.id !== member.seat?.id),
         onClick: async () => {
           // Close the dropdown
           setOpenDropdowns((prev) => ({ ...prev, [member.id]: false }));
-          if (role.id !== member.role.id) {
+          if (seat.id !== member.seat?.id) {
             // Optimistically update the UI
-            setSelectValues((prev) => ({ ...prev, [member.id]: role.id }));
-            await handleRoleChange(member.id, role.id, member.role.id);
+            setSelectValues((prev) => ({ ...prev, [member.id]: seat.id }));
+            await handleSeatChange(member.id, seat.id, member.seat?.id);
           }
         },
       }));
     };
 
-    const getRoleBorderColor = (roleName) => {
-      if (roleName === "admin") return "#dc2626"; // red-600
-      if (roleName === "security") return "#ea580c"; // orange-600
+    const getSeatBorderColor = (seatTypeName) => {
+      if (seatTypeName === "admin") return "#dc2626"; // red-600
+      if (seatTypeName === "security") return "#ea580c"; // orange-600
       return "#2563eb"; // blue-600
     };
 
@@ -421,15 +415,15 @@ export default function MembersListResponsive({ organizationId }) {
                 </div>
               </div>
 
-              {/* Role - Second row */}
+              {/* Seat - Second row */}
               <div className="flex items-center justify-between mb-2">
                 <Text className="text-sm">
-                  {getRoleDisplayName(member.role.name)}
+                  {member.seat?.name || "Sin asiento"} ({getRoleDisplayName(member.seat?.type?.name)})
                 </Text>
                 <Space size="small">
                   <Dropdown
                     menu={{
-                      items: getRoleMenuItems(member),
+                      items: getSeatMenuItems(member),
                     }}
                     trigger={["click"]}
                     disabled={updatingMemberId !== null}
@@ -448,7 +442,7 @@ export default function MembersListResponsive({ organizationId }) {
                       loading={updatingMemberId === member.id}
                       disabled={updatingMemberId !== null}
                       style={{ padding: "0 4px", minWidth: "auto" }}
-                      aria-label={t("organizations.members.actions.changeRole")}
+                      aria-label="Cambiar asiento"
                     />
                   </Dropdown>
                   <AntButton

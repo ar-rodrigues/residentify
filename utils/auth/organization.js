@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getOrganizationById } from "@/utils/api/organizations";
-import { hasRouteAccess } from "@/utils/auth/routePermissions";
+import { hasRouteAccess, getAllowedRolesForRoute } from "@/utils/auth/routePermissions";
 
 /**
  * Check if user has access to a specific route in an organization

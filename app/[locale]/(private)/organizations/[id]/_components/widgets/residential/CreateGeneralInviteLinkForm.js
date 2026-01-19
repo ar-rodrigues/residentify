@@ -5,69 +5,48 @@ import { useTranslations } from "next-intl";
 import { Form, Select, Switch, DatePicker, App } from "antd";
 import { RiAddLine } from "react-icons/ri";
 import { useGeneralInviteLinks } from "@/hooks/useGeneralInviteLinks";
+import { useSeatTypes } from "@/hooks/useSeatTypes";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import Button from "@/components/ui/Button";
 
 export default function CreateGeneralInviteLinkForm({
   organizationId,
+  organizationTypeId,
   onSuccess,
 }) {
   const t = useTranslations();
   const { message } = App.useApp();
   const { createGeneralInviteLink, loading } = useGeneralInviteLinks();
+  const { data: seatTypes, loading: loadingSeatTypes } = useSeatTypes(organizationTypeId);
   const [form] = Form.useForm();
-  const [organizationRoles, setOrganizationRoles] = useState([]);
-  const [loadingRoles, setLoadingRoles] = useState(true);
   const formRef = useRef(null);
   const isMobile = useIsMobile();
 
-  const fetchRoles = useCallback(async () => {
+  const handleCreate = async (values) => {
     try {
-      setLoadingRoles(true);
-      const response = await fetch("/api/organization-roles");
-      const result = await response.json();
+      // Parse expiration date if provided
+      let expiresAt = null;
+      if (values.expires_at) {
+        expiresAt = values.expires_at.toISOString();
+      }
+
+      const result = await createGeneralInviteLink(organizationId, {
+        seat_type_id: values.seat_type_id,
+        requires_approval: values.requires_approval || false,
+        expires_at: expiresAt,
+      });
 
       if (result.error) {
-        message.error(t("organizations.generalInviteLinks.errors.loadRolesError"));
-        return;
+        message.error(result.message);
+      } else {
+        message.success(result.message);
+        form.resetFields();
+        if (onSuccess) {
+          onSuccess(result.data);
+        }
       }
-
-      setOrganizationRoles(result.data || []);
-    } catch (error) {
-      console.error("Error fetching organization roles:", error);
-      message.error(t("organizations.generalInviteLinks.errors.loadRolesError"));
-    } finally {
-      setLoadingRoles(false);
-    }
-  }, [message, t]);
-
-  useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
-
-  const handleCreate = async (values) => {
-    // If a date is selected, set it to end of day (23:59:59) for expiration
-    let expiresAt = null;
-    if (values.expires_at) {
-      const date = new Date(values.expires_at);
-      date.setHours(23, 59, 59, 999);
-      expiresAt = date.toISOString();
-    }
-
-    const result = await createGeneralInviteLink(organizationId, {
-      organization_role_id: values.organization_role_id,
-      requires_approval: values.requires_approval || false,
-      expires_at: expiresAt,
-    });
-
-    if (result.error) {
-      message.error(result.message);
-    } else {
-      message.success(result.message);
-      form.resetFields();
-      if (onSuccess) {
-        onSuccess(result.data);
-      }
+    } catch (err) {
+      message.error(err.message || "Error al crear el enlace de invitación.");
     }
   };
 
@@ -89,7 +68,7 @@ export default function CreateGeneralInviteLinkForm({
       requiredMark={false}
     >
       <Form.Item
-        name="organization_role_id"
+        name="seat_type_id"
         label={t("organizations.generalInviteLinks.form.role")}
         rules={[
           {
@@ -101,11 +80,11 @@ export default function CreateGeneralInviteLinkForm({
         <Select
           placeholder={t("organizations.generalInviteLinks.form.rolePlaceholder")}
           size="large"
-          loading={loadingRoles}
-          options={organizationRoles.map((role) => ({
-            value: role.id,
-            label: getRoleDisplayName(role.name),
-            description: role.description,
+          loading={loadingSeatTypes}
+          options={seatTypes.map((type) => ({
+            value: type.id,
+            label: getRoleDisplayName(type.name),
+            description: type.description,
           }))}
         />
       </Form.Item>

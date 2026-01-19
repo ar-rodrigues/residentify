@@ -12,8 +12,9 @@ import {
   Typography,
   Badge,
 } from "antd";
-import { RiUserLine, RiDeleteBinLine, RiEditLine } from "react-icons/ri";
+import { RiUserLine, RiDeleteBinLine, RiEditLine, RiLayoutMasonryLine } from "react-icons/ri";
 import { useOrganizationMembers } from "@/hooks/useOrganizationMembers";
+import { useSeats } from "@/hooks/useSeats";
 import { formatDateDDMMYYYY } from "@/utils/date";
 import Button from "@/components/ui/Button";
 
@@ -26,42 +27,26 @@ export default function MembersList({ organizationId }) {
     loading,
     error,
     getMembers,
-    updateMemberRole,
+    updateMemberSeat,
     removeMember,
   } = useOrganizationMembers();
-  const [roles, setRoles] = useState([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
+  
+  const { data: seats, loading: loadingSeats } = useSeats(organizationId);
   const [updatingMemberId, setUpdatingMemberId] = useState(null);
 
   useEffect(() => {
     if (organizationId) {
       getMembers(organizationId);
-      fetchRoles();
     }
   }, [organizationId, getMembers]);
 
-  const fetchRoles = async () => {
-    try {
-      setLoadingRoles(true);
-      const response = await fetch("/api/organization-roles");
-      const result = await response.json();
-      if (!result.error && result.data) {
-        setRoles(result.data);
-      }
-    } catch (err) {
-      console.error("Error fetching roles:", err);
-    } finally {
-      setLoadingRoles(false);
-    }
-  };
-
-  const handleRoleChange = async (memberId, newRoleId) => {
+  const handleSeatChange = async (memberId, newSeatId) => {
     try {
       setUpdatingMemberId(memberId);
-      const result = await updateMemberRole(
+      const result = await updateMemberSeat(
         organizationId,
         memberId,
-        newRoleId
+        newSeatId
       );
       if (result.error) {
         Modal.error({
@@ -77,7 +62,7 @@ export default function MembersList({ organizationId }) {
     } catch (err) {
       Modal.error({
         title: "Error",
-        content: "Error inesperado al actualizar el rol.",
+        content: "Error inesperado al actualizar el asiento.",
       });
     } finally {
       setUpdatingMemberId(null);
@@ -137,20 +122,26 @@ export default function MembersList({ organizationId }) {
       ),
     },
     {
-      title: "Rol",
-      dataIndex: ["role", "name"],
-      key: "role",
-      render: (roleName) => (
-        <Badge
-          status={
-            roleName === "admin"
-              ? "error"
-              : roleName === "security"
-              ? "warning"
-              : "default"
-          }
-          text={getRoleDisplayName(roleName)}
-        />
+      title: "Asiento",
+      dataIndex: ["seat", "name"],
+      key: "seat",
+      render: (seatName, record) => (
+        <Space orientation="vertical" size={0}>
+          <Text strong>{seatName || "Sin asiento"}</Text>
+          {record.seat?.type && (
+            <Badge
+              status={
+                record.seat.type.name === "admin"
+                  ? "error"
+                  : record.seat.type.name === "security"
+                  ? "warning"
+                  : "default"
+              }
+              text={getRoleDisplayName(record.seat.type.name)}
+              size="small"
+            />
+          )}
+        </Space>
       ),
     },
     {
@@ -171,15 +162,17 @@ export default function MembersList({ organizationId }) {
       render: (_, record) => (
         <Space>
           <Select
-            value={record.role.id}
-            onChange={(value) => handleRoleChange(record.id, value)}
-            loading={updatingMemberId === record.id}
+            value={record.seat?.id}
+            onChange={(value) => handleSeatChange(record.id, value)}
+            loading={updatingMemberId === record.id || loadingSeats}
             disabled={updatingMemberId !== null}
+            placeholder="Asignar asiento"
             style={{ width: 180 }}
             size="small"
-            options={roles.map((role) => ({
-              value: role.id,
-              label: getRoleDisplayName(role.name),
+            options={seats.map((seat) => ({
+              value: seat.id,
+              label: `${seat.name} (${getRoleDisplayName(seat.seat_types.name)})`,
+              disabled: seat.member_count >= seat.capacity && seat.id !== record.seat?.id
             }))}
           />
           <Button

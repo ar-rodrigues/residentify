@@ -30,11 +30,11 @@ export function useInvitations() {
           first_name,
           last_name,
           email,
-          organization_role_id,
+          seat_type_id,
           description,
         } = invitationData;
 
-        if (!first_name || !last_name || !email || !organization_role_id) {
+        if (!first_name || !last_name || !email || !seat_type_id) {
           throw new Error("Por favor, completa todos los campos requeridos.");
         }
 
@@ -49,7 +49,7 @@ export function useInvitations() {
               first_name,
               last_name,
               email,
-              organization_role_id,
+              seat_type_id,
               description: description || null,
             }),
           }

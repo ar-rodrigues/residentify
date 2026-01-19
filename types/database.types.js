@@ -6,7 +6,7 @@
  * 
  * To regenerate: npm run generate-typedef
  * 
- * Generated on: 2026-01-19T09:05:02.062Z
+ * Generated on: 2026-01-19T23:11:00.710Z
  */
 
 /**
@@ -65,8 +65,8 @@
  * @property {string} created_by
  * @property {string} [expires_at]
  * @property {string} organization_id - Foreign key to organizations.id
- * @property {number} organization_role_id - Foreign key to organization_roles.id
  * @property {boolean} requires_approval
+ * @property {number} seat_type_id - Foreign key to seat_types.id
  * @property {string} token
  * @property {string} [updated_at]
  */

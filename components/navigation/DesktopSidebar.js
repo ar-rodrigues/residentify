@@ -25,14 +25,15 @@ export default function DesktopSidebar({ collapsed, onCollapse }) {
   const { organization, loading: loadingOrg } = useCurrentOrganization();
   const { isPending, loadingPath, startNavigation } = useNavigationLoading();
 
-  // Get dynamic menu items based on organization permissions
+  // Get dynamic menu items based on organization permissions and seat type
   const orgMenuItems = useMemo(() => {
-    if (!organization || !organization.permissions) {
+    if (!organization || !organization.permissions || !organization.userRole) {
       return [];
     }
     return getOrganizationMenuItems(
       organization.id,
       organization.permissions,
+      organization.userRole, // seat type (e.g., 'admin', 'resident', 'security')
       t,
       locale
     );

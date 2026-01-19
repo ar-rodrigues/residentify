@@ -28,11 +28,11 @@ export function useGeneralInviteLinks() {
           throw new Error("ID de organización inválido.");
         }
 
-        const { organization_role_id, requires_approval, expires_at } =
+        const { seat_type_id, requires_approval, expires_at } =
           linkData;
 
-        if (!organization_role_id) {
-          throw new Error("El rol de organización es requerido.");
+        if (!seat_type_id) {
+          throw new Error("El tipo de asiento es requerido.");
         }
 
         const response = await fetch(
@@ -43,7 +43,7 @@ export function useGeneralInviteLinks() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              organization_role_id,
+              seat_type_id,
               requires_approval: requires_approval === true,
               expires_at: expires_at || null,
             }),

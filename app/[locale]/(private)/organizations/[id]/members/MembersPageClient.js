@@ -15,20 +15,26 @@ export default function MembersPageClient({ organizationId }) {
   const t = useTranslations();
   const router = useRouter();
   const { organization, loading } = useCurrentOrganization();
-  const { isAdmin } = useOrganizationAuth();
+  const { hasPermission } = useOrganizationAuth();
   const [activeTab, setActiveTab] = useState("members");
+  const [redirecting, setRedirecting] = useState(false);
+
+  // Check if user has members:manage permission (required for members page)
+  const hasMembersManagePermission = hasPermission("members:manage");
 
   // Client-side check for immediate UX feedback
   useEffect(() => {
-    if (!loading && organization) {
-      if (!isAdmin) {
-        router.push(`/organizations/${organizationId}`);
-      }
+    // Only redirect if organization is fully loaded and user doesn't have permission
+    // Don't redirect while loading to avoid loops
+    if (!loading && organization && !hasMembersManagePermission && !redirecting) {
+      setRedirecting(true);
+      // Use replace instead of push to avoid adding to history (prevents back button loops)
+      router.replace(`/organizations/${organizationId}`);
     }
-  }, [loading, organization, isAdmin, organizationId, router]);
+  }, [loading, organization, hasMembersManagePermission, organizationId, router, redirecting]);
 
   // Show loading state while checking
-  if (loading || !organization) {
+  if (loading || !organization || redirecting) {
     return (
       <div className="w-full flex items-center justify-center min-h-[400px]">
         <Spin size="large" />
@@ -36,8 +42,8 @@ export default function MembersPageClient({ organizationId }) {
     );
   }
 
-  // If not admin, redirect (this will be handled by useEffect, but show nothing while redirecting)
-  if (!isAdmin) {
+  // If user doesn't have members:manage permission, show nothing (redirect is handled by useEffect)
+  if (!hasMembersManagePermission) {
     return null;
   }
 

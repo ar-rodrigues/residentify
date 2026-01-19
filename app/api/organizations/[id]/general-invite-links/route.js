@@ -95,42 +95,35 @@ export async function POST(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const { organization_role_id, requires_approval, expires_at } = body;
+    const { seat_type_id, requires_approval, expires_at } = body;
 
     // Validate required fields
-    if (!organization_role_id || typeof organization_role_id !== "number") {
+    if (!seat_type_id || typeof seat_type_id !== "number") {
       return NextResponse.json(
         {
           error: true,
-          message: "El rol de organización es requerido.",
+          message: "El tipo de asiento es requerido.",
         },
         { status: 400 }
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          id,
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to manage members (which includes invite links)
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:manage",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para crear enlaces de invitación. Solo los administradores pueden crear enlaces de invitación.",
+            "No tienes permisos para crear enlaces de invitación.",
         },
         { status: 403 }
       );
@@ -193,7 +186,7 @@ export async function POST(request, { params }) {
       "create_general_invite_link",
       {
         p_organization_id: id,
-        p_organization_role_id: organization_role_id,
+        p_seat_type_id: seat_type_id,
         p_token: token,
         p_requires_approval: requires_approval === true,
         p_expires_at: expiresAtDate ? expiresAtDate.toISOString() : null,
@@ -254,8 +247,8 @@ export async function POST(request, { params }) {
         data: {
           ...link,
           invite_url: inviteUrl,
-          role_name: orgRole.name,
-          role_description: orgRole.description,
+          role_name: seatType.name,
+          role_description: seatType.description,
         },
         message: "Enlace de invitación creado exitosamente.",
       },
@@ -434,8 +427,8 @@ export async function GET(request, { params }) {
           invite_url: `${baseUrl}/${locale}/invitations/general/${link.token}`,
           usage_count: count || 0,
           is_expired: isExpired,
-          role_name: link.organization_roles?.name,
-          role_description: link.organization_roles?.description,
+          role_name: link.seat_types?.name,
+          role_description: link.seat_types?.description,
         };
       })
     );

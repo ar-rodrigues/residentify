@@ -96,11 +96,10 @@ export default async function OrganizationDetailPage({ params }) {
     return <OrganizationNotFound message={errorMessage} />;
   }
 
-  // Redirect to default route based on role
+  // Redirect to default route based on permissions
   const defaultRoute = getDefaultRoute(
-    organization.organization_type,
-    organization.userRole,
-    id,
+    id, // organizationId
+    organization.permissions || [], // permissions array
     locale
   );
 

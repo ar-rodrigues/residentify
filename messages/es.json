@@ -497,7 +497,9 @@
     "history": "Histórico",
     "pending": "Pendientes",
     "organizations": "Organizaciones",
-    "profile": "Mi Perfil"
+    "profile": "Mi Perfil",
+    "seats": "Asientos",
+    "billing": "Facturación"
   },
   "roles": {
     "admin": "Administrador",
