@@ -346,27 +346,21 @@ export async function POST(request) {
       );
     }
 
-    // Check if user is security personnel
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", organization_id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "security")
-      .single();
+    // Check if user has permission to validate QR codes (security personnel can create notifications)
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: organization_id,
+        p_permission_code: "qr:validate",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
-          message: "No tienes permisos para crear notificaciones. Debes ser personal de seguridad.",
+          message: "No tienes permisos para crear notificaciones.",
         },
         { status: 403 }
       );

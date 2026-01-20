@@ -91,27 +91,21 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Check if user is security of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", qrCode.organization_id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "security")
-      .single();
+    // Check if user has permission to validate QR codes
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: qrCode.organization_id,
+        p_permission_code: "qr:validate",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
-          message: "No tienes permisos para validar este código. Debes ser personal de seguridad de la organización.",
+          message: "No tienes permisos para validar este código.",
         },
         { status: 403 }
       );
@@ -308,27 +302,21 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Check if user is security of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", qrCode.organization_id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "security")
-      .single();
+    // Check if user has permission to validate QR codes
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: qrCode.organization_id,
+        p_permission_code: "qr:validate",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
-          message: "No tienes permisos para validar este código. Debes ser personal de seguridad de la organización.",
+          message: "No tienes permisos para validar este código.",
         },
         { status: 403 }
       );

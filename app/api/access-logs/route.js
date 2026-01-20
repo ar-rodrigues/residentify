@@ -158,27 +158,22 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    // If organizationId is provided, verify user has access (admin or security)
+    // If organizationId is provided, verify user has access using permission-based check
     if (organizationId) {
-      const { data: memberCheck, error: memberError } = await supabase
-        .from("organization_members")
-        .select(
-          `
-          id,
-          organization_roles!inner(
-            name
-          )
-        `
-        )
-        .eq("organization_id", organizationId)
-        .eq("user_id", user.id)
-        .in("organization_roles.name", ["admin", "security", "security_personnel"])
-        .single();
+      // Check if user has qr:view_history permission (allows admin, security, and residents with this permission)
+      const { data: hasPermission, error: permissionError } = await supabase.rpc(
+        "has_permission",
+        {
+          p_user_id: user.id,
+          p_org_id: organizationId,
+          p_permission_code: "qr:view_history",
+        }
+      );
 
-      if (memberError || !memberCheck) {
-        // Check if user is a resident trying to view their own QR code logs
+      if (permissionError || !hasPermission) {
+        // If user doesn't have qr:view_history permission, check if they're trying to view their own QR code logs
         if (qrCodeId) {
-          // Allow if user created the QR code
+          // Allow if user created the QR code (resident viewing their own QR code logs)
           const { data: qrCode } = await supabase
             .from("qr_codes")
             .select("created_by")
@@ -195,6 +190,7 @@ export async function GET(request) {
             );
           }
         } else {
+          // User doesn't have permission and is not viewing a specific QR code they created
           return NextResponse.json(
             {
               error: true,

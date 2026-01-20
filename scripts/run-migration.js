@@ -24,7 +24,9 @@ const client = new Client({
 
 async function runMigration() {
   try {
-    const migrationPath = path.join(__dirname, '..', 'sql', 'migration_seats.sql');
+    const args = process.argv.slice(2);
+    const fileName = args[0] || 'migration_seats.sql';
+    const migrationPath = path.join(__dirname, '..', 'sql', fileName);
     
     if (!fs.existsSync(migrationPath)) {
       console.error(`❌ Error: Migration file not found at ${migrationPath}`);

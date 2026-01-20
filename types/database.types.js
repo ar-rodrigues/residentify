@@ -6,7 +6,7 @@
  * 
  * To regenerate: npm run generate-typedef
  * 
- * Generated on: 2026-01-19T23:11:00.710Z
+ * Generated on: 2026-01-20T21:06:02.909Z
  */
 
 /**

@@ -84,29 +84,22 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          id,
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to manage invitations
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:manage",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para eliminar invitaciones. Solo los administradores pueden eliminar invitaciones.",
+            "No tienes permisos para eliminar invitaciones.",
         },
         { status: 403 }
       );

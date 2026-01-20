@@ -31,18 +31,13 @@ export async function getOrganizationById(organizationId) {
       return uuidValidation;
     }
 
-    // OPTIMIZED: Single query using the view
-    // Note: The view's WHERE clause already ensures only authorized users' data is returned
-    // (users with membership OR pending invitations). The user_id field can be NULL for
-    // pending invitations, so we don't filter by it here.
-    // Check if user has membership and seat assignment
-    const {data:memberCheck,error:memberCheckError}=await supabase.from('organization_members').select('id,seat_id,organization_role_id').eq('organization_id',organizationId).eq('user_id',user.id).single();
-    
-    const { data: orgData, error: orgError } = await supabase
+    // Query the organization_details_view directly with security_invoker
+    // This ensures proper RLS enforcement and avoids function call complexity
+    const { data: orgDataArray, error: orgError } = await supabase
       .from("organization_details_view")
       .select("*")
-      .eq("id", organizationId)
-      .single();
+      .eq("id", organizationId);
+    
     if (orgError) {
       // Log error with better serialization
       console.error("Error fetching organization:", {
@@ -51,15 +46,6 @@ export async function getOrganizationById(organizationId) {
         details: orgError.details,
         hint: orgError.hint,
       });
-
-      if (orgError.code === "PGRST116") {
-        // Not found
-        return {
-          error: true,
-          message: "Organización no encontrada o no tienes acceso a ella.",
-          status: 404,
-        };
-      }
 
       if (orgError.code === "22P02") {
         // Invalid input syntax for type uuid
@@ -78,21 +64,13 @@ export async function getOrganizationById(organizationId) {
       };
     }
 
+    // The function returns an array, get the first result
+    const orgData = orgDataArray && orgDataArray.length > 0 ? orgDataArray[0] : null;
+
     if (!orgData) {
-      // User is a member, but view returned no data - this shouldn't happen after backfill
-      // But let's check if they're actually a member
-      if (memberCheck && !memberCheck.seat_id) {
-        // Return a helpful error message
-        return {
-          error: true,
-          message: "Tu cuenta necesita ser actualizada. Por favor, contacta al administrador.",
-          status: 500,
-        };
-      }
-      
       return {
         error: true,
-        message: "Organización no encontrada.",
+        message: "Organización no encontrada o no tienes acceso a ella.",
         status: 404,
       };
     }
@@ -124,7 +102,7 @@ export async function getOrganizationById(organizationId) {
         userRole: orgData.seat_type || null,
         isAdmin: orgData.is_admin || false,
         is_frozen: orgData.is_frozen || false,
-        // Permissions come as JSONB array from the view - ensure it's always an array
+        // Permissions come as JSONB array from the function - ensure it's always an array
         permissions: Array.isArray(orgData.permissions) 
           ? orgData.permissions 
           : (orgData.permissions ? JSON.parse(JSON.stringify(orgData.permissions)) : []),

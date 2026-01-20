@@ -33,7 +33,7 @@ import { getLocaleFromRequest } from "@/utils/i18n/request";
  *               - organization_role_id
  *               - requires_approval
  *             properties:
- *               organization_role_id: { type: 'integer' }
+ *               seat_type_id: { type: 'integer' }
  *               requires_approval: { type: 'boolean' }
  *               expires_at: { type: 'string', format: 'date-time' }
  *     responses:
@@ -146,18 +146,18 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Verify organization role exists
-    const { data: orgRole, error: roleError } = await supabase
-      .from("organization_roles")
+    // Verify seat type exists
+    const { data: seatType, error: seatTypeError } = await supabase
+      .from("seat_types")
       .select("id, name, description")
-      .eq("id", organization_role_id)
+      .eq("id", seat_type_id)
       .single();
 
-    if (roleError || !orgRole) {
+    if (seatTypeError || !seatType) {
       return NextResponse.json(
         {
           error: true,
-          message: "El rol de organización especificado no existe.",
+          message: "El tipo de asiento especificado no existe.",
         },
         { status: 400 }
       );
@@ -341,29 +341,22 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Check if user is admin of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          id,
-          name
-        )
-      `
-      )
-      .eq("organization_id", id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "admin")
-      .single();
+    // Check if user has permission to manage members (which includes viewing invite links)
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: id,
+        p_permission_code: "members:manage",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para ver los enlaces de invitación. Solo los administradores pueden ver los enlaces de invitación.",
+            "No tienes permisos para ver los enlaces de invitación.",
         },
         { status: 403 }
       );
@@ -376,14 +369,14 @@ export async function GET(request, { params }) {
         `
         id,
         organization_id,
-        organization_role_id,
+        seat_type_id,
         token,
         requires_approval,
         expires_at,
         created_by,
         created_at,
         updated_at,
-        organization_roles(
+        seat_types(
           id,
           name,
           description
@@ -427,8 +420,8 @@ export async function GET(request, { params }) {
           invite_url: `${baseUrl}/${locale}/invitations/general/${link.token}`,
           usage_count: count || 0,
           is_expired: isExpired,
-          role_name: link.seat_types?.name,
-          role_description: link.seat_types?.description,
+          seat_type_name: link.seat_types?.name,
+          seat_type_description: link.seat_types?.description,
         };
       })
     );

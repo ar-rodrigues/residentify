@@ -44,6 +44,44 @@
 
 # When creating new data models, add @swagger schema definitions in types/ files following the pattern in types/database.types.js
 
+# Database Consultation Rule
+
+# ALWAYS: When you need to verify database schema, check existing data, or understand database structure, consult the database directly using a script.
+
+# Follow this pattern (see scripts/generate-schema.js and scripts/test-db-connection.js for reference):
+
+# 1. Create a temporary script in scripts/ directory (e.g., scripts/consult-db-[purpose].js)
+
+# 2. Use the following setup:
+
+# ```javascript
+
+# require('dotenv').config({ path: '.env.local' });
+
+# const { Client } = require('pg');
+
+# const client = new Client({
+
+#   connectionString: process.env.DATABASE_URL,
+
+#   ssl: {
+
+#     rejectUnauthorized: false // Required for Supabase
+
+#   }
+
+# });
+
+# ```
+
+# 3. Run the script to get the information needed
+
+# 4. CRITICAL: Delete the temporary consultation script immediately after use, unless it's a permanent utility script
+
+# 5. Use the information gathered to inform your code changes
+
+# This approach ensures accuracy when working with database schemas, relationships, or existing data patterns.
+
 #Always act as an expert on UI and UX to build the components and the interactivity, using animations and good design practice.
 This includes being aware of responsiveness so the UI/UX work well on every device.
 

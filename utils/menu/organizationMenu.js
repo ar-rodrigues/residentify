@@ -26,7 +26,7 @@ const iconMap = {
 };
 
 // Menu items with required permissions
-const MENU_ITEMS = [
+export const MENU_ITEMS = [
   {
     key: "members",
     icon: "RiUserLine",

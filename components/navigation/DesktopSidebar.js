@@ -33,7 +33,6 @@ export default function DesktopSidebar({ collapsed, onCollapse }) {
     return getOrganizationMenuItems(
       organization.id,
       organization.permissions,
-      organization.userRole, // seat type (e.g., 'admin', 'resident', 'security')
       t,
       locale
     );

@@ -18,6 +18,12 @@ dist/
 # Cursor
 .cursorignore
 
+# SQL
+sql/
+
+# Scripts
+scripts/*.js
+
 # Environment variables
 .env
 .env.local

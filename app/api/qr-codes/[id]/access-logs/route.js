@@ -114,26 +114,20 @@ export async function GET(request, { params }) {
     // Check if user is creator
     const isCreator = qrCode.created_by === user.id;
 
-    // Check if user is admin or security of the organization
+    // Check if user has permission to view access history
     let isAuthorized = isCreator;
 
     if (!isCreator) {
-      const { data: memberCheck } = await supabase
-        .from("organization_members")
-        .select(
-          `
-          id,
-          organization_roles!inner(
-            name
-          )
-        `
-        )
-        .eq("organization_id", qrCode.organization_id)
-        .eq("user_id", user.id)
-        .in("organization_roles.name", ["admin", "security"])
-        .single();
+      const { data: hasPermission, error: permissionError } = await supabase.rpc(
+        "has_permission",
+        {
+          p_user_id: user.id,
+          p_org_id: qrCode.organization_id,
+          p_permission_code: "qr:view_history",
+        }
+      );
 
-      isAuthorized = !!memberCheck;
+      isAuthorized = !permissionError && hasPermission;
     }
 
     if (!isAuthorized) {

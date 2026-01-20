@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { getOrganizationById } from "@/utils/api/organizations";
 import { hasRouteAccess, getAllowedRolesForRoute } from "@/utils/auth/routePermissions";
+import { MENU_ITEMS } from "@/utils/menu/organizationMenu";
 
 /**
  * Check if user has access to a specific route in an organization
+ * Uses permission-based checks from menu configuration (preferred) with role-based fallback
  * @param {string} organizationId - The organization ID
  * @param {string} routePath - The route path (e.g., '/invites', '/members')
  * @returns {Promise<{hasAccess: boolean, organization?: Object, error?: Object}>}
@@ -22,7 +24,30 @@ export async function checkRouteAccess(organizationId, routePath) {
 
     const organization = result.data;
 
-    // Check if user has access to this route based on their role
+    // Check if user has access using permission-based system (from menu configuration)
+    const permissions = organization.permissions || [];
+    
+    // Find the menu item for this route
+    const menuItem = MENU_ITEMS.find(item => item.path === routePath);
+    
+    if (menuItem && menuItem.permission) {
+      // Use permission-based check (preferred method)
+      const hasPermission = permissions.includes(menuItem.permission);
+      
+      return {
+        hasAccess: hasPermission,
+        organization: organization,
+        error: hasPermission
+          ? null
+          : {
+              error: true,
+              message: "No tienes permiso para acceder a esta página.",
+              status: 403,
+            },
+      };
+    }
+
+    // Fallback to role-based check for routes not in menu or without permission requirement
     const organizationType = organization.organization_type || "residential";
     const userRole = organization.userRole;
 

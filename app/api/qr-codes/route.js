@@ -110,28 +110,22 @@ export async function POST(request) {
       );
     }
 
-    // Check if user is a resident of the organization
-    const { data: memberCheck, error: memberError } = await supabase
-      .from("organization_members")
-      .select(
-        `
-        id,
-        organization_roles!inner(
-          name
-        )
-      `
-      )
-      .eq("organization_id", organization_id)
-      .eq("user_id", user.id)
-      .eq("organization_roles.name", "resident")
-      .single();
+    // Check if user has permission to create QR codes
+    const { data: hasPermission, error: permissionError } = await supabase.rpc(
+      "has_permission",
+      {
+        p_user_id: user.id,
+        p_org_id: organization_id,
+        p_permission_code: "qr:create",
+      }
+    );
 
-    if (memberError || !memberCheck) {
+    if (permissionError || !hasPermission) {
       return NextResponse.json(
         {
           error: true,
           message:
-            "No tienes permisos para crear códigos QR en esta organización. Debes ser residente.",
+            "No tienes permisos para crear códigos QR en esta organización.",
         },
         { status: 403 }
       );
@@ -311,28 +305,22 @@ export async function GET(request) {
         );
       }
 
-      // Check if user is security of the organization
-      const { data: memberCheck, error: memberError } = await supabase
-        .from("organization_members")
-        .select(
-          `
-          id,
-          organization_roles!inner(
-            name
-          )
-        `
-        )
-        .eq("organization_id", organizationId)
-        .eq("user_id", user.id)
-        .eq("organization_roles.name", "security")
-        .single();
+      // Check if user has permission to view QR code history
+      const { data: hasPermission, error: permissionError } = await supabase.rpc(
+        "has_permission",
+        {
+          p_user_id: user.id,
+          p_org_id: organizationId,
+          p_permission_code: "qr:view_history",
+        }
+      );
 
-      if (memberError || !memberCheck) {
+      if (permissionError || !hasPermission) {
         return NextResponse.json(
           {
             error: true,
             message:
-              "No tienes permisos para ver códigos QR de esta organización. Debes ser personal de seguridad.",
+              "No tienes permisos para ver códigos QR de esta organización.",
           },
           { status: 403 }
         );
