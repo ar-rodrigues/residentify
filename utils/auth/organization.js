@@ -34,16 +34,40 @@ export async function checkRouteAccess(organizationId, routePath) {
       // Use permission-based check (preferred method)
       const hasPermission = permissions.includes(menuItem.permission);
       
+      // If user has permission, grant access
+      if (hasPermission) {
+        return {
+          hasAccess: true,
+          organization: organization,
+          error: null,
+        };
+      }
+      
+      // If permission check fails but user has a role, fall back to role-based check
+      // This handles cases where seat types don't have permissions assigned
+      const organizationType = organization.organization_type || "residential";
+      const userRole = organization.userRole;
+      
+      if (userRole) {
+        const roleBasedAccess = hasRouteAccess(routePath, userRole, organizationType);
+        if (roleBasedAccess) {
+          return {
+            hasAccess: true,
+            organization: organization,
+            error: null,
+          };
+        }
+      }
+      
+      // No permission and no role-based access
       return {
-        hasAccess: hasPermission,
+        hasAccess: false,
         organization: organization,
-        error: hasPermission
-          ? null
-          : {
-              error: true,
-              message: "No tienes permiso para acceder a esta página.",
-              status: 403,
-            },
+        error: {
+          error: true,
+          message: "No tienes permiso para acceder a esta página.",
+          status: 403,
+        },
       };
     }
 

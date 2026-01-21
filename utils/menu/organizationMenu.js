@@ -97,7 +97,9 @@ export function getOrganizationMenuItems(
   }
 
   // Filter by permissions and build full paths with translations
-  return MENU_ITEMS.filter((item) => !item.permission || permissions.includes(item.permission)).map(
+  const filteredItems = MENU_ITEMS.filter((item) => !item.permission || permissions.includes(item.permission));
+
+  return filteredItems.map(
     (item) => {
       const IconComponent = iconMap[item.icon];
       return {

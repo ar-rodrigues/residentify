@@ -107,7 +107,17 @@ export default async function OrganizationDetailPage({ params }) {
     redirect(defaultRoute);
   }
 
-  // Fallback: if no default route, show not found
+  // Fallback: if no default route but user is a member, redirect to chat
+  // Chat should be accessible to all roles (admin, resident, security)
+  // This handles cases where seat types don't have permissions assigned in seat_type_permissions
+  // If chat is also not accessible, the chat page will handle the redirect appropriately
+  if (organization.userRole) {
+    // Chat is the most universal route - should be accessible to all roles
+    // If user doesn't have chat:read permission, the chat page will handle it
+    redirect(`/${locale}/organizations/${id}/chat`);
+  }
+
+  // Final fallback: if no default route and no role-based route, show not found
   return (
     <OrganizationNotFound
       message={t("organizations.typeRouter.errors.cannotDetermineDefaultRoute")}

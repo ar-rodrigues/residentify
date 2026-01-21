@@ -217,10 +217,15 @@ SELECT DISTINCT ON (o.id) o.id,
     st.name AS seat_type,
     COALESCE((st.name = 'admin'::text), false) AS is_admin,
     is_seat_frozen(s.id) AS is_frozen,
-    ( SELECT (array_to_json(array_agg(p.code)))::jsonb AS array_to_json
+    -- Fix: Handle NULL seat_type_id and return empty array instead of NULL
+    COALESCE(
+        ( SELECT (array_to_json(array_agg(p.code)))::jsonb AS array_to_json
            FROM (permissions p
              JOIN seat_type_permissions stp ON ((stp.permission_id = p.id)))
-          WHERE (stp.seat_type_id = s.seat_type_id)) AS permissions,
+          WHERE (stp.seat_type_id = s.seat_type_id AND s.seat_type_id IS NOT NULL)
+        ),
+        '[]'::jsonb
+    ) AS permissions,
     (oi.status)::text AS invitation_status,
         CASE
             WHEN (oi.status = 'pending_approval'::invitation_status) THEN true

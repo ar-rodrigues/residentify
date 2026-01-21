@@ -86,6 +86,20 @@ export async function getOrganizationById(organizationId) {
       // Continue without creator name if there's an error
     }
 
+    // Process permissions - ensure it's always an array
+    // The view now returns '[]'::jsonb instead of NULL, but we still handle both cases
+    let processedPermissions = [];
+    if (Array.isArray(orgData.permissions)) {
+      processedPermissions = orgData.permissions;
+    } else if (orgData.permissions) {
+      try {
+        processedPermissions = JSON.parse(JSON.stringify(orgData.permissions));
+      } catch (e) {
+        console.error("Error parsing permissions:", e);
+        processedPermissions = [];
+      }
+    }
+
     return {
       error: false,
       data: {
@@ -103,9 +117,7 @@ export async function getOrganizationById(organizationId) {
         isAdmin: orgData.is_admin || false,
         is_frozen: orgData.is_frozen || false,
         // Permissions come as JSONB array from the function - ensure it's always an array
-        permissions: Array.isArray(orgData.permissions) 
-          ? orgData.permissions 
-          : (orgData.permissions ? JSON.parse(JSON.stringify(orgData.permissions)) : []),
+        permissions: processedPermissions,
         seat_id: orgData.seat_id || null,
         seat_name: orgData.seat_name || null,
         invitationStatus: orgData.invitation_status || null,
