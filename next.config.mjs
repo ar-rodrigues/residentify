@@ -1,4 +1,5 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import withPWA from "@ducanh2912/next-pwa";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.js");
 
@@ -17,4 +18,53 @@ const nextConfig = {
   compress: true,
 };
 
-export default withNextIntl(nextConfig);
+const pwaConfig = withPWA({
+  dest: "public",
+  disable: false, // Enable PWA in development to allow testing install prompt
+  workboxOptions: {
+    // Exclude chrome-extension and other unsupported schemes from precaching
+    exclude: [
+      ({ url }) => {
+        // Exclude chrome-extension://, moz-extension://, and other extension schemes
+        try {
+          const urlObj = typeof url === "string" ? new URL(url) : url;
+          return (
+            urlObj.protocol === "chrome-extension:" ||
+            urlObj.protocol === "moz-extension:" ||
+            urlObj.protocol === "safari-extension:" ||
+            urlObj.protocol === "ms-browser-extension:"
+          );
+        } catch {
+          // If URL parsing fails, don't exclude (let it fail naturally)
+          return false;
+        }
+      },
+    ],
+    // Runtime caching configuration - only cache http/https requests
+    runtimeCaching: [
+      {
+        urlPattern: ({ url }) => {
+          // Only cache http and https requests, exclude all extension schemes
+          try {
+            const urlObj = typeof url === "string" ? new URL(url) : url;
+            return (
+              urlObj.protocol === "http:" ||
+              urlObj.protocol === "https:"
+            );
+          } catch {
+            return false;
+          }
+        },
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "offlineCache",
+          expiration: {
+            maxEntries: 200,
+          },
+        },
+      },
+    ],
+  },
+});
+
+export default withNextIntl(pwaConfig(nextConfig));

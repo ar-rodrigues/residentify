@@ -42,6 +42,6 @@ export const config = {
      * - api (API routes don't need locale)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|workbox-.*.js|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

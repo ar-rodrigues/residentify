@@ -5,6 +5,7 @@ import {
   RiLogoutBoxLine,
   RiGlobalLine,
   RiCheckLine,
+  RiDownloadLine,
 } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
@@ -18,6 +19,8 @@ import AppNavigation from "@/components/navigation/AppNavigation";
 import OrganizationSwitcher from "@/components/navigation/OrganizationSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import FrozenBanner from "@/components/ui/FrozenBanner";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+import PWAInstallInstructions from "@/components/ui/PWAInstallInstructions";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -103,6 +106,7 @@ export default function PrivateLayout({ children }) {
   const pathname = usePathname();
   const supabase = createClient();
   const { organizations, fetching: fetchingOrgs } = useOrganizations();
+  const pwaInstall = usePWAInstall();
   const [collapsed, setCollapsed] = useState(false);
   const [languageExpanded, setLanguageExpanded] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -291,6 +295,29 @@ export default function PrivateLayout({ children }) {
         icon: <RiUserLine />,
         onClick: () => router.push("/profile"),
       },
+      // PWA Install option - only visible on mobile
+      ...(pwaInstall.isMobile && !pwaInstall.isInstalled
+        ? [
+            {
+              key: "pwa-install",
+              label: t("pwa.install.button"),
+              icon: <RiDownloadLine />,
+              onClick: async (e) => {
+                // Prevent default menu item behavior
+                if (e?.domEvent) {
+                  e.domEvent.stopPropagation();
+                  e.domEvent.preventDefault();
+                }
+                // Trigger install
+                pwaInstall.handleInstall();
+                // Close dropdown after a short delay
+                setTimeout(() => {
+                  setDropdownOpen(false);
+                }, 100);
+              },
+            },
+          ]
+        : []),
       {
         type: "divider",
       },
@@ -346,6 +373,8 @@ export default function PrivateLayout({ children }) {
       languageOptionItems,
       handleLogout,
       handleLanguageToggle,
+      isMobile,
+      pwaInstall,
     ]
   );
 
@@ -477,6 +506,14 @@ export default function PrivateLayout({ children }) {
                         size="default"
                       />
                     </Dropdown>
+                    {/* PWA Install Instructions Modal - rendered here to be accessible */}
+                    {pwaInstall.isMobile && (
+                      <PWAInstallInstructions
+                        open={pwaInstall.showIOSInstructions}
+                        onClose={pwaInstall.closeIOSInstructions}
+                        isIOS={pwaInstall.isIOS}
+                      />
+                    )}
                   </Space>
                 </div>
               </Header>

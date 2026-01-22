@@ -363,7 +363,6 @@ export function useOrganizations() {
           )
           .subscribe((status, err) => {
             if (status === "SUBSCRIBED") {
-              console.log("Subscribed to organization_members changes");
               retryCount = 0; // Reset retry count on success
             } else if (status === "CHANNEL_ERROR") {
               const errorMessage = err?.message || "Unknown error";

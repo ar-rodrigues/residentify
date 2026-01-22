@@ -17,6 +17,7 @@ import { Form, Card, Typography, Space, Alert } from "antd";
 import Input from "@/components/ui/Input";
 import Password from "@/components/ui/Password";
 import Button from "@/components/ui/Button";
+import PWAInstallButton from "@/components/ui/PWAInstallButton";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -275,6 +276,11 @@ export default function LoginForm() {
             </Form>
           </Card>
         )}
+
+        {/* PWA Install Button - Only visible on mobile */}
+        <div className="text-center mt-4">
+          <PWAInstallButton variant="button" size="large" />
+        </div>
 
         <div className="text-center mt-6">
           <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>

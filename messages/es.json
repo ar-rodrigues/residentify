@@ -1035,5 +1035,35 @@
       "settings": "Configuración"
     },
     "footer": "Esta página demuestra que la autenticación está funcionando correctamente"
+  },
+  "pwa": {
+    "install": {
+      "button": "Instalar App",
+      "title": "Instalar Aplicación",
+      "alreadyInstalled": "La aplicación ya está instalada",
+      "instructions": "Instrucciones de instalación",
+      "ios": {
+        "title": "Cómo instalar en iPhone/iPad",
+        "description": "Sigue estos pasos para instalar la aplicación en tu dispositivo iOS:",
+        "step1": "Toca el botón de compartir",
+        "step1Description": "En la parte inferior de la pantalla de Safari, toca el botón de compartir (cuadrado con flecha hacia arriba).",
+        "step2": "Selecciona 'Agregar a pantalla de inicio'",
+        "step2Description": "Desplázate hacia abajo en el menú de compartir y selecciona la opción 'Agregar a pantalla de inicio'.",
+        "step3": "Confirma la instalación",
+        "step3Description": "Toca 'Agregar' en la esquina superior derecha para confirmar la instalación.",
+        "note": "Una vez instalada, podrás acceder a la aplicación directamente desde la pantalla de inicio de tu dispositivo."
+      },
+      "android": {
+        "title": "Cómo instalar en Android",
+        "description": "Si el botón de instalación automática no funcionó, sigue estos pasos:",
+        "step1": "Toca el icono de menú",
+        "step1Description": "En la esquina superior derecha de Chrome, toca el icono de tres puntos.",
+        "step2": "Selecciona 'Instalar aplicación'",
+        "step2Description": "Busca y toca la opción 'Instalar aplicación' o 'Agregar a la pantalla de inicio'.",
+        "step3": "Confirma la instalación",
+        "step3Description": "Toca 'Instalar' en la ventana emergente que aparece.",
+        "note": "Una vez instalada, la aplicación aparecerá en tu cajón de aplicaciones y pantalla de inicio."
+      }
+    }
   }
 }

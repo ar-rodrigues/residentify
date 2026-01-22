@@ -364,7 +364,7 @@ export default function MembersListResponsive({ organizationId }) {
                 body: { padding: "12px" },
               }}
               style={{
-                borderTop: `3px solid ${getRoleBorderColor(member.role.name)}`,
+                borderTop: `3px solid ${getSeatBorderColor(member.seat?.type?.name)}`,
               }}
             >
               {/* Name - First row */}

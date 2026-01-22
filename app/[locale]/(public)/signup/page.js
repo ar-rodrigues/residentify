@@ -500,6 +500,11 @@ export default function SignupPage() {
           </Form>
         </Card>
 
+        {/* PWA Install Button - Only visible on mobile */}
+        <div className="text-center mt-4">
+          <PWAInstallButton variant="button" size="large" />
+        </div>
+
         <div className="text-center mt-6">
           <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
             {t("auth.signup.terms")}

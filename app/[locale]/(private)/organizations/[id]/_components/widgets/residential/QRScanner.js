@@ -82,21 +82,12 @@ export default function QRScanner({ onScan, loading = false }) {
   // Initialize cameraSupported based on secure context immediately
   const [cameraSupported, setCameraSupported] = useState(() => {
     if (typeof window === "undefined") {
-      console.log(
-        "[QRScanner] DEBUG: window is undefined, cameraSupported = false"
-      );
       return false;
     }
     const isSecure = window.isSecureContext;
     const hasMediaDevices = !!navigator.mediaDevices;
     const hasGetUserMedia = !!navigator.mediaDevices?.getUserMedia;
     const supported = isSecure && hasMediaDevices && hasGetUserMedia;
-    console.log("[QRScanner] DEBUG: Initial camera support check:", {
-      isSecureContext: isSecure,
-      hasMediaDevices,
-      hasGetUserMedia,
-      cameraSupported: supported,
-    });
     return supported;
   });
   const fileInputRef = useRef(null);
@@ -106,24 +97,15 @@ export default function QRScanner({ onScan, loading = false }) {
 
   // Check for secure context and camera availability on mount - SET IMMEDIATELY
   useEffect(() => {
-    console.log(
-      "[QRScanner] DEBUG: useEffect - Checking camera support on mount"
-    );
     // IMMEDIATELY check secure context - don't wait
     if (typeof window !== "undefined") {
       if (!window.isSecureContext) {
-        console.log(
-          "[QRScanner] DEBUG: Not in secure context, setting cameraSupported = false"
-        );
         setCameraSupported(false);
         return;
       }
 
       // Check if getUserMedia is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.log(
-          "[QRScanner] DEBUG: getUserMedia not available, setting cameraSupported = false"
-        );
         setCameraSupported(false);
         return;
       }
@@ -131,68 +113,26 @@ export default function QRScanner({ onScan, loading = false }) {
       // Only proceed if we're in secure context
       const checkCameraSupport = async () => {
         try {
-          console.log("[QRScanner] DEBUG: Enumerating devices...");
           // Check if we can enumerate devices (this doesn't require permission)
           const devices = await navigator.mediaDevices.enumerateDevices();
           const hasVideoDevice = devices.some(
             (device) => device.kind === "videoinput"
           );
-          console.log("[QRScanner] DEBUG: Device enumeration result:", {
-            totalDevices: devices.length,
-            videoDevices: devices.filter((d) => d.kind === "videoinput").length,
-            hasVideoDevice,
-          });
           if (!hasVideoDevice) {
-            console.log(
-              "[QRScanner] DEBUG: No video device found, setting cameraSupported = false"
-            );
             setCameraSupported(false);
-          } else {
-            console.log(
-              "[QRScanner] DEBUG: Video device found, cameraSupported remains true"
-            );
           }
         } catch (err) {
           // If enumeration fails, camera might not be available
-          console.log(
-            "[QRScanner] DEBUG: Camera enumeration failed, using fallback:",
-            err
-          );
           setCameraSupported(false);
         }
       };
 
       checkCameraSupport();
-    } else {
-      console.log("[QRScanner] DEBUG: window is undefined in useEffect");
     }
   }, []);
 
-  // Debug state changes
-  useEffect(() => {
-    console.log(
-      "[QRScanner] DEBUG: cameraSupported state changed to:",
-      cameraSupported
-    );
-  }, [cameraSupported]);
-
-  useEffect(() => {
-    console.log("[QRScanner] DEBUG: isScanning state changed to:", isScanning);
-  }, [isScanning]);
-
-  useEffect(() => {
-    console.log("[QRScanner] DEBUG: scanMode state changed to:", scanMode);
-  }, [scanMode]);
-
-  useEffect(() => {
-    console.log(
-      "[QRScanner] DEBUG: processingImage state changed to:",
-      processingImage
-    );
-  }, [processingImage]);
 
   const handleScan = (result) => {
-    console.log("[QRScanner] DEBUG: handleScan called with result:", result);
     // Handle different result formats
     let scannedText = null;
 
@@ -207,39 +147,22 @@ export default function QRScanner({ onScan, loading = false }) {
       scannedText = result.value;
     }
 
-    console.log("[QRScanner] DEBUG: Extracted scannedText:", scannedText);
-
     if (scannedText) {
       setIsScanning(false);
       // Play custom scan sound
       playScanSound();
       if (onScan) {
-        console.log(
-          "[QRScanner] DEBUG: Calling onScan callback with:",
-          scannedText
-        );
         onScan(scannedText);
-      } else {
-        console.log("[QRScanner] DEBUG: onScan callback is not defined!");
       }
-    } else {
-      console.log("[QRScanner] DEBUG: No scannedText extracted from result");
     }
   };
 
   const handleError = (error) => {
-    console.error("[QRScanner] DEBUG: handleError called with:", error);
     setIsScanning(false);
 
     // Only set cameraSupported to false for actual unsupported errors
     const errorMessage = error?.message || "";
     const errorName = error?.name || "";
-
-    console.log("[QRScanner] DEBUG: Error details:", {
-      errorName,
-      errorMessage,
-      errorObject: error,
-    });
 
     // Handle secure context errors gracefully - show fallback instead of error
     if (
@@ -251,9 +174,6 @@ export default function QRScanner({ onScan, loading = false }) {
       errorName === "SecurityError"
     ) {
       // For secure context and unsupported errors, gracefully switch to fallback
-      console.log(
-        "[QRScanner] DEBUG: Security/NotSupported error detected, switching to fallback"
-      );
       setCameraSupported(false);
       setError(null); // Don't show error, show fallback UI instead
       message.info(t("qrCodes.scanner.usingPhoneCamera"));
@@ -265,9 +185,6 @@ export default function QRScanner({ onScan, loading = false }) {
       errorName === "NotAllowedError"
     ) {
       // Permission denied - still allow fallback
-      console.log(
-        "[QRScanner] DEBUG: Permission denied, switching to fallback"
-      );
       setCameraSupported(false);
       setError(null); // Don't show error, show fallback UI instead
       message.info(t("qrCodes.scanner.usingPhoneCamera"));
@@ -276,13 +193,11 @@ export default function QRScanner({ onScan, loading = false }) {
       errorName === "NotFoundError"
     ) {
       // Camera not found - allow fallback
-      console.log("[QRScanner] DEBUG: Camera not found, switching to fallback");
       setCameraSupported(false);
       setError(null); // Don't show error, show fallback UI instead
       message.info(t("qrCodes.scanner.usingPhoneCamera"));
     } else {
       // For other errors, show error but don't break
-      console.log("[QRScanner] DEBUG: Other error, switching to fallback");
       setError(t("qrCodes.scanner.startError"));
       message.warning(t("qrCodes.scanner.startErrorTitle"));
       // Still allow fallback
@@ -308,12 +223,8 @@ export default function QRScanner({ onScan, loading = false }) {
   };
 
   const startScanning = async () => {
-    console.log("[QRScanner] DEBUG: startScanning called");
     // CRITICAL: Check secure context FIRST - prevent any camera access attempt if not secure
     if (typeof window === "undefined" || !window.isSecureContext) {
-      console.log(
-        "[QRScanner] DEBUG: startScanning - Not in secure context or window undefined"
-      );
       setCameraSupported(false);
       setIsScanning(false);
       setError(null);
@@ -323,9 +234,6 @@ export default function QRScanner({ onScan, loading = false }) {
 
     // Check if getUserMedia is available
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.log(
-        "[QRScanner] DEBUG: startScanning - getUserMedia not available"
-      );
       setCameraSupported(false);
       setIsScanning(false);
       setError(null);
@@ -335,20 +243,13 @@ export default function QRScanner({ onScan, loading = false }) {
 
     // Try to get camera permission first (this will catch secure context errors early)
     try {
-      console.log(
-        "[QRScanner] DEBUG: startScanning - Attempting to get camera stream..."
-      );
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
       });
-      console.log(
-        "[QRScanner] DEBUG: startScanning - Camera stream obtained successfully"
-      );
       // If successful, stop the test stream and start scanning
       stream.getTracks().forEach((track) => track.stop());
       setIsScanning(true);
       setError(null);
-      console.log("[QRScanner] DEBUG: startScanning - isScanning set to true");
 
       // Scroll to scanning area after a short delay to ensure DOM has updated
       setTimeout(() => {
@@ -362,15 +263,6 @@ export default function QRScanner({ onScan, loading = false }) {
       }, 100);
     } catch (err) {
       // Camera access failed - use fallback gracefully
-      const errorName = err?.name || "";
-      const errorMessage = err?.message || "";
-
-      console.log("[QRScanner] DEBUG: startScanning - Camera access failed:", {
-        errorName,
-        errorMessage,
-        error: err,
-      });
-
       setCameraSupported(false);
       setIsScanning(false);
       setError(null); // Don't show error
@@ -418,12 +310,6 @@ export default function QRScanner({ onScan, loading = false }) {
   // Define processFile and handleFileSelect before useEffect that uses them
   const processFile = useCallback(
     async (file) => {
-      console.log("[QRScanner] DEBUG: processFile called with file:", {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      });
-
       setProcessingImage(true);
       setError(null);
       message.info({
@@ -436,27 +322,13 @@ export default function QRScanner({ onScan, loading = false }) {
         // Create an image element to load the file
         const img = new Image();
         const objectUrl = URL.createObjectURL(file);
-        console.log("[QRScanner] DEBUG: Created object URL:", objectUrl);
 
         img.onload = () => {
-          console.log("[QRScanner] DEBUG: Image loaded successfully:", {
-            width: img.width,
-            height: img.height,
-          });
-
           // Use requestAnimationFrame to avoid blocking the UI
           requestAnimationFrame(() => {
             try {
-              console.log(
-                "[QRScanner] DEBUG: Resizing image for faster processing..."
-              );
-
               // Resize image to max 1000px for faster processing
               const canvas = resizeImage(img, 1000);
-              console.log("[QRScanner] DEBUG: Image resized to:", {
-                width: canvas.width,
-                height: canvas.height,
-              });
 
               // Get image data from resized canvas
               const ctx = canvas.getContext("2d");
@@ -466,16 +338,8 @@ export default function QRScanner({ onScan, loading = false }) {
                 canvas.width,
                 canvas.height
               );
-              console.log("[QRScanner] DEBUG: Image data extracted:", {
-                width: imageData.width,
-                height: imageData.height,
-                dataLength: imageData.data.length,
-              });
 
               // Decode QR code from image
-              console.log(
-                "[QRScanner] DEBUG: Attempting to decode QR code with jsQR..."
-              );
               let qrCode = jsQR(
                 imageData.data,
                 imageData.width,
@@ -484,9 +348,6 @@ export default function QRScanner({ onScan, loading = false }) {
 
               // If not found, try with a smaller size (sometimes helps with detection)
               if (!qrCode && (canvas.width > 500 || canvas.height > 500)) {
-                console.log(
-                  "[QRScanner] DEBUG: QR not found, trying smaller size..."
-                );
                 const smallerCanvas = resizeImage(img, 500);
                 const smallerCtx = smallerCanvas.getContext("2d");
                 const smallerImageData = smallerCtx.getImageData(
@@ -502,8 +363,6 @@ export default function QRScanner({ onScan, loading = false }) {
                 );
               }
 
-              console.log("[QRScanner] DEBUG: jsQR result:", qrCode);
-
               // Dismiss loading message
               message.destroy("processing");
 
@@ -515,33 +374,19 @@ export default function QRScanner({ onScan, loading = false }) {
 
               if (qrCode) {
                 // QR code found
-                console.log("[QRScanner] DEBUG: QR code detected:", {
-                  data: qrCode.data,
-                  location: qrCode.location,
-                });
                 // Play custom scan sound
                 playScanSound();
                 if (onScan) {
-                  console.log(
-                    "[QRScanner] DEBUG: Calling onScan with QR data:",
-                    qrCode.data
-                  );
                   onScan(qrCode.data);
                   // Don't show notification here - SecurityView will show success card
-                } else {
-                  console.error(
-                    "[QRScanner] DEBUG: onScan callback is not defined!"
-                  );
                 }
               } else {
                 // No QR code found
-                console.log("[QRScanner] DEBUG: No QR code detected in image");
                 setError(t("qrCodes.scanner.noQRDetected"));
                 message.warning(t("qrCodes.scanner.noQRDetectedTitle"));
               }
               setProcessingImage(false);
             } catch (err) {
-              console.error("[QRScanner] DEBUG: Error processing image:", err);
               URL.revokeObjectURL(objectUrl);
               message.destroy("processing");
               setError(t("qrCodes.scanner.processingError"));
@@ -552,7 +397,6 @@ export default function QRScanner({ onScan, loading = false }) {
         };
 
         img.onerror = (error) => {
-          console.error("[QRScanner] DEBUG: Image load error:", error);
           URL.revokeObjectURL(objectUrl);
           message.destroy("processing");
           setError(t("qrCodes.scanner.loadError"));
@@ -560,10 +404,8 @@ export default function QRScanner({ onScan, loading = false }) {
           setProcessingImage(false);
         };
 
-        console.log("[QRScanner] DEBUG: Setting image source to object URL");
         img.src = objectUrl;
       } catch (err) {
-        console.error("[QRScanner] DEBUG: Error processing image:", err);
         message.destroy("processing");
         setImagePreview(null);
         setError(t("qrCodes.scanner.processingError"));
@@ -575,7 +417,6 @@ export default function QRScanner({ onScan, loading = false }) {
       setTimeout(() => {
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
-          console.log("[QRScanner] DEBUG: File input reset");
         }
       }, 100);
     },
@@ -584,40 +425,16 @@ export default function QRScanner({ onScan, loading = false }) {
 
   const handleFileSelect = useCallback(
     async (event) => {
-      console.log("[QRScanner] DEBUG: handleFileSelect called");
-      console.log("[QRScanner] DEBUG: event:", event);
-      console.log("[QRScanner] DEBUG: event.target:", event.target);
-      console.log("[QRScanner] DEBUG: event.target.files:", event.target.files);
-      console.log(
-        "[QRScanner] DEBUG: fileInputRef.current?.files:",
-        fileInputRef.current?.files
-      );
-
       // Try both event.target and fileInputRef.current
       const files = event.target?.files || fileInputRef.current?.files;
       const file = files?.[0];
 
       if (!file) {
-        console.log(
-          "[QRScanner] DEBUG: No file selected - checking fileInputRef directly"
-        );
         // Double check the ref directly
         if (fileInputRef.current?.files?.length > 0) {
-          console.log(
-            "[QRScanner] DEBUG: Found file in fileInputRef.current.files"
-          );
           const refFile = fileInputRef.current.files[0];
-          console.log("[QRScanner] DEBUG: File from ref:", {
-            name: refFile.name,
-            type: refFile.type,
-            size: refFile.size,
-          });
           // Process the file from ref
           await processFile(refFile);
-        } else {
-          console.log(
-            "[QRScanner] DEBUG: No file found in either event.target or fileInputRef"
-          );
         }
         return;
       }
@@ -631,23 +448,16 @@ export default function QRScanner({ onScan, loading = false }) {
   useEffect(() => {
     const fileInput = fileInputRef.current;
     if (!fileInput) {
-      console.log("[QRScanner] DEBUG: fileInput ref not available yet");
       return;
     }
 
-    console.log("[QRScanner] DEBUG: Attaching event listeners to file input");
-
     const handleInput = (e) => {
-      console.log("[QRScanner] DEBUG: File input 'input' event triggered");
-      console.log("[QRScanner] DEBUG: Files in input event:", e.target.files);
       if (e.target.files && e.target.files.length > 0) {
         handleFileSelect(e);
       }
     };
 
     const handleChange = (e) => {
-      console.log("[QRScanner] DEBUG: File input 'change' event triggered");
-      console.log("[QRScanner] DEBUG: Files in change event:", e.target.files);
       if (e.target.files && e.target.files.length > 0) {
         handleFileSelect(e);
       }
@@ -658,38 +468,16 @@ export default function QRScanner({ onScan, loading = false }) {
     fileInput.addEventListener("change", handleChange);
 
     return () => {
-      console.log(
-        "[QRScanner] DEBUG: Removing event listeners from file input"
-      );
       fileInput.removeEventListener("input", handleInput);
       fileInput.removeEventListener("change", handleChange);
     };
   }, [handleFileSelect]);
 
   const openCameraFallback = () => {
-    console.log("[QRScanner] DEBUG: openCameraFallback called");
-    console.log(
-      "[QRScanner] DEBUG: fileInputRef.current:",
-      fileInputRef.current
-    );
     if (fileInputRef.current) {
-      console.log("[QRScanner] DEBUG: Clicking file input to open camera...");
       fileInputRef.current.click();
-      console.log("[QRScanner] DEBUG: File input clicked");
-    } else {
-      console.error("[QRScanner] DEBUG: fileInputRef.current is null!");
     }
   };
-
-  // Debug render state
-  console.log("[QRScanner] DEBUG: Render state:", {
-    scanMode,
-    cameraSupported,
-    isScanning,
-    processingImage,
-    error,
-    hasFileInputRef: !!fileInputRef.current,
-  });
 
   return (
     <div className="w-full">
@@ -884,29 +672,10 @@ export default function QRScanner({ onScan, loading = false }) {
                   accept="image/*"
                   capture="environment"
                   onChange={(e) => {
-                    console.log(
-                      "[QRScanner] DEBUG: File input onChange (prop) triggered"
-                    );
-                    console.log(
-                      "[QRScanner] DEBUG: onChange files:",
-                      e.target.files
-                    );
                     handleFileSelect(e);
                   }}
                   onInput={(e) => {
-                    console.log(
-                      "[QRScanner] DEBUG: File input onInput (prop) triggered"
-                    );
-                    console.log(
-                      "[QRScanner] DEBUG: onInput files:",
-                      e.target.files
-                    );
                     handleFileSelect(e);
-                  }}
-                  onClick={(e) => {
-                    console.log(
-                      "[QRScanner] DEBUG: File input onClick triggered"
-                    );
                   }}
                   style={{ display: "none" }}
                 />
