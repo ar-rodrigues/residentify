@@ -79,15 +79,11 @@ export default function InviteUserPage() {
     }
   };
 
-  // Map role names to translated display names
-  const getRoleDisplayName = (roleName) => {
-    const roleMap = {
-      admin: t("organizations.invite.roles.admin") || "Administrador",
-      resident: t("organizations.invite.roles.resident") || "Residente",
-      security:
-        t("organizations.invite.roles.security") || "Personal de Seguridad",
-    };
-    return roleMap[roleName] || roleName;
+  // Map seat type names to translated display names
+  const getSeatTypeDisplayName = (seatTypeName) => {
+    return t(`organizations.invite.seatTypes.${seatTypeName}`, {
+      defaultValue: seatTypeName,
+    });
   };
 
   if (organization && !organization.isAdmin) {
@@ -276,25 +272,25 @@ export default function InviteUserPage() {
                   name="seat_type_id"
                   label={
                     <span className="text-sm sm:text-base">
-                      {t("organizations.invite.role")}
+                      {t("organizations.invite.seatType")}
                     </span>
                   }
                   rules={[
                     {
                       required: true,
-                      message: t("organizations.invite.errors.roleRequired"),
+                      message: t("organizations.invite.errors.seatTypeRequired"),
                     },
                   ]}
                   className="!mb-4"
                 >
                   <Select
-                    placeholder={t("organizations.invite.rolePlaceholder")}
+                    placeholder={t("organizations.invite.seatTypePlaceholder")}
                     size="large"
                     loading={loadingSeatTypes}
                     className="w-full"
                     options={seatTypes.map((type) => ({
                       value: type.id,
-                      label: getRoleDisplayName(type.name),
+                      label: getSeatTypeDisplayName(type.name),
                       description: type.description,
                     }))}
                   />

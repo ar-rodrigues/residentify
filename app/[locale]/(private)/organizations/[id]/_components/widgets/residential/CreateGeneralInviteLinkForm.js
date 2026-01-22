@@ -69,21 +69,21 @@ export default function CreateGeneralInviteLinkForm({
     >
       <Form.Item
         name="seat_type_id"
-        label={t("organizations.generalInviteLinks.form.role")}
+        label={t("organizations.generalInviteLinks.form.seatType")}
         rules={[
           {
             required: true,
-            message: t("organizations.generalInviteLinks.form.roleRequired"),
+            message: t("organizations.generalInviteLinks.form.seatTypeRequired"),
           },
         ]}
       >
         <Select
-          placeholder={t("organizations.generalInviteLinks.form.rolePlaceholder")}
+          placeholder={t("organizations.generalInviteLinks.form.seatTypePlaceholder")}
           size="large"
           loading={loadingSeatTypes}
           options={seatTypes.map((type) => ({
             value: type.id,
-            label: getRoleDisplayName(type.name),
+            label: getSeatTypeDisplayName(type.name),
             description: type.description,
           }))}
         />

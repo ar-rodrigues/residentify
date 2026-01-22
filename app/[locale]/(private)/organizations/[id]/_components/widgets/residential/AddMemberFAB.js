@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import CreateGeneralInviteLinkForm from "./CreateGeneralInviteLinkForm";
 
 import { useCurrentOrganization } from "@/hooks/useCurrentOrganization";
+import { useNavigationLoading } from "@/components/providers/NavigationLoadingProvider";
 
 export default function AddMemberFAB({
   organizationId,
@@ -19,6 +20,7 @@ export default function AddMemberFAB({
   const router = useRouter();
   const { organization } = useCurrentOrganization();
   const isMobile = useIsMobile();
+  const { startNavigation } = useNavigationLoading();
   const [modalOpen, setModalOpen] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
 
@@ -29,7 +31,10 @@ export default function AddMemberFAB({
 
   const handleInviteUser = () => {
     setModalOpen(false);
-    router.push(`/organizations/${organizationId}/invite`);
+    const invitePath = `/organizations/${organizationId}/invite`;
+    startNavigation(invitePath, () => {
+      router.push(invitePath);
+    });
   };
 
   const handleCreateLink = () => {
@@ -40,7 +45,7 @@ export default function AddMemberFAB({
     setModalOpen(false);
     setShowLinkForm(false);
     if (onSwitchToInvitations) {
-      onSwitchToInvitations();
+      onSwitchToInvitations(linkData);
     }
   };
 
@@ -92,6 +97,7 @@ export default function AddMemberFAB({
         {showLinkForm ? (
           <CreateGeneralInviteLinkForm
             organizationId={organizationId}
+            organizationTypeId={organization?.organization_type_id}
             onSuccess={handleLinkCreated}
           />
         ) : (

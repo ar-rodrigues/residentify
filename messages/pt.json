@@ -203,10 +203,18 @@
       "role": "Função",
       "rolePlaceholder": "Selecione uma função",
       "rolePlaceholderFallback": "Selecione uma função",
+      "seatType": "Tipo de Assento",
+      "seatTypePlaceholder": "Selecione um tipo de assento",
       "description": "Descrição (Opcional)",
       "descriptionPlaceholder": "Descrição do usuário (opcional)",
       "button": "Enviar Convite",
       "roles": {
+        "admin": "Administrador",
+        "resident": "Residente",
+        "security": "Equipe de Segurança",
+        "unknown": "Desconhecido"
+      },
+      "seatTypes": {
         "admin": "Administrador",
         "resident": "Residente",
         "security": "Equipe de Segurança"
@@ -224,6 +232,7 @@
         "emailRequired": "Por favor, insira o email",
         "emailInvalid": "Por favor, insira um email válido",
         "roleRequired": "Por favor, selecione uma função",
+        "seatTypeRequired": "Por favor, selecione um tipo de assento",
         "accessDenied": "Você não tem permissão para convidar usuários. Apenas administradores podem convidar usuários.",
         "accessDeniedTitle": "Acesso Negado",
         "loadRolesError": "Erro ao carregar as funções da organização.",
@@ -285,7 +294,8 @@
       "roles": {
         "admin": "Administrador",
         "resident": "Residente",
-        "security": "Pessoal de Segurança"
+        "security": "Pessoal de Segurança",
+        "unknown": "Desconhecido"
       }
     },
     "invitations": {

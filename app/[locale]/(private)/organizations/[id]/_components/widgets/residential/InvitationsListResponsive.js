@@ -34,7 +34,7 @@ import { App } from "antd";
 
 const { Text, Paragraph } = Typography;
 
-export default function InvitationsListResponsive({ organizationId }) {
+export default function InvitationsListResponsive({ organizationId, refreshTrigger }) {
   const t = useTranslations();
   const { message, modal } = App.useApp();
   const {
@@ -77,6 +77,13 @@ export default function InvitationsListResponsive({ organizationId }) {
       loadGeneralLinks();
     }
   }, [organizationId, loadInvitations, loadGeneralLinks]);
+
+  // Refetch general links when refreshTrigger changes (but not on initial mount)
+  useEffect(() => {
+    if (organizationId && refreshTrigger !== undefined && refreshTrigger > 0) {
+      loadGeneralLinks();
+    }
+  }, [refreshTrigger, organizationId, loadGeneralLinks]);
 
   // Filter active (non-expired) general invite links
   const activeLinks = generalLinks.filter((link) => !link.is_expired);
@@ -183,7 +190,29 @@ export default function InvitationsListResponsive({ organizationId }) {
     }
   };
 
+  const getSeatTypeDisplayName = (seatTypeName) => {
+    if (!seatTypeName) {
+      return t("organizations.members.roles.unknown", {
+        defaultValue: "Desconocido",
+      });
+    }
+    return t(`organizations.members.roles.${seatTypeName}`, {
+      defaultValue: seatTypeName,
+    });
+  };
+
+  const getSeatTypeColor = (seatTypeName) => {
+    if (seatTypeName === "admin") return "red";
+    if (seatTypeName === "security") return "orange";
+    return "blue";
+  };
+
   const getRoleDisplayName = (roleName) => {
+    if (!roleName) {
+      return t("organizations.members.roles.unknown", {
+        defaultValue: "Desconocido",
+      });
+    }
     return t(`organizations.members.roles.${roleName}`, {
       defaultValue: roleName,
     });
@@ -776,8 +805,8 @@ export default function InvitationsListResponsive({ organizationId }) {
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <Space>
                     <RiLinksLine className="text-gray-500 text-xl" />
-                    <Tag color={getRoleColor(link.role_name)}>
-                      {getRoleDisplayName(link.role_name)}
+                    <Tag color={getSeatTypeColor(link.seat_type_name)}>
+                      {getSeatTypeDisplayName(link.seat_type_name)}
                     </Tag>
                     {link.requires_approval && (
                       <Tag color="orange" icon={<RiShieldCheckLine />}>

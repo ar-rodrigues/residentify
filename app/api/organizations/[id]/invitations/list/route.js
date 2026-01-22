@@ -166,7 +166,7 @@ export async function GET(request, { params }) {
             description: invitation.seat_types.description,
           } : {
             id: invitation.seat_type_id,
-            name: "Desconocido",
+            name: "unknown",
             description: null,
           },
           status: invitation.status,

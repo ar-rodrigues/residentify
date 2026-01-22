@@ -51,8 +51,8 @@ import { getLocaleFromRequest } from "@/utils/i18n/request";
  *                     - type: object
  *                       properties:
  *                         invite_url: { type: 'string' }
- *                         role_name: { type: 'string' }
- *                         role_description: { type: 'string', nullable: true }
+ *                         seat_type_name: { type: 'string' }
+ *                         seat_type_description: { type: 'string', nullable: true }
  *       '400':
  *         $ref: '#/components/responses/ValidationError'
  *       '401':
@@ -247,8 +247,8 @@ export async function POST(request, { params }) {
         data: {
           ...link,
           invite_url: inviteUrl,
-          role_name: seatType.name,
-          role_description: seatType.description,
+          seat_type_name: seatType.name,
+          seat_type_description: seatType.description,
         },
         message: "Enlace de invitación creado exitosamente.",
       },

@@ -33,8 +33,12 @@ import { createClient } from "@/utils/supabase/server";
  *                         id: { type: string, format: uuid }
  *                         organization_name: { type: string }
  *                         organization_role_id: { type: integer }
- *                         role_name: { type: string }
- *                         role_description: { type: string, nullable: true }
+ *                         seat_type:
+ *                           type: object
+ *                           properties:
+ *                             id: { type: integer }
+ *                             name: { type: string }
+ *                             description: { type: string, nullable: true }
  *                         requires_approval: { type: boolean }
  *                         expires_at: { type: string, format: date-time, nullable: true }
  *                         is_expired: { type: boolean }
@@ -63,13 +67,31 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Get general invite link details using RPC function
-    const { data: linkData, error: linkError } = await supabase.rpc(
-      "get_general_invite_link_by_token",
-      { p_token: token }
-    );
+    // Get general invite link details with seat type information
+    const { data: linkData, error: linkError } = await supabase
+      .from("general_invite_links")
+      .select(`
+        id,
+        organization_id,
+        seat_type_id,
+        token,
+        requires_approval,
+        expires_at,
+        created_at,
+        updated_at,
+        seat_types(
+          id,
+          name,
+          description
+        ),
+        organizations(
+          name
+        )
+      `)
+      .eq("token", token)
+      .single();
 
-    if (linkError || !linkData || linkData.length === 0) {
+    if (linkError || !linkData) {
       return NextResponse.json(
         {
           error: true,
@@ -79,10 +101,9 @@ export async function GET(request, { params }) {
       );
     }
 
-    const link = linkData[0];
-
     // Check if link is expired
-    if (link.is_expired) {
+    const isExpired = linkData.expires_at && new Date(linkData.expires_at) < new Date();
+    if (isExpired) {
       return NextResponse.json(
         {
           error: true,
@@ -92,19 +113,24 @@ export async function GET(request, { params }) {
       );
     }
 
+    // Build seat type information
+    const seatType = linkData.seat_types ? {
+      id: linkData.seat_types.id,
+      name: linkData.seat_types.name,
+      description: linkData.seat_types.description,
+    } : null;
+
     // Return link details without exposing organization ID
     return NextResponse.json(
       {
         error: false,
         data: {
-          id: link.id,
-          organization_name: link.organization_name,
-          organization_role_id: link.organization_role_id,
-          role_name: link.role_name,
-          role_description: link.role_description,
-          requires_approval: link.requires_approval,
-          expires_at: link.expires_at,
-          is_expired: link.is_expired,
+          id: linkData.id,
+          organization_name: linkData.organizations?.name || null,
+          seat_type: seatType,
+          requires_approval: linkData.requires_approval,
+          expires_at: linkData.expires_at,
+          is_expired: isExpired,
         },
         message: "Enlace de invitación válido.",
       },

@@ -203,10 +203,18 @@
       "role": "Rol",
       "rolePlaceholder": "Selecciona un rol",
       "rolePlaceholderFallback": "Selecciona un rol",
+      "seatType": "Tipo de Asiento",
+      "seatTypePlaceholder": "Selecciona un tipo de asiento",
       "description": "Descripción (Opcional)",
       "descriptionPlaceholder": "Descripción del usuario (opcional)",
       "button": "Enviar Invitación",
       "roles": {
+        "admin": "Administrador",
+        "resident": "Residente",
+        "security": "Personal de Seguridad",
+        "unknown": "Desconocido"
+      },
+      "seatTypes": {
         "admin": "Administrador",
         "resident": "Residente",
         "security": "Personal de Seguridad"
@@ -224,6 +232,7 @@
         "emailRequired": "Por favor ingresa el email",
         "emailInvalid": "Por favor ingresa un email válido",
         "roleRequired": "Por favor selecciona un rol",
+        "seatTypeRequired": "Por favor selecciona un tipo de asiento",
         "accessDenied": "No tienes permisos para invitar usuarios. Solo los administradores pueden invitar usuarios.",
         "accessDeniedTitle": "Acceso Denegado",
         "loadRolesError": "Error al cargar los roles de organización.",
@@ -285,7 +294,8 @@
       "roles": {
         "admin": "Administrador",
         "resident": "Residente",
-        "security": "Personal de Seguridad"
+        "security": "Personal de Seguridad",
+        "unknown": "Desconocido"
       }
     },
     "invitations": {

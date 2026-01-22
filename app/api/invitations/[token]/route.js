@@ -37,11 +37,12 @@ import { createClient } from "@/utils/supabase/server";
  *                           properties:
  *                             id: { type: string, format: uuid }
  *                             name: { type: string }
- *                         role:
+ *                         seat_type:
  *                           type: object
  *                           properties:
  *                             id: { type: integer }
  *                             name: { type: string }
+ *                             description: { type: string, nullable: true }
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  *       410:
@@ -84,9 +85,43 @@ export async function GET(request, { params }) {
 
     const invitation = invitationData[0];
 
+    // Fetch full invitation with seat type information
+    const { data: fullInvitation, error: fullInviteError } = await supabase
+      .from("organization_invitations")
+      .select(`
+        id,
+        email,
+        first_name,
+        last_name,
+        description,
+        status,
+        expires_at,
+        created_at,
+        organization_id,
+        seat_type_id,
+        invited_by,
+        seat_types(
+          id,
+          name,
+          description
+        )
+      `)
+      .eq("token", token)
+      .single();
+
+    if (fullInviteError || !fullInvitation) {
+      return NextResponse.json(
+        {
+          error: true,
+          message: "Error al obtener los detalles de la invitación.",
+        },
+        { status: 500 }
+      );
+    }
+
     // Check if invitation is expired
     const now = new Date();
-    const expiresAt = new Date(invitation.expires_at);
+    const expiresAt = new Date(fullInvitation.expires_at);
     if (expiresAt < now) {
       return NextResponse.json(
         {
@@ -94,7 +129,7 @@ export async function GET(request, { params }) {
           message: "Esta invitación ha expirado.",
           data: {
             expired: true,
-            expires_at: invitation.expires_at,
+            expires_at: fullInvitation.expires_at,
           },
         },
         { status: 410 }
@@ -102,13 +137,13 @@ export async function GET(request, { params }) {
     }
 
     // Check if invitation is already accepted
-    if (invitation.status !== "pending") {
+    if (fullInvitation.status !== "pending") {
       return NextResponse.json(
         {
           error: true,
           message: "Esta invitación ya ha sido aceptada o cancelada.",
           data: {
-            status: invitation.status,
+            status: fullInvitation.status,
           },
         },
         { status: 410 }
@@ -117,11 +152,11 @@ export async function GET(request, { params }) {
 
     // Get inviter's name
     let inviterName = "Administrador";
-    if (invitation.invited_by) {
+    if (fullInvitation.invited_by) {
       const { data: inviterProfile } = await supabase
         .from("profiles")
         .select("first_name, last_name")
-        .eq("id", invitation.invited_by)
+        .eq("id", fullInvitation.invited_by)
         .single();
 
       if (inviterProfile) {
@@ -129,27 +164,37 @@ export async function GET(request, { params }) {
       }
     }
 
+    // Get organization name
+    const { data: orgData } = await supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", fullInvitation.organization_id)
+      .single();
+
+    // Build seat type information
+    const seatType = fullInvitation.seat_types ? {
+      id: fullInvitation.seat_types.id,
+      name: fullInvitation.seat_types.name,
+      description: fullInvitation.seat_types.description,
+    } : null;
+
     return NextResponse.json(
       {
         error: false,
         data: {
-          id: invitation.id,
-          email: invitation.email,
-          first_name: invitation.first_name,
-          last_name: invitation.last_name,
-          description: invitation.description,
+          id: fullInvitation.id,
+          email: fullInvitation.email,
+          first_name: fullInvitation.first_name,
+          last_name: fullInvitation.last_name,
+          description: fullInvitation.description,
           organization: {
-            id: invitation.organization_id,
-            name: invitation.organization_name,
+            id: fullInvitation.organization_id,
+            name: orgData?.name || invitation.organization_name,
           },
-          role: {
-            id: invitation.role_id,
-            name: invitation.role_name,
-            description: invitation.role_description,
-          },
+          seat_type: seatType,
           inviter_name: inviterName,
-          expires_at: invitation.expires_at,
-          created_at: invitation.created_at,
+          expires_at: fullInvitation.expires_at,
+          created_at: fullInvitation.created_at,
         },
         message: "Invitación obtenida exitosamente.",
       },

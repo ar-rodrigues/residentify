@@ -15,6 +15,7 @@
   --color-bg-elevated: #ffffff;
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #6b7280;
+  --color-text-placeholder: #4b5563;
   --color-border: #e5e7eb;
   --color-border-subtle: #f3f4f6;
 
@@ -52,6 +53,7 @@
   --color-bg-elevated: #000000;
   --color-text-primary: #e0e0e0;
   --color-text-secondary: #a0a0a0;
+  --color-text-placeholder: #a0a0a0;
   --color-border: #1a1a1a;
   --color-border-subtle: #0f0f0f;
 
@@ -254,4 +256,21 @@ ellipse {
 
 [data-theme="dark"] .ant-alert-icon {
   color: var(--color-primary) !important;
+}
+
+/* Ant Design Switch - Better contrast for unchecked state */
+.ant-switch {
+  background-color: #6b7280 !important; /* gray-500 for better contrast (4.16:1) with white text */
+}
+
+.ant-switch-checked {
+  background-color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .ant-switch {
+  background-color: #4b5563 !important; /* gray-600 for dark mode unchecked state */
+}
+
+[data-theme="dark"] .ant-switch-checked {
+  background-color: var(--color-primary) !important;
 }

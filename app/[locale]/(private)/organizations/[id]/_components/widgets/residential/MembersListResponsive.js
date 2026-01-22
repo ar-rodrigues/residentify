@@ -124,9 +124,14 @@ export default function MembersListResponsive({ organizationId }) {
     });
   };
 
-  const getRoleDisplayName = (roleName) => {
-    return t(`organizations.members.roles.${roleName}`, {
-      defaultValue: roleName,
+  const getSeatTypeDisplayName = (seatTypeName) => {
+    if (!seatTypeName) {
+      return t("organizations.members.roles.unknown", {
+        defaultValue: "Desconhecido",
+      });
+    }
+    return t(`organizations.members.roles.${seatTypeName}`, {
+      defaultValue: seatTypeName,
     });
   };
 
@@ -220,7 +225,7 @@ export default function MembersListResponsive({ organizationId }) {
                   ? "warning"
                   : "default"
               }
-              text={getRoleDisplayName(record.seat.type.name)}
+              text={getSeatTypeDisplayName(record.seat.type.name)}
               size="small"
             />
           )}
@@ -261,7 +266,7 @@ export default function MembersListResponsive({ organizationId }) {
             size="small"
             options={seats?.map((seat) => ({
               value: seat.id,
-              label: `${seat.name} (${getRoleDisplayName(seat.seat_types?.name || 'unknown')})`,
+              label: `${seat.name} (${getSeatTypeDisplayName(seat.seat_types?.name || 'unknown')})`,
               disabled: seat.member_count >= seat.capacity && seat.id !== record.seat?.id,
             })) || []}
           />
@@ -321,7 +326,7 @@ export default function MembersListResponsive({ organizationId }) {
     const getSeatMenuItems = (member) => {
       return seats.map((seat) => ({
         key: seat.id,
-        label: `${seat.name} (${getRoleDisplayName(seat.seat_types.name)})`,
+        label: `${seat.name} (${getSeatTypeDisplayName(seat.seat_types.name)})`,
         disabled:
           updatingMemberId !== null ||
           (updatingMemberId === member.id && loadingSeats) ||
@@ -368,7 +373,7 @@ export default function MembersListResponsive({ organizationId }) {
                   {/* First row: Icon and Name */}
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const RoleIcon = getRoleIconComponent(member.role?.name);
+                      const RoleIcon = getRoleIconComponent(member.seat?.type?.name);
                       return (
                         <RoleIcon
                           className="flex-shrink-0"
@@ -418,7 +423,7 @@ export default function MembersListResponsive({ organizationId }) {
               {/* Seat - Second row */}
               <div className="flex items-center justify-between mb-2">
                 <Text className="text-sm">
-                  {member.seat?.name || "Sin asiento"} ({getRoleDisplayName(member.seat?.type?.name)})
+                  {member.seat?.name || "Sin asiento"} ({getSeatTypeDisplayName(member.seat?.type?.name)})
                 </Text>
                 <Space size="small">
                   <Dropdown

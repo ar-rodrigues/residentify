@@ -18,6 +18,7 @@ export default function MembersPageClient({ organizationId }) {
   const { hasPermission } = useOrganizationAuth();
   const [activeTab, setActiveTab] = useState("members");
   const [redirecting, setRedirecting] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Check if user has members:manage permission (required for members page)
   const hasMembersManagePermission = hasPermission("members:manage");
@@ -70,7 +71,7 @@ export default function MembersPageClient({ organizationId }) {
           {t("organizations.invitations.title")}
         </span>
       ),
-      children: <InvitationsListResponsive organizationId={organizationId} />,
+      children: <InvitationsListResponsive organizationId={organizationId} refreshTrigger={refreshTrigger} />,
     },
   ];
 
@@ -85,7 +86,10 @@ export default function MembersPageClient({ organizationId }) {
       />
       <AddMemberFAB
         organizationId={organizationId}
-        onSwitchToInvitations={() => setActiveTab("invitations")}
+        onSwitchToInvitations={(linkData) => {
+          setActiveTab("invitations");
+          setRefreshTrigger((prev) => prev + 1);
+        }}
       />
     </div>
   );

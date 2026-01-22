@@ -32,6 +32,7 @@ export default function AntdProvider({ children, locale = "es" }) {
           colorError: "#dc2626",
           borderRadius: 8,
           fontFamily: "system-ui, -apple-system, sans-serif",
+          colorTextPlaceholder: "#4b5563",
         },
         components: {
           Button: {
@@ -65,6 +66,7 @@ export default function AntdProvider({ children, locale = "es" }) {
     
     const textPrimary = computedStyle.getPropertyValue("--color-text-primary").trim() || (theme === "dark" ? "#e0e0e0" : "#1a1a1a");
     const textSecondary = computedStyle.getPropertyValue("--color-text-secondary").trim() || (theme === "dark" ? "#a0a0a0" : "#6b7280");
+    const textPlaceholder = computedStyle.getPropertyValue("--color-text-placeholder").trim() || (theme === "dark" ? "#737373" : "#4b5563");
     const bgElevated = computedStyle.getPropertyValue("--color-bg-elevated").trim() || (theme === "dark" ? "#000000" : "#ffffff");
     const borderColor = computedStyle.getPropertyValue("--color-border").trim() || (theme === "dark" ? "#1a1a1a" : "#e5e7eb");
     const primaryBg = computedStyle.getPropertyValue("--color-primary-bg").trim() || (theme === "dark" ? "rgba(91, 141, 239, 0.15)" : "#eff6ff");
@@ -78,6 +80,7 @@ export default function AntdProvider({ children, locale = "es" }) {
         fontFamily: computedStyle.getPropertyValue("--font-sans").trim() || "system-ui, -apple-system, sans-serif",
         colorText: textPrimary,
         colorTextSecondary: textSecondary,
+        colorTextPlaceholder: textPlaceholder,
         colorBgContainer: bgElevated,
         colorBorder: borderColor,
       },

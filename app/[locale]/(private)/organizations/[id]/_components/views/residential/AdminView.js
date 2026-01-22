@@ -12,6 +12,7 @@ import AddMemberFAB from "../../widgets/residential/AddMemberFAB";
 export default function AdminView({ organizationId }) {
   const t = useTranslations();
   const [activeTab, setActiveTab] = useState("members");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   return (
     <div className="w-full">
@@ -28,7 +29,7 @@ export default function AdminView({ organizationId }) {
             key: "invitations",
             label: t("admin.view.tabs.invitations"),
             children: (
-              <InvitationsListResponsive organizationId={organizationId} />
+              <InvitationsListResponsive organizationId={organizationId} refreshTrigger={refreshTrigger} />
             ),
           },
           {
@@ -51,7 +52,10 @@ export default function AdminView({ organizationId }) {
       />
       <AddMemberFAB
         organizationId={organizationId}
-        onSwitchToInvitations={() => setActiveTab("invitations")}
+        onSwitchToInvitations={(linkData) => {
+          setActiveTab("invitations");
+          setRefreshTrigger((prev) => prev + 1);
+        }}
       />
     </div>
   );

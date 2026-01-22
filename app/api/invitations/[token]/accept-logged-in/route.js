@@ -264,6 +264,17 @@ export async function POST(request, { params }) {
                 console.error("Error setting main organization:", updateResult.message);
               }
 
+              // Fetch seat type information from member's seat
+              let seatTypeName = null;
+              if (member.seat_id) {
+                const { data: seatData } = await supabase
+                  .from("seats")
+                  .select("seat_types(name)")
+                  .eq("id", member.seat_id)
+                  .single();
+                seatTypeName = seatData?.seat_types?.name;
+              }
+
               return NextResponse.json(
                 {
                   error: false,
@@ -271,7 +282,7 @@ export async function POST(request, { params }) {
                     user_id: user.id,
                     organization_id: member.organization_id,
                     organization_name: invitation.organization_name,
-                    role_name: invitation.role_name,
+                    seat_type_name: seatTypeName || invitation.role_name,
                     is_new_user: false,
                   },
                   message: "Agregado a la organización exitosamente.",
@@ -326,6 +337,17 @@ export async function POST(request, { params }) {
       console.error("Error setting main organization:", updateResult.message);
     }
 
+    // Fetch seat type information from member's seat
+    let seatTypeName = null;
+    if (member.seat_id) {
+      const { data: seatData } = await supabase
+        .from("seats")
+        .select("seat_types(name)")
+        .eq("id", member.seat_id)
+        .single();
+      seatTypeName = seatData?.seat_types?.name;
+    }
+
     return NextResponse.json(
       {
         error: false,
@@ -333,7 +355,7 @@ export async function POST(request, { params }) {
           user_id: user.id,
           organization_id: member.organization_id,
           organization_name: invitation.organization_name,
-          role_name: invitation.role_name,
+          seat_type_name: seatTypeName || invitation.role_name,
           is_new_user: false,
         },
         message: "Agregado a la organización exitosamente.",
