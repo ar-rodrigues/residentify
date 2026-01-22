@@ -23,11 +23,12 @@ const nextConfig = {
       { module: /node_modules\/@supabase\/realtime-js/ },
     ];
 
-    // Provide a mock for process.versions if it's missing during bundling
-    // This helps with libraries like Supabase Realtime that check process.versions
+    // Provide a mock for process.versions and process.version if they are missing
+    // This helps with libraries like Supabase and Swagger that check for Node.js environment
     config.plugins.push(
       new webpack.DefinePlugin({
-        'process.versions': 'process.versions || {}',
+        'process.versions': '({})',
+        'process.version': '"v20.0.0"',
       })
     );
 
