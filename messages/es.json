@@ -1039,6 +1039,7 @@
   "pwa": {
     "install": {
       "button": "Instalar App",
+      "hint": "Accede más rápido desde tu pantalla de inicio",
       "title": "Instalar Aplicación",
       "alreadyInstalled": "La aplicación ya está instalada",
       "instructions": "Instrucciones de instalación",

@@ -39,6 +39,8 @@ const nextConfig = {
 const pwaConfig = withPWA({
   dest: "public",
   disable: false, // Enable PWA in development to allow testing install prompt
+  register: true, // Automatically register the service worker
+  skipWaiting: true, // Activate new service worker immediately
   workboxOptions: {
     // Exclude chrome-extension and other unsupported schemes from precaching
     exclude: [

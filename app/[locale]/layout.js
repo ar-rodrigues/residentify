@@ -14,14 +14,24 @@ export const metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Residentify",
   },
   formatDetection: {
     telephone: false,
   },
   icons: {
+    icon: "/icons/residentify-192x192.png",
+    shortcut: "/icons/residentify-192x192.png",
     apple: "/icons/residentify-192x192.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "Residentify",
+    "msapplication-TileColor": "#000000",
+    "theme-color": "#000000",
   },
 };
 
@@ -58,6 +68,9 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} suppressHydrationWarning className={inter.variable}>
       <head>
+        <link rel="icon" href="/icons/residentify-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/residentify-192x192.png" />
+        <link rel="shortcut icon" href="/icons/residentify-192x192.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

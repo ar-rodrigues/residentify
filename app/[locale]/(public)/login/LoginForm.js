@@ -277,10 +277,8 @@ export default function LoginForm() {
           </Card>
         )}
 
-        {/* PWA Install Button - Only visible on mobile */}
-        <div className="text-center mt-4">
-          <PWAInstallButton variant="button" size="large" />
-        </div>
+        {/* PWA Install Button - Floating button, only visible on mobile */}
+        <PWAInstallButton />
 
         <div className="text-center mt-6">
           <Text className="text-sm" style={{ color: "var(--color-text-secondary)" }}>

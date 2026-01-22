@@ -9,14 +9,24 @@ export const metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Residentify",
   },
   formatDetection: {
     telephone: false,
   },
   icons: {
+    icon: "/icons/residentify-192x192.png",
+    shortcut: "/icons/residentify-192x192.png",
     apple: "/icons/residentify-192x192.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-title": "Residentify",
+    "msapplication-TileColor": "#000000",
+    "theme-color": "#000000",
   },
 };
 

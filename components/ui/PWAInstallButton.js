@@ -3,22 +3,20 @@
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useTranslations } from "next-intl";
 import { RiDownloadLine } from "react-icons/ri";
-import Button from "./Button";
 import PWAInstallInstructions from "./PWAInstallInstructions";
 
 /**
  * PWA Install Button Component
+ * Floating circular button with glass effect
  * Only visible on mobile devices
  * Shows install button for Android or instructions for iOS
  * @param {Object} props - Component props
- * @param {string} props.variant - Button variant: 'button' (default) or 'menuItem'
- * @param {string} props.size - Button size (for button variant)
+ * @param {string} props.variant - Button variant: 'floating' (default) or 'menuItem'
  * @param {string} props.className - Additional CSS classes
  * @param {Function} props.onClick - Optional click handler
  */
 export default function PWAInstallButton({
-  variant = "button",
-  size = "middle",
+  variant = "floating",
   className = "",
   onClick,
 }) {
@@ -74,18 +72,41 @@ export default function PWAInstallButton({
   // Button variant (default)
   return (
     <>
-      <Button
-        type="default"
-        icon={<RiDownloadLine />}
+      <button
         onClick={handleClick}
-        size={size}
-        className={className}
+        className={`${className} group`}
         style={{
-          width: variant === "fullWidth" ? "100%" : "auto",
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          width: "56px",
+          height: "56px",
+          borderRadius: "50%",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          background: "rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.3s ease",
+          zIndex: 1000,
+          color: "var(--color-primary)",
         }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1) translateY(-2px)";
+          e.currentTarget.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.15) inset";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1) translateY(0)";
+          e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1) inset";
+        }}
+        aria-label={t("pwa.install.button")}
       >
-        {t("pwa.install.button")}
-      </Button>
+        <RiDownloadLine style={{ fontSize: "24px" }} />
+      </button>
       <PWAInstallInstructions
         open={showIOSInstructions}
         onClose={closeIOSInstructions}
