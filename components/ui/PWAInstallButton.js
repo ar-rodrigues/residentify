@@ -38,9 +38,12 @@ export default function PWAInstallButton({
     return null;
   }
 
-  // Always show button on mobile if not installed
-  // For iOS: will show instructions
-  // For Android: will use prompt if available, or can still be useful to show
+  // Only show button if installation is possible:
+  // For iOS: always show (will display instructions)
+  // For Android: only show if beforeinstallprompt event has fired (canInstall === true)
+  if (!canInstall) {
+    return null;
+  }
 
   const handleClick = () => {
     if (onClick) {

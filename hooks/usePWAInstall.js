@@ -123,13 +123,10 @@ export function usePWAInstall() {
         // Prompt failed, clear it
         console.warn("Install prompt error:", error);
         setInstallPrompt(null);
-        // Fallback to instructions
-        setShowIOSInstructions(true);
       }
     } else {
-      // No prompt available - fallback to instructions for Android too
-      console.log("Install prompt not available. Showing instructions fallback.");
-      setShowIOSInstructions(true);
+      // No prompt available on Android - this shouldn't happen if button visibility is controlled properly
+      console.warn("Install prompt not available. Button should not be visible.");
     }
   };
 
