@@ -2,7 +2,7 @@
   "name": "Residentify",
   "short_name": "Residentify",
   "description": "Sistema de control de acceso para edificios residenciales",
-  "start_url": "/",
+  "start_url": "/organizations",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
