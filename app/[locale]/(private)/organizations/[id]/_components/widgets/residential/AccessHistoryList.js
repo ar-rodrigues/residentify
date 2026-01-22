@@ -44,7 +44,7 @@ export default function AccessHistoryList({ organizationId }) {
       setError(errorMessage);
       message.error(errorMessage);
     }
-  }, [organizationId, getAccessLogs, message]);
+  }, [organizationId, getAccessLogs, message, t]);
 
   useEffect(() => {
     fetchAccessLogs();

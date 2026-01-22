@@ -16,6 +16,23 @@ const nextConfig = {
   },
   // Compress output
   compress: true,
+  webpack: (config, { isServer, webpack }) => {
+    // Suppress warnings about Critical dependency: the request of a dependency is an expression
+    config.ignoreWarnings = [
+      { module: /node_modules\/swagger-jsdoc/ },
+      { module: /node_modules\/@supabase\/realtime-js/ },
+    ];
+
+    // Provide a mock for process.versions if it's missing during bundling
+    // This helps with libraries like Supabase Realtime that check process.versions
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.versions': 'process.versions || {}',
+      })
+    );
+
+    return config;
+  },
 };
 
 const pwaConfig = withPWA({

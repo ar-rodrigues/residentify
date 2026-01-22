@@ -3,14 +3,8 @@
  * Dynamically generates OpenAPI 3.1 spec from JSDoc comments in route files
  */
 
-import swaggerJsdoc from 'swagger-jsdoc';
-import { swaggerOptions } from './config.js';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Load database type schemas if available
@@ -34,8 +28,12 @@ function loadDatabaseSchemas() {
  * Generate OpenAPI specification
  * @returns {Object} OpenAPI 3.1 specification object
  */
-function generateOpenAPISpec() {
+async function generateOpenAPISpec() {
   try {
+    // Dynamically import swagger-jsdoc to avoid build-time issues in some environments
+    const { default: swaggerJsdoc } = await import('swagger-jsdoc');
+    const { swaggerOptions } = await import('./config.js');
+
     // Generate spec from JSDoc comments
     const spec = swaggerJsdoc(swaggerOptions);
 
@@ -90,7 +88,7 @@ let cachedSpec = null;
 let cacheTimestamp = null;
 const CACHE_TTL = 60000; // 1 minute cache in development
 
-function getOpenAPISpec(forceRefresh = false) {
+async function getOpenAPISpec(forceRefresh = false) {
   const isDevelopment =
     process.env.DEVELOPMENT === 'true' ||
     process.env.NEXT_PUBLIC_DEVELOPMENT === 'true' ||
@@ -98,7 +96,7 @@ function getOpenAPISpec(forceRefresh = false) {
 
   // Always refresh in development or if forced
   if (isDevelopment || forceRefresh || !cachedSpec) {
-    cachedSpec = generateOpenAPISpec();
+    cachedSpec = await generateOpenAPISpec();
     validateSpec(cachedSpec);
     cacheTimestamp = Date.now();
     return cachedSpec;
@@ -106,7 +104,7 @@ function getOpenAPISpec(forceRefresh = false) {
 
   // Check cache expiry
   if (Date.now() - cacheTimestamp > CACHE_TTL) {
-    cachedSpec = generateOpenAPISpec();
+    cachedSpec = await generateOpenAPISpec();
     validateSpec(cachedSpec);
     cacheTimestamp = Date.now();
   }

@@ -1,11 +1,4 @@
 import { NextResponse } from "next/server";
-import { getOpenAPISpec } from "@/utils/swagger/generator";
-
-/**
- * GET /api/docs/api/openapi
- * Generates OpenAPI 3.1 specification from swagger-jsdoc annotations
- * Only accessible in development mode
- */
 export async function GET() {
   try {
     // Check if running in development mode
@@ -25,7 +18,8 @@ export async function GET() {
     }
 
     // Generate OpenAPI specification
-    const spec = getOpenAPISpec();
+    const { getOpenAPISpec } = await import("@/utils/swagger/generator");
+    const spec = await getOpenAPISpec();
 
     // Return the OpenAPI specification
     return NextResponse.json(spec, {

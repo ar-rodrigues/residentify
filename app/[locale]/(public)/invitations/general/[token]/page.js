@@ -121,7 +121,7 @@ export default function GeneralInviteLinkPage() {
       setErrorMessage(t("organizations.generalInviteLinks.acceptPage.loadError"));
       setLoadingLink(false);
     }
-  }, [token, getGeneralInviteLinkByToken, checkStatus, supabase]);
+  }, [token, getGeneralInviteLinkByToken, checkStatus, supabase, t]);
 
   useEffect(() => {
     if (token) {

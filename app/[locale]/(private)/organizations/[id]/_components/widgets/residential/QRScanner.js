@@ -420,7 +420,7 @@ export default function QRScanner({ onScan, loading = false }) {
         }
       }, 100);
     },
-    [onScan, message]
+    [onScan, message, t]
   );
 
   const handleFileSelect = useCallback(

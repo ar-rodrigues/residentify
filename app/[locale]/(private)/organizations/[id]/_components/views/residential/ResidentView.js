@@ -105,7 +105,7 @@ export default function ResidentView({ organizationId }) {
         channelRef.current = null;
       }
     };
-  }, [user?.id, organizationId, supabase, loadQRCodes, message]);
+  }, [user?.id, organizationId, supabase, loadQRCodes, message, t]);
 
   const handleGenerateInvite = async () => {
     const result = await createQRCode(organizationId);

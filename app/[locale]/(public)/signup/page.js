@@ -19,6 +19,7 @@ import { localDateToUTC } from "@/utils/date";
 import Input from "@/components/ui/Input";
 import Password from "@/components/ui/Password";
 import Button from "@/components/ui/Button";
+import PWAInstallButton from "@/components/ui/PWAInstallButton";
 
 const { Title, Paragraph, Text } = Typography;
 

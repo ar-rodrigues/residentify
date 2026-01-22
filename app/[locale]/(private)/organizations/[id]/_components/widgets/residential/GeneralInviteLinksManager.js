@@ -79,7 +79,7 @@ export default function GeneralInviteLinksManager({ organizationId }) {
     } finally {
       setLoadingRoles(false);
     }
-  }, [message]);
+  }, [message, t]);
 
   useEffect(() => {
     if (organizationId) {

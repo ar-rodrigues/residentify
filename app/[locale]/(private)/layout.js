@@ -373,7 +373,6 @@ export default function PrivateLayout({ children }) {
       languageOptionItems,
       handleLogout,
       handleLanguageToggle,
-      isMobile,
       pwaInstall,
     ]
   );

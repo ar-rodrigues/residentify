@@ -2,6 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { isPublicRoute } from "@/utils/config/app";
 
+// Polyfill for process.versions in Edge Runtime to avoid Supabase realtime-js error
+if (typeof process === 'undefined') {
+  globalThis.process = { versions: {} };
+} else if (!process.versions) {
+  process.versions = {};
+}
+
 export async function updateSession(request) {
   let supabaseResponse = NextResponse.next({
     request,
