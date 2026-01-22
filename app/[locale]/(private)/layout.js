@@ -295,8 +295,8 @@ export default function PrivateLayout({ children }) {
         icon: <RiUserLine />,
         onClick: () => router.push("/profile"),
       },
-      // PWA Install option - only visible on mobile
-      ...(pwaInstall.isMobile && !pwaInstall.isInstalled
+      // PWA Install option - only visible on mobile when installation is possible
+      ...(pwaInstall.isMobile && !pwaInstall.isInstalled && pwaInstall.canInstall
         ? [
             {
               key: "pwa-install",
